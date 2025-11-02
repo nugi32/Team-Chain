@@ -14,7 +14,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     // ===========================
     // ENUMS & STRUCTS
     // ===========================
-    enum TaskStatus { NonExistent, Active, OpenRegistration, CancelRequested, Completed, Cancelled }
+    enum TaskStatus { NonExistent, OpenRegistration, Active, CancelRequested, Completed, Cancelled }
     enum UserTask { None, Request, Accepted, Submitted, Revision, Cancelled }
     enum TaskRejectRequest { None, Pending }
     enum SubmitStatus { NoneStatus, Pending, RevisionNeeded, Accepted }
@@ -63,6 +63,17 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         uint256 newDeadline;
     }
 
+    struct reputationPoint {
+        uint8  CancelByMe;
+        uint8  requestCancel;
+        uint8  respondCancel;
+        uint8  revision;
+        uint8  taskAcceptCreator;
+        uint8  taskAcceptMember;
+        uint8  deadlineHitCreator;
+        uint8  deadlineHitMember;
+    }
+
     // ===========================
     // STATE VARIABLES
     // ===========================
@@ -71,6 +82,8 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     mapping(uint256 => CancelRequest) internal CancelRequests;
     mapping(uint256 => TaskSubmit) internal TaskSubmits;
     mapping(address => uint256) public withdrawable;
+    mapping (address => uint256) public myPoint;
+    reputationPoint[1] public reputationPoints;
 
     uint256 public taskCounter;
     uint16 public cooldownInHour;
@@ -78,6 +91,10 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     uint256 internal feeCollected;
     uint256 public k;
     address payable public systemWallet;
+    uint256 internal NegPenalty;
+    uint256 internal CounterPenalty = 100 - NegPenalty;
+    uint256 public minRevisionTime;
+    uint256 public feePercentage;
 
     // ===========================
     // EVENTS
@@ -114,6 +131,8 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     error NoActiveCancelRequest();
     error NotCounterparty();
     error InsufficientStake();
+    error StakeHitLimmit();
+    error cancelOnlyBeforeMemberAccepted();
 
     // ===========================
     // MODIFIERS
@@ -131,7 +150,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     // ===========================
     // INITIALIZER
     // ===========================
-    function initialize(address _employeeAssignment, uint16 _cooldownInHour, uint256 _maxStake, address payable _systemWallet, address _userRegistry) public initializer onlyOwner callerZeroAddr {
+    function initialize(address _employeeAssignment, uint16 _cooldownInHour, uint256 _maxStake, address payable _systemWallet, address _userRegistry, uint256 _NegPenalty, uint256 _minRevisionTime) public initializer onlyOwner callerZeroAddr {
         zero_Address(_systemWallet);
         zero_Address(_employeeAssignment);
         zero_Address(_userRegistry);
@@ -143,7 +162,10 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         cooldownInHour = _cooldownInHour;
         k = 1e6;
         taskCounter = 0;
+        feeCollected = 0;
         maxStake = _maxStake;
+        NegPenalty = _NegPenalty;
+        minRevisionTime = _minRevisionTime;
     }
 
     // ===========================
@@ -153,8 +175,10 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         taskCounter++;
         uint256 taskId = taskCounter;
         uint256 _reward = RewardEther * 1 ether;
-        uint256 creatorStake = (_reward * (uint256(maximumRevision) + 1) * k) / (1 + (DeadlineHours + 1));
-        uint256 total = _reward + creatorStake;
+        uint256 creatorStake = (_reward * (maximumRevision + 1) * k) / ((_seeReputation(msg.sender) + 1) * (DeadlineHours + 1));
+        if (maxStake < creatorStake) revert StakeHitLimmit();
+        uint256 fee = (creatorStake * feePercentage) / 100;
+        uint256 total = _reward + creatorStake + fee;
         if (msg.value != total) revert InsufficientStake();
 
         Tasks[taskId] = Task({
@@ -195,9 +219,17 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
 
     function requestJoinTask(uint256 taskId) external payable taskExists(taskId) whenNotPaused onlyRegistered onlyUser callerZeroAddr{
         Task storage t = Tasks[taskId];
+        JoinRequest[] storage reqs = joinRequests[taskId];
+for (uint256 i = 0; i < reqs.length; i++) {
+    if (reqs[i].applicant == msg.sender && reqs[i].isPending) {
+        revert AlreadyRequestedJoin();
+    }
+}
         if (t.status != TaskStatus.OpenRegistration) revert TaskNotOpen();
         if (msg.sender == t.creator) revert TaskNotOpen();
-        uint256 memberStake = (t.reward * (t.deadline + 1) * k) / (1 + (t.maxRevision + 1));
+        uint256 memberStake = (t.reward * (t.deadline + 1) * k) / 
+        ((_seeReputation(msg.sender) + 1) * (_seeReputation(t.creator) + 1) * (t.maxRevision + 1));
+        if (maxStake < msg.value) revert StakeHitLimmit();
         if (msg.value != memberStake) revert InsufficientStake();
         joinRequests[taskId].push(JoinRequest({
             applicant: msg.sender,
@@ -220,6 +252,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
                 t.member = _applicant;
                 t.memberStake = requests[i].stakeAmount;
                 t.isMemberStakeLocked = true;
+                t.status = TaskStatus.Active;
                 found = true;
                 break;
             }
@@ -249,6 +282,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     function requestCancel(uint256 taskId, string calldata reason) external taskExists(taskId) {
         Task storage t = Tasks[taskId];
         CancelRequest storage cr = CancelRequests[taskId];
+        reputationPoint storage rp = reputationPoints[0];
         if (cr.status == TaskRejectRequest.Pending) revert CancelAlreadyRequested();
         if (msg.sender != t.creator && msg.sender != t.member) revert NotTaskMember();
         address counterparty = (msg.sender == t.creator) ? t.member : t.creator;
@@ -258,12 +292,16 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         cr.status = TaskRejectRequest.Pending;
         cr.reason = reason;
         t.status = TaskStatus.CancelRequested;
+        if (myPoint[msg.sender] < rp.requestCancel) myPoint[msg.sender] = 0;
+        else myPoint[msg.sender] -= rp.requestCancel;
+
         emit CancelRequestedEvent(taskId, msg.sender, reason);
     }
 
-    function respondCancel(uint256 taskId, bool approve) external taskExists(taskId) returns (string memory) {
+    function respondCancel(uint256 taskId, bool approve) external taskExists(taskId) {
         Task storage t = Tasks[taskId];
         CancelRequest storage cr = CancelRequests[taskId];
+        reputationPoint storage rp = reputationPoints[0];
         if (cr.status != TaskRejectRequest.Pending) revert NoActiveCancelRequest();
         if (msg.sender != cr.counterparty) revert NotCounterparty();
 
@@ -271,14 +309,14 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
             _resetCancelRequest(taskId);
             t.status = TaskStatus.Active;
             emit CancelResponded(taskId, false);
-            return "expired";
+            return;
         }
 
         if (!approve) {
             _resetCancelRequest(taskId);
             t.status = TaskStatus.Active;
             emit CancelResponded(taskId, false);
-            return "rejected";
+            return;
         }
 
         if (t.member != address(0)) {
@@ -289,8 +327,11 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         }
         t.status = TaskStatus.Cancelled;
         _resetCancelRequest(taskId);
+        if (myPoint[msg.sender] < rp.respondCancel) myPoint[msg.sender] = 0;
+        else myPoint[msg.sender] -= rp.respondCancel;
+
         emit CancelResponded(taskId, true);
-        return "cancelled";
+        return;
     }
 
     function _resetCancelRequest(uint256 taskId) internal {
@@ -303,23 +344,28 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     }
 
     function cancelByMe(uint256 taskId) external taskExists(taskId) nonReentrant {
+        reputationPoint storage rp = reputationPoints[0];
         Task storage t = Tasks[taskId];
         if (msg.sender != t.creator && msg.sender != t.member) revert NotTaskMember();
         if (CancelRequests[taskId].status == TaskRejectRequest.Pending) revert CancelAlreadyRequested();
+        if (t.status !=TaskStatus.Active) revert TaskNotOpen();
 
         if (msg.sender == t.member) {
-            uint256 penaltyToCreator = (t.memberStake * 25) / 100;
-            uint256 memberReturn = (t.memberStake * 75) / 100;
+            uint256 penaltyToCreator = (t.memberStake * NegPenalty) / 100;
+            uint256 memberReturn = (t.memberStake * CounterPenalty) / 100;
             withdrawable[t.creator] += t.creatorStake + t.reward + penaltyToCreator;
             withdrawable[t.member] += memberReturn;
         } else {
-            uint256 penaltyToMember = (t.creatorStake * 25) / 100;
-            uint256 creatorReturn = (t.creatorStake * 75) / 100 + t.reward;
+            if (t.member == address(0)) revert cancelOnlyBeforeMemberAccepted();
+            uint256 penaltyToMember = (t.creatorStake * NegPenalty) / 100;
+            uint256 creatorReturn = (t.creatorStake * CounterPenalty) / 100 + t.reward;
             withdrawable[t.member] += t.memberStake + penaltyToMember;
             withdrawable[t.creator] += creatorReturn;
         }
 
         t.status = TaskStatus.Cancelled;
+         if (myPoint[msg.sender] < rp.CancelByMe) myPoint[msg.sender] = 0;
+        else myPoint[msg.sender] -= rp.CancelByMe;
         emit TaskCancelledByMe(taskId, msg.sender);
     }
 
@@ -355,6 +401,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     }
 
     function approveTask(uint256 taskId) public taskExists(taskId) nonReentrant {
+        reputationPoint storage rp = reputationPoints[0];
         Task storage t = Tasks[taskId];
         TaskSubmit storage s = TaskSubmits[taskId];
 
@@ -370,6 +417,12 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         t.isRewardClaimed = true;
         t.status = TaskStatus.Completed;
 
+        if (myPoint[t.member] < rp.taskAcceptMember) myPoint[t.member] = 0;
+        else myPoint[t.member] -= rp.taskAcceptMember;
+
+        if (myPoint[t.creator] < rp.taskAcceptCreator) myPoint[t.creator] = 0;
+        else myPoint[t.creator] -= rp.taskAcceptCreator;
+        
         // clear submit
         s.githubURL = "";
         s.sender = address(0);
@@ -384,18 +437,25 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     function requestRevision(uint256 taskId, string calldata Note, uint256 additionalDeadlineHours) external taskExists(taskId) onlyTaskCreator(taskId) {
         Task storage t = Tasks[taskId];
         TaskSubmit storage s = TaskSubmits[taskId];
+        reputationPoint storage rp = reputationPoints[0];
         require(s.sender == t.member, "no submission");
         require(s.status == SubmitStatus.Pending, "not pending");
+        uint256 aditionalDeadline = (additionalDeadlineHours + minRevisionTime) * 1 hours;
 
         s.status = SubmitStatus.RevisionNeeded;
         s.note = Note;
         s.revisionTime++;
-        t.deadline = block.timestamp + (additionalDeadlineHours * 1 hours);
+        t.deadline = block.timestamp + aditionalDeadline;
 
         if (s.revisionTime > t.maxRevision) {
             // too many revisions -> auto approve
             approveTask(taskId);
         }
+        if (myPoint[t.member] < rp.revision) myPoint[t.member] = 0;
+        else myPoint[t.member] -= rp.revision;
+
+        if (myPoint[t.creator] < rp.revision) myPoint[t.creator] = 0;
+        else myPoint[t.creator] -= rp.revision;
         emit RevisionRequested(taskId, s.revisionTime, t.deadline);
     }
 
@@ -404,13 +464,14 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     // ===========================
     function triggerDeadline(uint256 taskId) public taskExists(taskId) {
         Task storage t = Tasks[taskId];
+        reputationPoint storage rp = reputationPoints[0];
         if (t.deadline == 0) return;
         if (block.timestamp < t.deadline) return;
 
         // handle late/expired: split memberStake (75/25) and creator keeps creatorStake?
         if (t.member != address(0) && t.memberStake > 0) {
-            uint256 toMember = (t.memberStake * 75) / 100;
-            uint256 toCreator = (t.memberStake * 25) / 100;
+            uint256 toMember = (t.memberStake * NegPenalty) / 100;
+            uint256 toCreator = (t.memberStake * CounterPenalty) / 100;
 
             withdrawable[t.member] += toMember;
             withdrawable[t.creator] += toCreator + t.creatorStake + t.reward; // decide to return creator funds
@@ -418,6 +479,12 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
             // no member: return creator stake + reward
             withdrawable[t.creator] += t.creatorStake + t.reward;
         }
+
+        if (myPoint[t.member] < rp.deadlineHitMember) myPoint[t.member] = 0;
+        else myPoint[t.member] -= rp.deadlineHitMember;
+
+        if (myPoint[t.creator] < rp.deadlineHitCreator) myPoint[t.creator] = 0;
+        else myPoint[t.creator] -= rp.deadlineHitCreator;
 
         t.status = TaskStatus.Cancelled;
 
@@ -480,11 +547,47 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     function withdrawToSystemWallet() external onlyEmployes {
         (bool ok, ) = systemWallet.call{value: feeCollected}("");
         require(ok, "withdraw failed");
+        feeCollected = 0;
     }
 
     function changeSystemwallet(address payable _NewsystemWallet) external onlyEmployes {
         zero_Address(_NewsystemWallet);
         systemWallet = _NewsystemWallet;
         emit newsystemWallet(_NewsystemWallet);
+    }
+
+    function setNegativePenalty(uint256 newNegPenalty) external onlyEmployes {
+        NegPenalty = newNegPenalty;
+    }
+
+    function setMinAditionalRevisionTime(uint256 NewTimeInHour) external onlyEmployes {
+        minRevisionTime = NewTimeInHour;
+    }
+
+    function setfeePercentage(uint256 newfeePercentage) external onlyEmployes {
+        feePercentage = newfeePercentage;
+    }
+
+    function setPenaltyPoint(uint8  newCancelByMe,
+        uint8  newrequestCancel,
+        uint8  newrespondCancel,
+        uint8  newrevision,
+        uint8  newtaskAcceptCreator,
+        uint8  newtaskAcceptMember,
+        uint8  newdeadlineHitCreator,
+        uint8  newdeadlineHitMember) external onlyEmployes {
+            reputationPoint storage rp = reputationPoints[0];
+            rp.CancelByMe = newCancelByMe;
+            rp.requestCancel = newrequestCancel;
+            rp.respondCancel = newrespondCancel;
+            rp.revision = newrevision;
+            rp.taskAcceptCreator = newtaskAcceptCreator;
+            rp.taskAcceptMember = newtaskAcceptMember;
+            rp.deadlineHitCreator = newdeadlineHitCreator;
+            rp.deadlineHitMember = newdeadlineHitMember;
+        }
+
+    function seePoint(address _user) external view returns (uint256) {
+        return myPoint[_user];
     }
 }
