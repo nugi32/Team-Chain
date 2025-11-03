@@ -41,7 +41,7 @@ abstract contract UserAccessControl is Initializable {
 
     /// @dev Replacement for constructor. Initializes the user registry contract reference.
     /// @param _userRegistry The address of the deployed UserRegister contract.
-    function __UserAccessControl_init(address _userRegistry) public 
+    function __UserAccessControl_init(address _userRegistry) public initializer
     //onlyInitializing // Uncomment in production (for local testing only)
     {
         require(_userRegistry != address(0), "UserAccess: invalid address");

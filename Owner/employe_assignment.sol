@@ -2,18 +2,20 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 
 /// @title Employee Assignment and Management Contract
 /// @notice Provides role-based access control with an owner and assigned employees
 /// @dev Abstract contract that can be inherited by other contracts to enforce employee-only actions
-contract EmployeeAssignment {
+contract EmployeeAssignment is UUPSUpgradeable {
     
     // ================================
     // State Variables
     // ================================
     
     /// @notice Address of the contract owner
-    address public owner = msg.sender;
+    address public owner;
     
     /// @notice Total number of employees currently assigned
     uint public employeeCount;
@@ -38,6 +40,13 @@ contract EmployeeAssignment {
     /// @param newOwner The address of the new owner
     event OwnerChanged(address indexed oldOwner, address indexed newOwner);
     
+
+    function __EmployeeAssignment_init() public initializer
+    //onlyInitializing //uncomment modifier in production version(this for local testing only)
+    {
+        __UUPSUpgradeable_init();
+        owner = msg.sender;
+    }
     // ================================
     // Modifiers
     // ================================
@@ -135,4 +144,5 @@ contract EmployeeAssignment {
         // Emit ownership change event
         emit OwnerChanged(oldOwner, newOwner);
     }
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

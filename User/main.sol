@@ -2,14 +2,15 @@
 pragma solidity ^0.8.20;
 
 import "../Logic/AccesControl.sol";
-import "../Logic/onlyRegistered.sol";
+import "../Logic/UserAccessControl.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /// @title TrustlessTeamProtocol v2
 /// @notice Cleaned & safer refactor of TrustlessTeamProtocol focusing on core logic
 /// @dev Pull-pay pattern, task lifecycle, submission, cancel logic, and revision handling implemented
-contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeable, AccesControl, UserAccessControl {
+contract TrustlessTeamProtocol is AccesControl, UserAccessControl, ReentrancyGuardUpgradeable, PausableUpgradeable, UUPSUpgradeable {
 
     // ===========================
     // ENUMS & STRUCTS
@@ -107,6 +108,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     uint256 internal feeCollected;
     uint256 public k;
     address payable public systemWallet;
+    uint256[40] private ___gap;
 
     // ===========================
     // EVENTS
@@ -167,6 +169,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         zero_Address(_systemWallet);
         zero_Address(_employeeAssignment);
         zero_Address(_userRegistry);
+        __UUPSUpgradeable_init();
         __AccessControl_init(_employeeAssignment);
         __UserAccessControl_init(_userRegistry);
         systemWallet = _systemWallet;
@@ -185,6 +188,15 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         StateVar storage sv = StateVars;
         uint32 neg = (sv.CounterPenalty = 100) - sv.NegPenalty;
         return neg;
+    }
+
+     function _resetCancelRequest(uint256 taskId) internal {
+        CancelRequest storage cr = CancelRequests[taskId];
+        cr.requester = address(0);
+        cr.counterparty = address(0);
+        cr.expiry = 0;
+        cr.status = TaskRejectRequest.None;
+        cr.reason = "";
     }
 
     function getMemberRequiredStake(uint256 taskId) public view returns (uint256) {
@@ -373,15 +385,6 @@ function getCreatorRequiredStake(uint256 taskId) public view returns (uint256) {
 
         emit CancelResponded(taskId, true);
         return;
-    }
-
-    function _resetCancelRequest(uint256 taskId) internal {
-        CancelRequest storage cr = CancelRequests[taskId];
-        cr.requester = address(0);
-        cr.counterparty = address(0);
-        cr.expiry = 0;
-        cr.status = TaskRejectRequest.None;
-        cr.reason = "";
     }
 
     function cancelByMe(uint256 taskId) external taskExists(taskId) {
@@ -657,4 +660,6 @@ function getCreatorRequiredStake(uint256 taskId) public view returns (uint256) {
     function seeMyCreatedCounter(address _user) external view returns (uint256) {
         return Counters[_user].TotalTaskCreated;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

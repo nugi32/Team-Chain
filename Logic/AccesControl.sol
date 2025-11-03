@@ -30,7 +30,7 @@ abstract contract AccesControl is Initializable {
 
     /// @dev Replacement for constructor to initialize the EmployeeAssignment contract address.
     /// @param _employeeAssignment The address of the EmployeeAssignment contract.
-    function __AccessControl_init(address _employeeAssignment) public 
+    function __AccessControl_init(address _employeeAssignment) public initializer
     //onlyInitializing //uncomment modifier in production version(this for local testing only)
     {
 

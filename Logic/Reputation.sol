@@ -20,7 +20,7 @@ abstract contract UserReputation is Initializable {
         address _MainContract
     ) 
         public 
-        //onlyInitializing 
+        initializer 
     {
         require(_MainContract != address(0), "invalid main addr");
 

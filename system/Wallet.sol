@@ -3,12 +3,13 @@ pragma solidity ^0.8.20;
 
 import "../Logic/AccesControl.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /// @title System Wallet
 /// @notice Upgradeable contract for managing system funds with role-based access control
 /// @dev This contract handles receiving and transferring funds with proper access control and reentrancy protection
 /// @author Your Name
-contract System_wallet is AccesControl, ReentrancyGuardUpgradeable {
+contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     /// @notice Total equity tracked by the system wallet
     uint256 internal Total_Equity;
     
@@ -33,6 +34,7 @@ contract System_wallet is AccesControl, ReentrancyGuardUpgradeable {
     /// @dev This function replaces the constructor for upgradeable contracts
     /// @param _employeeAssignment The address of the EmployeeAssignment contract that manages roles
     function initialize(address _employeeAssignment) public initializer {
+        __UUPSUpgradeable_init();
         __AccessControl_init(_employeeAssignment);
         __ReentrancyGuard_init();
     }
@@ -88,5 +90,6 @@ contract System_wallet is AccesControl, ReentrancyGuardUpgradeable {
     receive() external payable {
         emit contract_received_fund(msg.sender, msg.value);
     }
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
     
 }
