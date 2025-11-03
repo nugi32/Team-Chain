@@ -63,16 +63,32 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         uint256 newDeadline;
     }
 
-    struct reputationPoint {
-        uint8  CancelByMe;
-        uint8  requestCancel;
-        uint8  respondCancel;
-        uint8  revision;
-        uint8  taskAcceptCreator;
-        uint8  taskAcceptMember;
-        uint8  deadlineHitCreator;
-        uint8  deadlineHitMember;
+    struct Counter {
+        uint256 TotalTaskCreated;
+        uint256 TotalTaskCompleted;
+        uint256 TotalTaskFailed;
     }
+
+    struct reputationPoint {
+        uint32  CancelByMe;
+        uint32  requestCancel;
+        uint32  respondCancel;
+        uint32  revision;
+        uint32  taskAcceptCreator;
+        uint32  taskAcceptMember;
+        uint32  deadlineHitCreator;
+        uint32  deadlineHitMember;
+    }
+
+    struct StateVar {
+    uint64 cooldownInHour;
+    uint64 minRevisionTime;
+    uint32 NegPenalty;
+    uint32 CounterPenalty;
+    uint32 feePercentage;
+    uint32 maxStake;
+    }
+    
 
     // ===========================
     // STATE VARIABLES
@@ -82,19 +98,15 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     mapping(uint256 => CancelRequest) internal CancelRequests;
     mapping(uint256 => TaskSubmit) internal TaskSubmits;
     mapping(address => uint256) public withdrawable;
-    mapping (address => uint8) public myPoint;
-    reputationPoint[1] public reputationPoints;
+    mapping(address => uint32) public myPoint;
+    mapping(address => Counter) internal Counters; 
+    reputationPoint public reputationPoints;
+    StateVar public StateVars;
 
     uint256 public taskCounter;
-    uint16 public cooldownInHour;
-    uint256 public maxStake;
     uint256 internal feeCollected;
     uint256 public k;
     address payable public systemWallet;
-    uint256 internal NegPenalty;
-    uint256 internal CounterPenalty = 100 - NegPenalty;
-    uint256 public minRevisionTime;
-    uint256 public feePercentage;
 
     // ===========================
     // EVENTS
@@ -114,8 +126,8 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     event RevisionRequested(uint256 indexed taskId, uint8 revisionCount, uint256 newDeadline);
     event DeadlineTriggered(uint256 indexed taskId);
     event Withdrawal(address indexed user, uint256 amount);
-    event cooldownInHourChanged(uint16 indexed newcooldownInHour);
-    event maxStakeChanged(uint256 indexed newmaxStake);
+    event cooldownInHourChanged(uint64 indexed newcooldownInHour);
+    event maxStakeChanged(uint32 indexed newmaxStake);
     event kChanged(uint256 newK);
     event newsystemWallet(address indexed NewsystemWallet);
 
@@ -150,7 +162,8 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     // ===========================
     // INITIALIZER
     // ===========================
-    function initialize(address _employeeAssignment, uint16 _cooldownInHour, uint256 _maxStake, address payable _systemWallet, address _userRegistry, uint256 _NegPenalty, uint256 _minRevisionTime) public initializer onlyOwner callerZeroAddr {
+    function initialize(address _employeeAssignment, uint64 _cooldownInHour, uint32 _maxStake, address payable _systemWallet, address _userRegistry, uint32 _NegPenalty, uint64 _minRevisionTime) public initializer onlyOwner callerZeroAddr {
+        StateVar storage sv = StateVars;
         zero_Address(_systemWallet);
         zero_Address(_employeeAssignment);
         zero_Address(_userRegistry);
@@ -159,25 +172,49 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
         systemWallet = _systemWallet;
         __ReentrancyGuard_init();
         __Pausable_init();
-        cooldownInHour = _cooldownInHour;
+        sv.cooldownInHour = _cooldownInHour;
         k = 1e6;
         taskCounter = 0;
         feeCollected = 0;
-        maxStake = _maxStake;
-        NegPenalty = _NegPenalty;
-        minRevisionTime = _minRevisionTime;
+        sv.maxStake = _maxStake;
+        sv.NegPenalty = _NegPenalty;
+        sv.minRevisionTime = _minRevisionTime;
     }
+
+    function _CounterPenalty() internal returns (uint32) {
+        StateVar storage sv = StateVars;
+        uint32 neg = (sv.CounterPenalty = 100) - sv.NegPenalty;
+        return neg;
+    }
+
+    function getMemberRequiredStake(uint256 taskId) public view returns (uint256) {
+    Task storage t = Tasks[taskId];
+    uint256 memberStake = (t.reward * (t.deadline + 1) * k) /
+        ((_seeReputation(msg.sender) + 1) * (_seeReputation(t.creator) + 1) * (t.maxRevision + 1));
+
+    return memberStake;
+}
+
+function getCreatorRequiredStake(uint256 taskId) public view returns (uint256) {
+    Task storage t = Tasks[taskId];
+     uint256 creatorStake = (t.reward * (t.maxRevision + 1) * k) / ((_seeReputation(msg.sender) + 1) * (t.deadline + 1));
+
+    return creatorStake;
+}
 
     // ===========================
     // TASK LIFECYCLE FUNCTIONS
     // ===========================
     function createTask(string memory Title, string memory GithubURL, uint256 DeadlineHours, uint8 maximumRevision, uint256 RewardEther) external payable whenNotPaused onlyRegistered onlyUser callerZeroAddr{
+        StateVar storage sv = StateVars;
         taskCounter++;
         uint256 taskId = taskCounter;
         uint256 _reward = RewardEther * 1 ether;
-        uint256 creatorStake = (_reward * (maximumRevision + 1) * k) / ((_seeReputation(msg.sender) + 1) * (DeadlineHours + 1));
-        if (maxStake < creatorStake) revert StakeHitLimmit();
-        uint256 fee = (creatorStake * feePercentage) / 100;
+        uint256 creatorStake = getCreatorRequiredStake(taskId);
+
+        if (sv.maxStake < creatorStake) revert StakeHitLimmit();
+
+        uint256 fee = (creatorStake * sv.feePercentage) / 100;
         uint256 total = _reward + creatorStake + fee;
         if (msg.value != total) revert InsufficientStake();
 
@@ -189,7 +226,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
             title: Title,
             githubURL: GithubURL,
             reward: _reward,
-            deadline: block.timestamp + (DeadlineHours * 1 hours),
+            deadline: DeadlineHours,
             createdAt: block.timestamp,
             creatorStake: creatorStake,
             memberStake: 0,
@@ -199,6 +236,7 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
             isRewardClaimed: false,
             exists: true
         });
+        Counters[msg.sender].TotalTaskCreated++;
 
         emit TaskCreated(taskId, msg.sender, _reward, creatorStake);
     }
@@ -218,18 +256,16 @@ contract TrustlessTeamProtocol is ReentrancyGuardUpgradeable, PausableUpgradeabl
     }
 
     function requestJoinTask(uint256 taskId) external payable taskExists(taskId) whenNotPaused onlyRegistered onlyUser callerZeroAddr{
+        StateVar storage sv = StateVars;
         Task storage t = Tasks[taskId];
         JoinRequest[] storage reqs = joinRequests[taskId];
-for (uint256 i = 0; i < reqs.length; i++) {
-    if (reqs[i].applicant == msg.sender && reqs[i].isPending) {
+    if (reqs[taskId].applicant == msg.sender && reqs[taskId].isPending) {
         revert AlreadyRequestedJoin();
     }
-}
         if (t.status != TaskStatus.OpenRegistration) revert TaskNotOpen();
         if (msg.sender == t.creator) revert TaskNotOpen();
-        uint256 memberStake = (t.reward * (t.deadline + 1) * k) / 
-        ((_seeReputation(msg.sender) + 1) * (_seeReputation(t.creator) + 1) * (t.maxRevision + 1));
-        if (maxStake < msg.value) revert StakeHitLimmit();
+        uint256 memberStake = getMemberRequiredStake(taskId);
+        if (sv.maxStake < msg.value) revert StakeHitLimmit();
         if (msg.value != memberStake) revert InsufficientStake();
         joinRequests[taskId].push(JoinRequest({
             applicant: msg.sender,
@@ -243,12 +279,12 @@ for (uint256 i = 0; i < reqs.length; i++) {
 
     function approveJoinRequest(uint256 taskId, address _applicant) external taskExists(taskId) onlyTaskCreator(taskId) whenNotPaused {
         JoinRequest[] storage requests = joinRequests[taskId];
+        Task storage t = Tasks[taskId];
         bool found = false;
         for (uint256 i = 0; i < requests.length; i++) {
             if (requests[i].applicant == _applicant && requests[i].isPending) {
                 requests[i].isPending = false;
                 requests[i].status = UserTask.Accepted;
-                Task storage t = Tasks[taskId];
                 t.member = _applicant;
                 t.memberStake = requests[i].stakeAmount;
                 t.isMemberStakeLocked = true;
@@ -258,6 +294,7 @@ for (uint256 i = 0; i < reqs.length; i++) {
             }
         }
         require(found, "request not found");
+        t.deadline = block.timestamp + (t.deadline * 1 hours);
         emit JoinApproved(taskId, _applicant);
     }
 
@@ -279,16 +316,17 @@ for (uint256 i = 0; i < reqs.length; i++) {
         emit JoinRejected(taskId, _applicant);
     }
 
-    function requestCancel(uint256 taskId, string calldata reason) external taskExists(taskId) {
+    function requestCancel(uint256 taskId, string calldata reason) external whenNotPaused taskExists(taskId) {
+        StateVar storage sv = StateVars;
         Task storage t = Tasks[taskId];
         CancelRequest storage cr = CancelRequests[taskId];
-        reputationPoint storage rp = reputationPoints[0];
+        reputationPoint storage rp = reputationPoints;
         if (cr.status == TaskRejectRequest.Pending) revert CancelAlreadyRequested();
         if (msg.sender != t.creator && msg.sender != t.member) revert NotTaskMember();
         address counterparty = (msg.sender == t.creator) ? t.member : t.creator;
         cr.requester = msg.sender;
         cr.counterparty = counterparty;
-        cr.expiry = block.timestamp + (cooldownInHour * 1 hours);
+        cr.expiry = block.timestamp + (sv.cooldownInHour * 1 hours);
         cr.status = TaskRejectRequest.Pending;
         cr.reason = reason;
         t.status = TaskStatus.CancelRequested;
@@ -301,7 +339,7 @@ for (uint256 i = 0; i < reqs.length; i++) {
     function respondCancel(uint256 taskId, bool approve) external taskExists(taskId) {
         Task storage t = Tasks[taskId];
         CancelRequest storage cr = CancelRequests[taskId];
-        reputationPoint storage rp = reputationPoints[0];
+        reputationPoint storage rp = reputationPoints;
         if (cr.status != TaskRejectRequest.Pending) revert NoActiveCancelRequest();
         if (msg.sender != cr.counterparty) revert NotCounterparty();
 
@@ -330,6 +368,9 @@ for (uint256 i = 0; i < reqs.length; i++) {
         if (myPoint[msg.sender] < rp.respondCancel) myPoint[msg.sender] = 0;
         else myPoint[msg.sender] -= rp.respondCancel;
 
+        Counters[msg.sender].TotalTaskFailed++;
+        Counters[t.member].TotalTaskFailed++;
+
         emit CancelResponded(taskId, true);
         return;
     }
@@ -343,36 +384,40 @@ for (uint256 i = 0; i < reqs.length; i++) {
         cr.reason = "";
     }
 
-    function cancelByMe(uint256 taskId) external taskExists(taskId) nonReentrant {
-        reputationPoint storage rp = reputationPoints[0];
+    function cancelByMe(uint256 taskId) external taskExists(taskId) {
+        StateVar storage sv = StateVars;
+        reputationPoint storage rp = reputationPoints;
         Task storage t = Tasks[taskId];
         if (msg.sender != t.creator && msg.sender != t.member) revert NotTaskMember();
         if (CancelRequests[taskId].status == TaskRejectRequest.Pending) revert CancelAlreadyRequested();
         if (t.status !=TaskStatus.Active) revert TaskNotOpen();
 
         if (msg.sender == t.member) {
-            uint256 penaltyToCreator = (t.memberStake * NegPenalty) / 100;
-            uint256 memberReturn = (t.memberStake * CounterPenalty) / 100;
+            uint256 penaltyToCreator = (t.memberStake * sv.NegPenalty) / 100;
+            uint256 memberReturn = (t.memberStake * _CounterPenalty()) / 100;
             withdrawable[t.creator] += t.creatorStake + t.reward + penaltyToCreator;
             withdrawable[t.member] += memberReturn;
         } else {
             if (t.member == address(0)) revert cancelOnlyBeforeMemberAccepted();
-            uint256 penaltyToMember = (t.creatorStake * NegPenalty) / 100;
-            uint256 creatorReturn = (t.creatorStake * CounterPenalty) / 100 + t.reward;
+            uint256 penaltyToMember = (t.creatorStake * sv.NegPenalty) / 100;
+            uint256 creatorReturn = (t.creatorStake * _CounterPenalty()) / 100 + t.reward;
             withdrawable[t.member] += t.memberStake + penaltyToMember;
             withdrawable[t.creator] += creatorReturn;
         }
 
         t.status = TaskStatus.Cancelled;
-         if (myPoint[msg.sender] < rp.CancelByMe) myPoint[msg.sender] = 0;
+        if (myPoint[msg.sender] < rp.CancelByMe) myPoint[msg.sender] = 0;
         else myPoint[msg.sender] -= rp.CancelByMe;
+
+        Counters[msg.sender].TotalTaskFailed++;
+
         emit TaskCancelledByMe(taskId, msg.sender);
     }
 
     function requestSubmitTask(uint256 taskId, string calldata PullRequestURL, string calldata Note) external taskExists(taskId) {
         Task storage t = Tasks[taskId];
-        require(t.status == TaskStatus.Active, "task not active");
-        require(msg.sender == t.member, "only member");
+        if (t.status != TaskStatus.Active) revert TaskNotOpen();
+        if (t.member != msg.sender) revert NotTaskMember();
         TaskSubmits[taskId] = TaskSubmit({
             githubURL: PullRequestURL,
             sender: msg.sender,
@@ -387,7 +432,7 @@ for (uint256 i = 0; i < reqs.length; i++) {
     function reSubmitTask(uint256 taskId, string calldata Note) external taskExists(taskId) {
         Task storage t = Tasks[taskId];
         TaskSubmit storage s = TaskSubmits[taskId];
-        require(msg.sender == t.member, "only member");
+        if (t.member != msg.sender) revert NotTaskMember();
         require(s.status == SubmitStatus.RevisionNeeded, "not in revision");
 
         s.note = Note;
@@ -401,11 +446,11 @@ for (uint256 i = 0; i < reqs.length; i++) {
     }
 
     function approveTask(uint256 taskId) public taskExists(taskId) nonReentrant {
-        reputationPoint storage rp = reputationPoints[0];
+        reputationPoint storage rp = reputationPoints;
         Task storage t = Tasks[taskId];
         TaskSubmit storage s = TaskSubmits[taskId];
 
-        require(t.status == TaskStatus.Active, "invalid status");
+        if (t.status != TaskStatus.Active) revert TaskNotOpen();
         require(!t.isRewardClaimed, "already claimed");
 
         uint256 memberGet = t.reward + t.memberStake;
@@ -417,11 +462,12 @@ for (uint256 i = 0; i < reqs.length; i++) {
         t.isRewardClaimed = true;
         t.status = TaskStatus.Completed;
 
-        if (myPoint[t.member] < rp.taskAcceptMember) myPoint[t.member] = 0;
-        else myPoint[t.member] -= rp.taskAcceptMember;
+        myPoint[t.member] += rp.taskAcceptMember;
 
-        if (myPoint[t.creator] < rp.taskAcceptCreator) myPoint[t.creator] = 0;
-        else myPoint[t.creator] -= rp.taskAcceptCreator;
+        myPoint[t.creator] += rp.taskAcceptCreator;
+
+        Counters[msg.sender].TotalTaskCompleted++;
+        Counters[t.member].TotalTaskCompleted++;
         
         // clear submit
         s.githubURL = "";
@@ -435,12 +481,13 @@ for (uint256 i = 0; i < reqs.length; i++) {
     }
 
     function requestRevision(uint256 taskId, string calldata Note, uint256 additionalDeadlineHours) external taskExists(taskId) onlyTaskCreator(taskId) {
+        StateVar storage sv = StateVars;
         Task storage t = Tasks[taskId];
         TaskSubmit storage s = TaskSubmits[taskId];
-        reputationPoint storage rp = reputationPoints[0];
-        require(s.sender == t.member, "no submission");
+        reputationPoint storage rp = reputationPoints;
+        if (t.member != msg.sender) revert NotTaskMember();
         require(s.status == SubmitStatus.Pending, "not pending");
-        uint256 aditionalDeadline = (additionalDeadlineHours + minRevisionTime) * 1 hours;
+        uint256 aditionalDeadline = (additionalDeadlineHours + sv.minRevisionTime) * 1 hours;
 
         s.status = SubmitStatus.RevisionNeeded;
         s.note = Note;
@@ -463,15 +510,16 @@ for (uint256 i = 0; i < reqs.length; i++) {
     // DEADLINE TRIGGER
     // ===========================
     function triggerDeadline(uint256 taskId) public taskExists(taskId) {
+        StateVar storage sv = StateVars;
         Task storage t = Tasks[taskId];
-        reputationPoint storage rp = reputationPoints[0];
+        reputationPoint storage rp = reputationPoints;
         if (t.deadline == 0) return;
         if (block.timestamp < t.deadline) return;
 
         // handle late/expired: split memberStake (75/25) and creator keeps creatorStake?
         if (t.member != address(0) && t.memberStake > 0) {
-            uint256 toMember = (t.memberStake * NegPenalty) / 100;
-            uint256 toCreator = (t.memberStake * CounterPenalty) / 100;
+            uint256 toMember = (t.memberStake * sv.NegPenalty) / 100;
+            uint256 toCreator = (t.memberStake * _CounterPenalty()) / 100;
 
             withdrawable[t.member] += toMember;
             withdrawable[t.creator] += toCreator + t.creatorStake + t.reward; // decide to return creator funds
@@ -487,6 +535,8 @@ for (uint256 i = 0; i < reqs.length; i++) {
         else myPoint[t.creator] -= rp.deadlineHitCreator;
 
         t.status = TaskStatus.Cancelled;
+        Counters[msg.sender].TotalTaskFailed++;
+        Counters[t.member].TotalTaskFailed++;
 
         emit DeadlineTriggered(taskId);
     }
@@ -526,15 +576,17 @@ for (uint256 i = 0; i < reqs.length; i++) {
 
 //=============================================================================================================================================
 
-    function setCooldownHour(uint16 newCooldown) external onlyEmployes{
+    function setCooldownHour(uint64 newCooldown) external onlyEmployes{
+        StateVar storage sv = StateVars;
         require(newCooldown > 0, "can't be 0");
-        cooldownInHour = newCooldown;
+        sv.cooldownInHour = newCooldown;
         emit cooldownInHourChanged(newCooldown);
     }
 
-    function setMaxStake(uint256 newMaxStake) external onlyEmployes{
+    function setMaxStake(uint32 newMaxStake) external onlyEmployes{
+        StateVar storage sv = StateVars;
         require(newMaxStake > 0, "can't be 0");
-        maxStake = newMaxStake;
+        sv.maxStake = newMaxStake;
         emit maxStakeChanged(newMaxStake);
     }
 
@@ -544,7 +596,7 @@ for (uint256 i = 0; i < reqs.length; i++) {
         emit kChanged(newAlgoConstant);
     }
 
-    function withdrawToSystemWallet() external onlyEmployes {
+    function withdrawToSystemWallet() external onlyEmployes nonReentrant {
         (bool ok, ) = systemWallet.call{value: feeCollected}("");
         require(ok, "withdraw failed");
         feeCollected = 0;
@@ -556,27 +608,30 @@ for (uint256 i = 0; i < reqs.length; i++) {
         emit newsystemWallet(_NewsystemWallet);
     }
 
-    function setNegativePenalty(uint256 newNegPenalty) external onlyEmployes {
-        NegPenalty = newNegPenalty;
+    function setNegativePenalty(uint32 newNegPenalty) external onlyEmployes {
+        StateVar storage sv = StateVars;
+        sv.NegPenalty = newNegPenalty;
     }
 
-    function setMinAditionalRevisionTime(uint256 NewTimeInHour) external onlyEmployes {
-        minRevisionTime = NewTimeInHour;
+    function setMinAditionalRevisionTime(uint64 NewTimeInHour) external onlyEmployes {
+        StateVar storage sv = StateVars;
+        sv.minRevisionTime = uint64(block.timestamp) + (NewTimeInHour * 1 hours);
     }
 
-    function setfeePercentage(uint256 newfeePercentage) external onlyEmployes {
-        feePercentage = newfeePercentage;
+    function setfeePercentage(uint32 newfeePercentage) external onlyEmployes {
+        StateVar storage sv = StateVars;
+        sv.feePercentage = newfeePercentage;
     }
 
-    function setPenaltyPoint(uint8  newCancelByMe,
-        uint8  newrequestCancel,
-        uint8  newrespondCancel,
-        uint8  newrevision,
-        uint8  newtaskAcceptCreator,
-        uint8  newtaskAcceptMember,
-        uint8  newdeadlineHitCreator,
-        uint8  newdeadlineHitMember) external onlyEmployes {
-            reputationPoint storage rp = reputationPoints[0];
+    function setPenaltyPoint(uint32  newCancelByMe,
+        uint32  newrequestCancel,
+        uint32  newrespondCancel,
+        uint32  newrevision,
+        uint32  newtaskAcceptCreator,
+        uint32  newtaskAcceptMember,
+        uint32  newdeadlineHitCreator,
+        uint32  newdeadlineHitMember) external onlyEmployes {
+            reputationPoint storage rp = reputationPoints;
             rp.CancelByMe = newCancelByMe;
             rp.requestCancel = newrequestCancel;
             rp.respondCancel = newrespondCancel;
@@ -587,7 +642,19 @@ for (uint256 i = 0; i < reqs.length; i++) {
             rp.deadlineHitMember = newdeadlineHitMember;
         }
 
-    function seeMyReputation(address _user) external view returns (uint8) {
+    function seeMyReputation(address _user) external view returns (uint32) {
         return myPoint[_user];
+    }
+
+    function seeMyCompleteCounter(address _user) external view returns (uint256) {
+        return Counters[_user].TotalTaskCompleted;
+    }
+
+    function seeMyFailedCounter(address _user) external view returns (uint256) {
+        return Counters[_user].TotalTaskFailed;
+    }
+
+    function seeMyCreatedCounter(address _user) external view returns (uint256) {
+        return Counters[_user].TotalTaskCreated;
     }
 }

@@ -26,12 +26,13 @@ contract UserRegister is UserReputation, AccesControl, UUPSUpgradeable {
      * @param age The user’s age (optional metadata).
      */
     struct User {
-        uint8 reputation;
+        uint256 totalTasksCreated;
         uint256 totalTasksCompleted;
         uint256 totalTasksFailed;
+        uint32 reputation;
+        uint8 age;
         bool isRegistered;
         string name;
-        uint8 age;
     }
 
     /// @notice Mapping of user addresses to their corresponding user data.
@@ -144,13 +145,34 @@ contract UserRegister is UserReputation, AccesControl, UUPSUpgradeable {
         returns (User memory)
     {
         seeReputation();
+        seeCretedTask();
+        seeCompleteTask();
+        seeFailedTask();
         return Users[msg.sender];
     }
 
-     function seeReputation() public returns(uint8) {
-        uint8 rep = _seeMyReputation(msg.sender);
+     function seeReputation() public returns(uint32) {
+        uint32 rep = _seeMyReputation(msg.sender);
         Users[msg.sender].reputation = rep;
         return rep;
+    }
+
+    function seeCretedTask() public returns(uint256) {
+        uint256 cr = _seeMyCreatedCounter(msg.sender);
+        Users[msg.sender].totalTasksCreated = cr;
+        return cr;
+    }
+
+    function seeCompleteTask() public returns(uint256) {
+        uint256 ct = _seeMyCompleteCounter(msg.sender);
+        Users[msg.sender].totalTasksCompleted = ct;
+        return ct;
+    }
+
+    function seeFailedTask() public returns(uint256) {
+        uint256 ft = _seeMyFailedCounter(msg.sender);
+        Users[msg.sender].totalTasksFailed = ft;
+        return ft;
     }
 
     /**
