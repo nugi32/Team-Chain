@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "deploy": "ts-node --files ./scripts/deploy.ts",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network liskSepolia",
+    "verify": "hardhat verify --network liskSepolia",
+    "verify:sepolia": "hardhat verify --network liskSepolia",
+    "upgrade": "ts-node --files ./scripts/upgrade.ts"
   },
   "keywords": [],
   "author": "",

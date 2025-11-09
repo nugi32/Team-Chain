@@ -1,11 +1,23 @@
 import { ethers, upgrades, network } from "hardhat";
 import { verify } from "./utils";
+import { parseEther, formatEther } from "ethers";
 import { writeFileSync } from "fs";
 import { join } from "path";
 
 async function main() {
   // Deploy EmployeeAssignment first (UUPS proxy)
   console.log("Deploying EmployeeAssignment...");
+  // Pre-flight: check deployer balance so we fail with a clear message instead of low-level provider errors
+  const [deployer] = await ethers.getSigners();
+  const deployerAddr = await deployer.getAddress();
+  const deployerBalance = await ethers.provider.getBalance(deployerAddr);
+  console.log(`Deployer address: ${deployerAddr} — balance: ${formatEther(deployerBalance)} ETH`);
+  const minBalance = parseEther("0.01");
+  if (deployerBalance < minBalance) {
+    throw new Error(
+      `Deployer ${deployerAddr} has insufficient balance (${formatEther(deployerBalance)} ETH). Fund this account on ${network.name} or set PRIVATE_KEY to a funded account in your .env`,
+    );
+  }
   const EmployeeAssignment = await ethers.getContractFactory("EmployeeAssignment");
   const employeeAssignment = await upgrades.deployProxy(EmployeeAssignment, [], {
     initializer: "initialize",
@@ -65,9 +77,36 @@ async function main() {
     // Verify contracts on Etherscan
     console.log("\nVerifying contracts...");
     try {
-      await verify(employeeAssignmentAddress);
-      await verify(systemWalletAddress);
-      await verify(trustlessTeamProtocolAddress);
+      // For proxies, verify implementation then attempt proxy verification (some explorers require chainId)
+      const empImpl = await upgrades.erc1967.getImplementationAddress(employeeAssignmentAddress);
+      console.log("Verifying implementation:", empImpl);
+      await verify(empImpl);
+      try {
+        await verify(employeeAssignmentAddress);
+      } catch (err: any) {
+        console.warn("Proxy verification failed for EmployeeAssignment proxy, retrying with chainId...", err && err.message ? err.message : err);
+        await verify(employeeAssignmentAddress, [], { chainId: network.config?.chainId });
+      }
+
+      const sysImpl = await upgrades.erc1967.getImplementationAddress(systemWalletAddress);
+      console.log("Verifying implementation:", sysImpl);
+      await verify(sysImpl);
+      try {
+        await verify(systemWalletAddress);
+      } catch (err: any) {
+        console.warn("Proxy verification failed for SystemWallet proxy, retrying with chainId...", err && err.message ? err.message : err);
+        await verify(systemWalletAddress, [], { chainId: network.config?.chainId });
+      }
+
+      const ttpImpl = await upgrades.erc1967.getImplementationAddress(trustlessTeamProtocolAddress);
+      console.log("Verifying implementation:", ttpImpl);
+      await verify(ttpImpl);
+      try {
+        await verify(trustlessTeamProtocolAddress);
+      } catch (err: any) {
+        console.warn("Proxy verification failed for TrustlessTeamProtocol proxy, retrying with chainId...", err && err.message ? err.message : err);
+        await verify(trustlessTeamProtocolAddress, [], { chainId: network.config?.chainId });
+      }
     } catch (error) {
       console.log("Error verifying contracts:", error);
     }

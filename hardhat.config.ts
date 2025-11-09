@@ -7,8 +7,10 @@ dotenv.config();
 
 // Check for required environment variables
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL;
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEY = process.env.PRIVATE_KEY as string | undefined;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+// Optional separate deployer key for Lisk deployments (falls back to PRIVATE_KEY)
+const deployerPrivateKey = (process.env.DEPLOYER_PRIVATE_KEY || PRIVATE_KEY) as string;
 
 if (!SEPOLIA_RPC_URL || !PRIVATE_KEY || !ETHERSCAN_API_KEY) {
   throw new Error("Please set your environment variables in a .env file");
@@ -31,12 +33,31 @@ const config: HardhatUserConfig = {
     },
     sepolia: {
       url: SEPOLIA_RPC_URL,
-      accounts: [PRIVATE_KEY],
+      accounts: [PRIVATE_KEY as string],
       chainId: 11155111,
+    },
+    // "liskSepolia"
+   liskSepolia: {
+      url: "https://rpc.sepolia-api.lisk.com",
+      chainId: 4202,
+    accounts: [deployerPrivateKey],
     },
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: {
+      // Map the liskSepolia network to the ETHERSCAN/Blockscout API key
+      liskSepolia: ETHERSCAN_API_KEY,
+    },
+    customChains: [
+      {
+        network: "liskSepolia",
+        chainId: 4202,
+        urls: {
+          apiURL: "https://sepolia-blockscout.lisk.com/api",
+          browserURL: "https://sepolia-blockscout.lisk.com",
+        },
+      },
+    ],
   },
   paths: {
     sources: "./contracts",
