@@ -5,9 +5,8 @@ import { writeFileSync } from "fs";
 import { join } from "path";
 
 async function main() {
-  // Deploy EmployeeAssignment first (UUPS proxy)
-  console.log("Deploying EmployeeAssignment...");
   // Pre-flight: check deployer balance so we fail with a clear message instead of low-level provider errors
+  console.log("Starting deployment sequence: EmployeeAssignment -> System_wallet -> stateVariable -> TrustlessTeamProtocol");
   const [deployer] = await ethers.getSigners();
   const deployerAddr = await deployer.getAddress();
   const deployerBalance = await ethers.provider.getBalance(deployerAddr);
@@ -18,63 +17,103 @@ async function main() {
       `Deployer ${deployerAddr} has insufficient balance (${formatEther(deployerBalance)} ETH). Fund this account on ${network.name} or set PRIVATE_KEY to a funded account in your .env`,
     );
   }
+
+  // 1) Deploy EmployeeAssignment as UUPS proxy
+  console.log("Deploying EmployeeAssignment (UUPS proxy)...");
   const EmployeeAssignment = await ethers.getContractFactory("EmployeeAssignment");
   const employeeAssignment = await upgrades.deployProxy(EmployeeAssignment, [], {
     initializer: "initialize",
-    kind: "uups"
+    kind: "uups",
   });
   await employeeAssignment.waitForDeployment();
-  const employeeAssignmentAddress = await employeeAssignment.getAddress(); //addr proxy
-  console.log("EmployeeAssignment deployed to:", employeeAssignmentAddress);
+  const employeeAssignmentAddress = await employeeAssignment.getAddress();
+  console.log("EmployeeAssignment proxy deployed to:", employeeAssignmentAddress);
 
-  // Deploy System Wallet with EmployeeAssignment address (UUPS proxy)
-  console.log("Deploying System Wallet...");
+  // 2) Deploy System_wallet as UUPS proxy (requires accessControl address)
+  console.log("Deploying System_wallet (UUPS proxy)...");
   const SystemWallet = await ethers.getContractFactory("System_wallet");
   const systemWallet = await upgrades.deployProxy(SystemWallet, [employeeAssignmentAddress], {
     initializer: "initialize",
-    kind: "uups"
+    kind: "uups",
   });
   await systemWallet.waitForDeployment();
   const systemWalletAddress = await systemWallet.getAddress();
-  console.log("System Wallet deployed to:", systemWalletAddress);
+  console.log("System_wallet proxy deployed to:", systemWalletAddress);
 
-  // Deploy TrustlessTeamProtocol with EmployeeAssignment and SystemWallet addresses (UUPS proxy)
-  console.log("Deploying TrustlessTeamProtocol...");
+  // 3) Deploy stateVariable (regular contract with constructor args)
+  console.log("Deploying stateVariable (regular contract)...");
+  const StateVariable = await ethers.getContractFactory("stateVariable");
+  // Default/init values for stateVariable constructor (adjust if you need different tuning)
+  const svArgs = [
+    // Component weights (must sum to 10)
+    4, // _rewardScore
+    3, // _reputationScore
+    2, // _deadlineScore
+    1, // _revisionScore
+    // Stake amounts (in ETH units)
+    1, // lowStake
+    2, // midLowStake
+    3, // midStake
+    4, // midHighStake
+    5, // highStake
+    10, // ultraHighStake
+    // Reputation Points
+    10, // CancelByMeRP
+    5,  // requestCancelRP
+    5,  // respondCancelRP
+    2,  // revisionRP
+    20, // taskAcceptCreatorRP
+    20, // taskAcceptMemberRP
+    15, // deadlineHitCreatorRP
+    15, // deadlineHitMemberRP
+    // State Vars (must be small enough so that value * 1 ether fits into uint64)
+    10, // _maxStakeInEther
+    10, // _maxRewardInEther
+    24,  // _cooldownInHour
+    24,  // _minRevisionTimeInHour
+    10,  // _NegPenalty
+    5,   // _feePercentage
+    3,   // _maxRevision
+    // Stake Categories (in ETH units)
+    1, // lowCat
+    2, // midLowCat
+    3, // midCat
+    4, // midHighCat
+    5, // highCat
+    10, // ultraHighCat
+    // accessControl
+    employeeAssignmentAddress,
+  ];
+
+  const stateVar = await StateVariable.deploy(...svArgs);
+  await stateVar.waitForDeployment();
+  const stateVarAddress = await stateVar.getAddress();
+  console.log("stateVariable deployed to:", stateVarAddress);
+
+  // 4) Deploy TrustlessTeamProtocol as UUPS proxy (uses accessControl, systemWallet, stateVar)
+  console.log("Deploying TrustlessTeamProtocol (UUPS proxy)...");
   const TrustlessTeamProtocol = await ethers.getContractFactory("TrustlessTeamProtocol");
-  const trustlessTeamProtocol = await upgrades.deployProxy(TrustlessTeamProtocol, [
-    employeeAssignmentAddress, // _employeeAssignment
-    systemWalletAddress,       // _systemWallet (payable)
-    24n,                       // _cooldownInHour
-    4294967295n,               // _maxStake (uint32 max)
-    10n,                       // _NegPenalty
-    100n,                      // _maxReward (ether units)
-    24n,                       // _minRevisionTimeInHour
-    5n,                        // _feePercentage
-    3n,                        // _maxRevision
-    10n,                       // _CancelByMe
-    5n,                        // _requestCancel
-    5n,                        // _respondCancel
-    3n,                        // _revision
-    20n,                       // _taskAcceptCreator
-    20n,                       // _taskAcceptMember
-    15n,                       // _deadlineHitCreator
-    15n                        // _deadlineHitMember
-  ], {
-    initializer: "initialize",
-    kind: "uups"
-  });
+  const initialMemberStakePercent = 50; // default percent (adjust as needed)
+  const trustlessTeamProtocol = await upgrades.deployProxy(
+    TrustlessTeamProtocol,
+    [employeeAssignmentAddress, systemWalletAddress, stateVarAddress, initialMemberStakePercent],
+    {
+      initializer: "initialize",
+      kind: "uups",
+    },
+  );
   await trustlessTeamProtocol.waitForDeployment();
   const trustlessTeamProtocolAddress = await trustlessTeamProtocol.getAddress();
-  console.log("TrustlessTeamProtocol deployed to:", trustlessTeamProtocolAddress);
+  console.log("TrustlessTeamProtocol proxy deployed to:", trustlessTeamProtocolAddress);
 
   // Only verify on real networks (not localhost or hardhat)
   const networkName = network.name;
-  if (networkName !== 'hardhat' && networkName !== 'localhost') {
+  if (networkName !== "hardhat" && networkName !== "localhost") {
     // Wait for some blocks for verification
     console.log("Waiting for block confirmations...");
-    await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 60 seconds
+    await new Promise((resolve) => setTimeout(resolve, 60000)); // Wait 60 seconds
 
-    // Verify contracts on Etherscan
+    // Verify contracts on Etherscan / Blockscout if API key provided
     console.log("\nVerifying contracts...");
     try {
       // For proxies, verify implementation then attempt proxy verification (some explorers require chainId)
@@ -84,7 +123,10 @@ async function main() {
       try {
         await verify(employeeAssignmentAddress);
       } catch (err: any) {
-        console.warn("Proxy verification failed for EmployeeAssignment proxy, retrying with chainId...", err && err.message ? err.message : err);
+        console.warn(
+          "Proxy verification failed for EmployeeAssignment proxy, retrying with chainId...",
+          err && err.message ? err.message : err,
+        );
         await verify(employeeAssignmentAddress, [], { chainId: network.config?.chainId });
       }
 
@@ -94,7 +136,10 @@ async function main() {
       try {
         await verify(systemWalletAddress);
       } catch (err: any) {
-        console.warn("Proxy verification failed for SystemWallet proxy, retrying with chainId...", err && err.message ? err.message : err);
+        console.warn(
+          "Proxy verification failed for SystemWallet proxy, retrying with chainId...",
+          err && err.message ? err.message : err,
+        );
         await verify(systemWalletAddress, [], { chainId: network.config?.chainId });
       }
 
@@ -104,7 +149,10 @@ async function main() {
       try {
         await verify(trustlessTeamProtocolAddress);
       } catch (err: any) {
-        console.warn("Proxy verification failed for TrustlessTeamProtocol proxy, retrying with chainId...", err && err.message ? err.message : err);
+        console.warn(
+          "Proxy verification failed for TrustlessTeamProtocol proxy, retrying with chainId...",
+          err && err.message ? err.message : err,
+        );
         await verify(trustlessTeamProtocolAddress, [], { chainId: network.config?.chainId });
       }
     } catch (error) {

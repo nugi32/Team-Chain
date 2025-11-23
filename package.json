@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "scripts": {
     "test": "hardhat test",
-    "deploy": "ts-node --files ./scripts/deploy.ts",
-    "deploy:sepolia": "hardhat run scripts/deploy.ts --network liskSepolia",
-    "verify": "hardhat verify --network liskSepolia",
-    "upgrade": "ts-node --files ./scripts/upgrade.ts",
+    "deploy": "hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:mainnet": "hardhat run scripts/deploy.ts --network eth",
+    "deploy:liskSepolia": "hardhat run scripts/deploy.ts --network liskSepolia",
+    "verify:sepolia": "hardhat verify --network sepolia",
+    "verify:mainnet": "hardhat verify --network eth",
+    "verify:liskSepolia": "hardhat verify --network liskSepolia",
+    "upgrade": "hardhat run scripts/upgrade.ts --network sepolia",
+    "upgrade:mainnet": "hardhat run scripts/upgrade.ts --network eth",
+    "upgrade:liskSepolia": "hardhat run scripts/upgrade.ts --network liskSepolia",
     "chain": "npx hardhat node"
   },
   "devDependencies": {

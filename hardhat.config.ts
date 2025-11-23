@@ -5,15 +5,22 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-// Check for required environment variables
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL;
-const PRIVATE_KEY = process.env.PRIVATE_KEY as string | undefined;
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-// Optional separate deployer key for Lisk deployments (falls back to PRIVATE_KEY)
-const deployerPrivateKey = (process.env.DEPLOYER_PRIVATE_KEY || PRIVATE_KEY) as string;
+// Load environment variables (be permissive here; warn if missing)
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || "";
+const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL || "";
+const LISK_SEPOLIA_RPC_URL = process.env.LISK_SEPOLIA_RPC_URL || "";
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || PRIVATE_KEY;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 
-if (!SEPOLIA_RPC_URL || !PRIVATE_KEY || !ETHERSCAN_API_KEY) {
-  throw new Error("Please set your environment variables in a .env file");
+if (!PRIVATE_KEY) {
+  console.warn("Warning: PRIVATE_KEY not set. Some networks may not have deploy accounts configured.");
+}
+if (!SEPOLIA_RPC_URL) {
+  console.warn("Warning: SEPOLIA_RPC_URL not set. `sepolia` network will not be usable until provided.");
+}
+if (!MAINNET_RPC_URL) {
+  // don't spam warning for mainnet if user doesn't plan to use it
 }
 
 const config: HardhatUserConfig = {
@@ -28,24 +35,32 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    /*hardhat: {
+    hardhat: {
       chainId: 31337,
-    },*/
+    },
     sepolia: {
-      url: SEPOLIA_RPC_URL,
-      accounts: [PRIVATE_KEY as string],
+      url: SEPOLIA_RPC_URL || undefined,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       chainId: 11155111,
     },
-    // "liskSepolia"
-   liskSepolia: {
-      url: "https://rpc.sepolia-api.lisk.com",
+    eth: {
+      url: MAINNET_RPC_URL || undefined,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+      chainId: 1,
+    },
+    // Lisk Sepolia is added as a custom chain (non-EVM explorers may not support verification)
+    liskSepolia: {
+      url: LISK_SEPOLIA_RPC_URL || "https://rpc.sepolia-api.lisk.com",
+      accounts: DEPLOYER_PRIVATE_KEY ? [DEPLOYER_PRIVATE_KEY] : [],
       chainId: 4202,
-    accounts: [deployerPrivateKey],
     },
   },
   etherscan: {
     apiKey: {
-      // Map the liskSepolia network to the ETHERSCAN/Blockscout API key
+      // Standard supported networks
+      mainnet: ETHERSCAN_API_KEY,
+      sepolia: ETHERSCAN_API_KEY,
+      // Custom mapping for liskSepolia (some explorers use Blockscout-like API)
       liskSepolia: ETHERSCAN_API_KEY,
     },
     customChains: [

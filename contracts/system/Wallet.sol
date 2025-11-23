@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../Logic/AccesControl.sol";
+import "../Pipe/AccesControlPipes.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
@@ -32,11 +32,12 @@ contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradea
 
     /// @notice Initializes the contract with the employee assignment address
     /// @dev This function replaces the constructor for upgradeable contracts
-    /// @param _employeeAssignment The address of the EmployeeAssignment contract that manages roles
-    function initialize(address _employeeAssignment) public initializer {
+    /// @param _accessControl The address of the EmployeeAssignment contract that manages roles
+    function initialize(address _accessControl) public initializer {
+        zero_Address(_accessControl);
         __UUPSUpgradeable_init();
         __ReentrancyGuard_init();
-        employeeAssignment = IEmployeeAssignment(_employeeAssignment);
+        accessControl = IAccessControl(_accessControl);
     }
 
     /// @notice Transfers funds from the wallet to a specified address

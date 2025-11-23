@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 /// @notice Provides standardized ownership and employee access modifiers based on a central EmployeeAssignment contract.
 /// @dev This contract is intended to be inherited by other upgradeable contracts.
 /// It relies on an external `IEmployeeAssignment` contract to determine ownership and roles.
-interface IEmployeeAssignment {
+interface IAccessControl {
     /// @notice Returns the address of the contract owner.
     function owner() external view returns (address);
 
@@ -22,7 +22,7 @@ interface IEmployeeAssignment {
 /// @dev Uses OpenZeppelin Initializable for upgradeable pattern.
 abstract contract AccesControl is Initializable {
     /// @notice Reference to the central EmployeeAssignment contract.
-    IEmployeeAssignment public employeeAssignment;
+    IAccessControl public accessControl;
 
     // ===========================
     // Access Modifiers
@@ -30,26 +30,26 @@ abstract contract AccesControl is Initializable {
 
     /// @notice Restricts function access to only the contract owner.
     modifier onlyOwner() {
-        require(msg.sender == employeeAssignment.owner(), "Not owner");
+        require(msg.sender == accessControl.owner(), "Not owner");
         _;
     }
 
     /// @notice Restricts function access to anyone except the contract owner.
     modifier notOwner() {
-        require(msg.sender != employeeAssignment.owner(), "Caller is owner");
+        require(msg.sender != accessControl.owner(), "Caller is owner");
         _;
     }
 
     /// @notice Restricts function access to users with the "Employe" role.
     modifier onlyEmployes() {
-        require(employeeAssignment.hasRole(msg.sender), "Not employee");
+        require(accessControl.hasRole(msg.sender), "Not employee");
         _;
     }
 
     /// @notice Restricts function access to users who do not have the "Employe" role.
     modifier onlyUser() {
-        require(!employeeAssignment.hasRole(msg.sender), "Is employee");
-        require(msg.sender != employeeAssignment.owner(), "Caller is owner");
+        require(!accessControl.hasRole(msg.sender), "Is employee");
+        require(msg.sender != accessControl.owner(), "Caller is owner");
         _;
     }
 
