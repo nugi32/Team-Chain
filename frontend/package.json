@@ -1,0 +1,24 @@
+{
+  "name": "pop-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p . && node ./scripts/copy-contracts.js",
+    "start": "http-server ./app/ -c-1 -a 0.0.0.0 --port 8080 --cors"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "http-server": "^14.1.1",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@reown/appkit": "^1.8.14",
+    "@reown/appkit-adapter-ethers": "^1.8.14",
+    "@web3-onboard/core": "^2.24.1",
+    "@web3-onboard/injected-wallets": "^2.11.3",
+    "@web3modal/ethereum": "^3.7.1",
+    "@web3modal/html": "^3.7.1",
+    "dotenv": "^17.2.3",
+    "ethers": "^6.15.0"
+  }
+}

@@ -55,7 +55,7 @@ contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradea
         } else {
             // Perform the transfer using low-level call
             (bool success, ) = _to.call{value: _amount}("");
-            require(success, "transfer to loan contract failed");
+            require(success, "transfer failed");
         }
         
         // Emit event to log the transfer

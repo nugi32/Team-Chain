@@ -3,7 +3,7 @@ const path = require('path');
 
 // Source and destination paths
 const artifactsPath = path.join(__dirname, '..', 'artifacts', 'contracts');
-const frontendPath = path.join(__dirname, '..', 'frontend', 'src', 'contracts', 'artifacts');
+const frontendPath = path.join(__dirname, '..', 'frontend', 'app', 'scripts');
 
 // Create the destination directory if it doesn't exist
 if (!fs.existsSync(frontendPath)) {

@@ -5,183 +5,255 @@ import { writeFileSync } from "fs";
 import { join } from "path";
 
 async function main() {
-  // Pre-flight: check deployer balance so we fail with a clear message instead of low-level provider errors
-  console.log("Starting deployment sequence: EmployeeAssignment -> System_wallet -> stateVariable -> TrustlessTeamProtocol");
+  console.log("Starting deployment sequence: AccessControl -> System_wallet -> stateVariable -> TrustlessTeamProtocol");
+
+  // ==== PRE-FLIGHT CHECK ====
   const [deployer] = await ethers.getSigners();
   const deployerAddr = await deployer.getAddress();
   const deployerBalance = await ethers.provider.getBalance(deployerAddr);
+
   console.log(`Deployer address: ${deployerAddr} — balance: ${formatEther(deployerBalance)} ETH`);
+
   const minBalance = parseEther("0.01");
   if (deployerBalance < minBalance) {
     throw new Error(
-      `Deployer ${deployerAddr} has insufficient balance (${formatEther(deployerBalance)} ETH). Fund this account on ${network.name} or set PRIVATE_KEY to a funded account in your .env`,
+      `Deployer ${deployerAddr} has insufficient balance (${formatEther(
+        deployerBalance
+      )} ETH). Fund this account on ${network.name} or set PRIVATE_KEY to a funded account in your .env`
     );
   }
 
-  // 1) Deploy EmployeeAssignment as UUPS proxy
-  console.log("Deploying EmployeeAssignment (UUPS proxy)...");
-  const EmployeeAssignment = await ethers.getContractFactory("EmployeeAssignment");
-  const employeeAssignment = await upgrades.deployProxy(EmployeeAssignment, [], {
+  // ======================================================
+  // 1) AccessControl (EmployeeAssignment) — UUPS PROXY
+  // ======================================================
+  console.log("Deploying AccessControl (UUPS proxy)...");
+
+  const AccessControlFactory = await ethers.getContractFactory("AccessControl");
+  const accessControl = await upgrades.deployProxy(AccessControlFactory, [], {
     initializer: "initialize",
     kind: "uups",
   });
-  await employeeAssignment.waitForDeployment();
-  const employeeAssignmentAddress = await employeeAssignment.getAddress();
-  console.log("EmployeeAssignment proxy deployed to:", employeeAssignmentAddress);
 
-  // 2) Deploy System_wallet as UUPS proxy (requires accessControl address)
+  await accessControl.waitForDeployment();
+  const accessControlAddress = await accessControl.getAddress();
+
+  console.log("AccessControl proxy deployed to:", accessControlAddress);
+
+  // ======================================================
+  // 2) System_wallet — UUPS PROXY
+  // ======================================================
   console.log("Deploying System_wallet (UUPS proxy)...");
-  const SystemWallet = await ethers.getContractFactory("System_wallet");
-  const systemWallet = await upgrades.deployProxy(SystemWallet, [employeeAssignmentAddress], {
-    initializer: "initialize",
-    kind: "uups",
-  });
-  await systemWallet.waitForDeployment();
-  const systemWalletAddress = await systemWallet.getAddress();
-  console.log("System_wallet proxy deployed to:", systemWalletAddress);
 
-  // 3) Deploy stateVariable (regular contract with constructor args)
-  console.log("Deploying stateVariable (regular contract)...");
-  const StateVariable = await ethers.getContractFactory("stateVariable");
-  // Default/init values for stateVariable constructor (adjust if you need different tuning)
-  const svArgs = [
-    // Component weights (must sum to 10)
-    4, // _rewardScore
-    3, // _reputationScore
-    2, // _deadlineScore
-    1, // _revisionScore
-    // Stake amounts (in ETH units)
-    1, // lowStake
-    2, // midLowStake
-    3, // midStake
-    4, // midHighStake
-    5, // highStake
-    10, // ultraHighStake
-    // Reputation Points
-    10, // CancelByMeRP
-    5,  // requestCancelRP
-    5,  // respondCancelRP
-    2,  // revisionRP
-    20, // taskAcceptCreatorRP
-    20, // taskAcceptMemberRP
-    15, // deadlineHitCreatorRP
-    15, // deadlineHitMemberRP
-    // State Vars (must be small enough so that value * 1 ether fits into uint64)
-    10, // _maxStakeInEther
-    10, // _maxRewardInEther
-    24,  // _cooldownInHour
-    24,  // _minRevisionTimeInHour
-    10,  // _NegPenalty
-    5,   // _feePercentage
-    3,   // _maxRevision
-    // Stake Categories (in ETH units)
-    1, // lowCat
-    2, // midLowCat
-    3, // midCat
-    4, // midHighCat
-    5, // highCat
-    10, // ultraHighCat
-    // accessControl
-    employeeAssignmentAddress,
-  ];
-
-  const stateVar = await StateVariable.deploy(...svArgs);
-  await stateVar.waitForDeployment();
-  const stateVarAddress = await stateVar.getAddress();
-  console.log("stateVariable deployed to:", stateVarAddress);
-
-  // 4) Deploy TrustlessTeamProtocol as UUPS proxy (uses accessControl, systemWallet, stateVar)
-  console.log("Deploying TrustlessTeamProtocol (UUPS proxy)...");
-  const TrustlessTeamProtocol = await ethers.getContractFactory("TrustlessTeamProtocol");
-  const initialMemberStakePercent = 50; // default percent (adjust as needed)
-  const trustlessTeamProtocol = await upgrades.deployProxy(
-    TrustlessTeamProtocol,
-    [employeeAssignmentAddress, systemWalletAddress, stateVarAddress, initialMemberStakePercent],
+  const SystemWalletFactory = await ethers.getContractFactory("System_wallet");
+  const systemWallet = await upgrades.deployProxy(
+    SystemWalletFactory,
+    [accessControlAddress],
     {
       initializer: "initialize",
       kind: "uups",
-    },
+    }
   );
+
+  await systemWallet.waitForDeployment();
+  const systemWalletAddress = await systemWallet.getAddress();
+
+  console.log("System_wallet proxy deployed to:", systemWalletAddress);
+
+  // ======================================================
+  // 3) stateVariable — NORMAL CONTRACT
+  // ======================================================
+  console.log("Deploying stateVariable (regular contract)...");
+
+  const StateVariableFactory = await ethers.getContractFactory("stateVariable");
+
+  const svArgs = [
+    // Component weights
+    4,
+    3,
+    2,
+    1,
+    // Stakes
+    1,
+    2,
+    3,
+    4,
+    5,
+    10,
+    // Reputation Points
+    10,
+    5,
+    5,
+    2,
+    20,
+    20,
+    15,
+    15,
+    // State vars
+    10,
+    10,
+    24,
+    24,
+    10,
+    5,
+    3,
+    // Categories
+    1,
+    2,
+    3,
+    4,
+    5,
+    10,
+    // Access control
+    accessControlAddress,
+  ];
+
+  const stateVar = await StateVariableFactory.deploy(...svArgs);
+  await stateVar.waitForDeployment();
+  const stateVarAddress = await stateVar.getAddress();
+
+  console.log("stateVariable deployed to:", stateVarAddress);
+
+  // ======================================================
+  // 4) TrustlessTeamProtocol — UUPS PROXY
+  // ======================================================
+  console.log("Deploying TrustlessTeamProtocol (UUPS proxy)...");
+
+  const TrustlessTeamProtocolFactory = await ethers.getContractFactory(
+    "TrustlessTeamProtocol"
+  );
+
+  const initialMemberStakePercent = 50;
+
+  const trustlessTeamProtocol = await upgrades.deployProxy(
+    TrustlessTeamProtocolFactory,
+    [
+      accessControlAddress,
+      systemWalletAddress,
+      stateVarAddress,
+      initialMemberStakePercent,
+    ],
+    {
+      initializer: "initialize",
+      kind: "uups",
+    }
+  );
+
   await trustlessTeamProtocol.waitForDeployment();
   const trustlessTeamProtocolAddress = await trustlessTeamProtocol.getAddress();
-  console.log("TrustlessTeamProtocol proxy deployed to:", trustlessTeamProtocolAddress);
 
-  // Only verify on real networks (not localhost or hardhat)
+  console.log("TrustlessTeamProtocol deployed:", trustlessTeamProtocolAddress);
+
+  // ======================================================
+  // OPTIONAL VERIFY FOR REAL NETWORK
+  // ======================================================
   const networkName = network.name;
-  if (networkName !== "hardhat" && networkName !== "localhost") {
-    // Wait for some blocks for verification
-    console.log("Waiting for block confirmations...");
-    await new Promise((resolve) => setTimeout(resolve, 60000)); // Wait 60 seconds
 
-    // Verify contracts on Etherscan / Blockscout if API key provided
+  if (networkName !== "hardhat" && networkName !== "localhost") {
+    console.log("Waiting for confirmations...");
+    await new Promise((r) => setTimeout(r, 60000));
+
     console.log("\nVerifying contracts...");
+
     try {
-      // For proxies, verify implementation then attempt proxy verification (some explorers require chainId)
-      const empImpl = await upgrades.erc1967.getImplementationAddress(employeeAssignmentAddress);
-      console.log("Verifying implementation:", empImpl);
-      await verify(empImpl);
+      // AccessControl
+      const acImpl = await upgrades.erc1967.getImplementationAddress(
+        accessControlAddress
+      );
+      console.log("Verifying AccessControl implementation:", acImpl);
+      await verify(acImpl);
+
       try {
-        await verify(employeeAssignmentAddress);
-      } catch (err: any) {
-        console.warn(
-          "Proxy verification failed for EmployeeAssignment proxy, retrying with chainId...",
-          err && err.message ? err.message : err,
-        );
-        await verify(employeeAssignmentAddress, [], { chainId: network.config?.chainId });
+        await verify(accessControlAddress);
+      } catch (err) {
+        await verify(accessControlAddress, [], {
+          chainId: network.config?.chainId,
+        });
       }
 
-      const sysImpl = await upgrades.erc1967.getImplementationAddress(systemWalletAddress);
-      console.log("Verifying implementation:", sysImpl);
-      await verify(sysImpl);
+      // SystemWallet
+      const swImpl = await upgrades.erc1967.getImplementationAddress(
+        systemWalletAddress
+      );
+      console.log("Verifying SystemWallet implementation:", swImpl);
+      await verify(swImpl);
+
       try {
         await verify(systemWalletAddress);
-      } catch (err: any) {
-        console.warn(
-          "Proxy verification failed for SystemWallet proxy, retrying with chainId...",
-          err && err.message ? err.message : err,
-        );
-        await verify(systemWalletAddress, [], { chainId: network.config?.chainId });
+      } catch (err) {
+        await verify(systemWalletAddress, [], {
+          chainId: network.config?.chainId,
+        });
       }
 
-      const ttpImpl = await upgrades.erc1967.getImplementationAddress(trustlessTeamProtocolAddress);
-      console.log("Verifying implementation:", ttpImpl);
+      // TrustlessTeamProtocol
+      const ttpImpl = await upgrades.erc1967.getImplementationAddress(
+        trustlessTeamProtocolAddress
+      );
+      console.log("Verifying TrustlessTeamProtocol implementation:", ttpImpl);
       await verify(ttpImpl);
+
       try {
         await verify(trustlessTeamProtocolAddress);
-      } catch (err: any) {
-        console.warn(
-          "Proxy verification failed for TrustlessTeamProtocol proxy, retrying with chainId...",
-          err && err.message ? err.message : err,
-        );
-        await verify(trustlessTeamProtocolAddress, [], { chainId: network.config?.chainId });
+      } catch (err) {
+        await verify(trustlessTeamProtocolAddress, [], {
+          chainId: network.config?.chainId,
+        });
       }
-    } catch (error) {
-      console.log("Error verifying contracts:", error);
+    } catch (err) {
+      console.log("Error during verification:", err);
     }
   }
 
-  // Save the deployed addresses
+  // ======================================================
+  // SAVE ALL ADDRESS TO JSON (COMPLETE)
+  // ======================================================
+
   const addresses = {
-    EmployeeAssignment: employeeAssignmentAddress,
-    SystemWallet: systemWalletAddress,
-    TrustlessTeamProtocol: trustlessTeamProtocolAddress,
+    network: network.name,
+    deployer: deployerAddr,
+
+    AccessControl: {
+      proxy: accessControlAddress,
+      implementation: await upgrades.erc1967.getImplementationAddress(
+        accessControlAddress
+      ),
+    },
+    SystemWallet: {
+      proxy: systemWalletAddress,
+      implementation: await upgrades.erc1967.getImplementationAddress(
+        systemWalletAddress
+      ),
+    },
+    StateVariable: {
+      address: stateVarAddress,
+    },
+    TrustlessTeamProtocol: {
+      proxy: trustlessTeamProtocolAddress,
+      implementation: await upgrades.erc1967.getImplementationAddress(
+        trustlessTeamProtocolAddress
+      ),
+    },
   };
 
-  // Save addresses to a file
-  const addressesPath = join(__dirname, '..', 'frontend', 'src', 'contracts', 'addresses.json');
-  writeFileSync(
-    addressesPath,
-    JSON.stringify(addresses, null, 2)
+  const addrPath = join(
+    __dirname,
+    "..",
+    "frontend",
+    "app",
+    "scripts",
+    "addresses.json"
   );
 
-  console.log("\nDeployment completed! Addresses saved to frontend/src/contracts/addresses.json");
-  
+  writeFileSync(addrPath, JSON.stringify(addresses, null, 2));
+
+  console.log("\nDeployment completed! Addresses saved to frontend/app/scripts/addresses.json");
+
   return addresses;
 }
 
 main()
   .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
+  .catch((err) => {
+    console.error(err);
     process.exit(1);
   });
