@@ -1,0 +1,41 @@
+.background {
+  padding: 60px;
+  margin: 0 auto;
+  color: #fff;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+
+.about-container h1 {
+  font-size: 42px;
+  margin-bottom: 16px;
+  color: #7c5cff;
+}
+
+.about-container h2 {
+  margin-top: 32px;
+  color: #96a0b3;
+}
+
+.about-container p, 
+.about-container ul {
+  line-height: 1.7;
+  font-size: 16px;
+  color: #d4d8e0;
+}
+
+.about-container ul {
+  margin-top: 12px;
+  padding-left: 18px;
+}
+
+.blur-box {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* untuk Safari */
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 100%;
+}

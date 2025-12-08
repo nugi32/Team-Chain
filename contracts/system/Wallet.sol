@@ -25,10 +25,11 @@ contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradea
     /// @param from The address sending the funds
     /// @param amount The amount of funds received (in wei)
     event contract_received_fund(address indexed  from, uint256 indexed amount);
-    
-    /// @notice Emitted when someone checks the wallet balance
-    /// @param caller The address that checked the balance
-    event contract_balances_checked(address indexed caller);
+
+    event AccessControlChanged(address newAccessControl);
+
+    /// @notice Custom error for insufficient funds in the wallet
+    error InsufficientFunds();
 
     /// @notice Initializes the contract with the employee assignment address
     /// @dev This function replaces the constructor for upgradeable contracts
@@ -51,7 +52,7 @@ contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradea
         
         // Check if wallet has sufficient balance
         if (address(this).balance < _amount){
-            revert ("insuficient balances !");
+            revert InsufficientFunds();
         } else {
             // Perform the transfer using low-level call
             (bool success, ) = _to.call{value: _amount}("");
@@ -62,20 +63,11 @@ contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradea
         emit contract_transfered_fund(_to, _amount);
     }
 
-    /// @notice Returns the current balance of the wallet in ether
-    /// @dev Only employees with the "Employe" role can call this function
-    /// @return The wallet balance in ether (excluding wei)
-    /// @custom:note This function returns balance divided by 1 ether, so it excludes fractional wei
-    function seeBalances () external onlyEmployes callerZeroAddr returns (uint) {
-        // Convert balance from wei to ether
-        uint balances_in_ether = address(this).balance / 1 ether;
-        
-        // Emit event to log the balance check
-        emit contract_balances_checked(msg.sender);
-        
-        return balances_in_ether;
+    function changeAccessControl(address _newAccesControl) external onlyOwner {
+        zero_Address(_newAccesControl);
+        accessControl = IAccessControl(_newAccesControl);
+        emit AccessControlChanged(_newAccesControl);
     }
-
 
 
     /// @notice Fallback function called when contract receives ether without data

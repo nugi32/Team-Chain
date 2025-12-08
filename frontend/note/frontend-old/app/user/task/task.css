@@ -1,0 +1,230 @@
+/* ========= ROOT VARIABLES ========= */
+:root {
+  --bg: #0f1724;
+  --card: #0b1220;
+  --muted: #96a0b3;
+  --accent: #7c5cff;
+  --accent2: #35d1ff;
+  --glass: rgba(255,255,255,0.03);
+  --text: #fff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  font-family: Inter, sans-serif;
+  color: var(--text);
+}
+
+/* ========= PAGE CONTAINER ========= */
+.page {
+  max-width: 920px;
+  margin: auto;
+  padding: 60px 24px;
+}
+
+/* ========= TITLE ========= */
+.page-title {
+  font-size: 28px;
+  margin-bottom: 24px;
+}
+
+/* ========= SEARCH + FILTER BAR ========= */
+.projects-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.projects-toolbar input,
+.projects-toolbar select {
+  padding: 10px 14px;
+  background: var(--card);
+  border-radius: 10px;
+  border: 1px solid #1c2334;
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* ========= LIST GRID ========= */
+.projects-container {
+  display: grid;
+  gap: 16px;
+}
+
+/* ========= CARD ========= */
+.task-card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 14px;
+  cursor: pointer;
+  position: relative;
+  transition: .25s;
+}
+
+.task-card:hover {
+  box-shadow: 0 0 22px rgba(124, 92, 255, .18);
+}
+
+.task-card h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+/* small info */
+.meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* badge pojok kiri bawah */
+.badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  font-size: 12px;
+  background: var(--accent2);
+  color: #000;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* ========= CREATE TASK ========= */
+.create-task {
+  margin-top: 60px;
+}
+
+.register-form {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  background: var(--card);
+  border-radius: 10px;
+}
+
+.register-form input,
+.register-form button {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+}
+
+.register-form input {
+  background: var(--glass);
+  color: var(--text);
+}
+
+.register-form button {
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  transition: .25s;
+}
+.register-form button:hover {
+  opacity: .85;
+}
+
+.active {
+    margin-top: -100px;
+}
+
+.inactive {
+    margin-top: 200px;
+}
+
+/* ===== CREATE TASK WRAPPER ===== */
+.create-task {
+  padding: 20px;
+  margin-top: 40px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);/*
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.08);*/
+  border-radius: 16px;
+  width: 100%;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.create-task .page-title {
+  margin-bottom: 18px;
+  font-size: 24px;
+}
+
+/* FORM */
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* INPUT STYLE */
+.task-form input,
+.task-form select {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  outline: none;
+  transition: .25s;
+}
+
+/* Focus glow */
+.task-form input:focus,
+.task-form select:focus {
+  border-color: #7c5cff;
+  background: rgba(255,255,255,0.14);
+}
+
+/* STAKE ROW */
+.stake-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.stake-row input {
+  flex: 2;
+}
+
+.stake-row select {
+  flex: 1;
+}
+
+#stakeUnit option {
+  background-color: #272727;       /* background saat dropdown dibuka */
+  color: #fff;
+}
+
+
+/* BUTTON */
+.btn-submit {
+  margin-top: 6px;
+  padding: 12px;
+  background: #7c5cff;
+  border-radius: 12px;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: .25s;
+}
+
+.btn-submit:hover {
+  background: #6a46ff;
+  transform: translateY(-1px);
+}
+
+/* === MOBILE ADAPTATION === */
+@media(max-width:720px){
+  .stake-row {
+    flex-direction: column;
+  }
+}

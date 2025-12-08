@@ -1,0 +1,152 @@
+.projects-container{
+  width: 90%;
+  max-width: 1300px;
+  margin: auto;
+  padding: 30px 0;
+}
+
+/* === Toolbar === */
+.projects-toolbar{
+  display: flex;
+  gap: 14px;
+  margin-bottom: 26px;
+  margin-top: -20px;
+
+  padding: 12px 16px;
+  
+  /* glass */
+  background: rgba(30, 32, 45, 0.28);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  
+  transition: .25s ease;
+}
+
+/* SEARCH INPUT */
+.projects-toolbar input{
+  flex: 1;
+  padding: 10px 14px;
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+
+  color: #fff;
+  font-size: 15px;
+
+  transition: .25s;
+}
+
+.projects-toolbar input:focus{
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.25);
+  outline: none;
+}
+
+/* DROPDOWN */
+.projects-toolbar select{
+  padding: 10px 14px;
+
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: #fff;
+
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  transition: .25s ease-out;
+  max-width: 25%;
+}
+
+/* hover ringan */
+.projects-toolbar select:hover{
+  background: rgba(255,255,255,0.14);
+}
+
+/* ketika dropdown diklik — glow halus */
+.projects-toolbar select:focus{
+  background: rgba(255,255,255,0.16);
+  box-shadow: 0 0 0 2px rgba(120,120,255,0.4);
+}
+
+/* opsi dropdown ikut blur */
+.projects-toolbar select option{
+  background: rgba(25,25,35,0.9);
+  color: #fff;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 8px 12px;
+}
+
+/* responsive: tetap layout awal, hanya wrap */
+@media(max-width:780px){
+  .projects-toolbar{
+    flex-wrap: wrap;
+  }
+
+  .projects-toolbar select{
+    flex: 0 0 48%;
+  }
+}
+
+
+
+/* === Cards Grid === */
+.projects-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+  gap: 24px;
+}
+
+/* === Card === */
+.task-card{
+  padding: 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.07);
+  cursor: pointer;
+  transition: .25s;
+  position: relative;
+}
+
+.task-card:hover{
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-3px);
+}
+
+/* Title */
+.task-card h3{
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+/* Meta List */
+.task-meta{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.task-meta li{
+  margin-bottom: 6px;
+  font-size: 14px;
+  opacity: .85;
+}
+
+/* Status indicator kecil */
+.status-dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+.done{ background:#49ff86 }
+.progress{ background:#35d1ff }
+.pending{ background:#ff5370 }

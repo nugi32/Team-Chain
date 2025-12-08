@@ -1,0 +1,27 @@
+:root{--bg:#0f1720;--card:#0b1220;--accent:#60a5fa;--text:#e6eef8}
+*{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+body{margin:0;background:linear-gradient(180deg,#071027 0%, #071a2f 100%);color:var(--text);min-height:100vh}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 28px;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.03)}
+header h1{margin:0;font-size:18px}
+#wallet{display:flex;gap:12px;align-items:center}
+button{background:var(--accent);border:0;color:#022;padding:8px 12px;border-radius:8px;cursor:pointer}
+button.secondary{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.04)}
+main{padding:20px;display:grid;grid-template-columns:360px 1fr;gap:20px}
+section#config{background:var(--card);padding:16px;border-radius:12px}
+.contract-input{display:flex;flex-direction:column;margin-bottom:10px}
+.contract-input label{font-size:13px;color:rgba(230,238,248,0.8);margin-bottom:6px}
+.contract-input input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)}
+.actions{display:flex;gap:10px;margin-top:8px}
+.hint{font-size:12px;color:rgba(230,238,248,0.6)}
+#contracts{padding:8px}
+.contract-card{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.03)}
+.contract-card h3{margin:0 0 8px 0}
+.fn-row{display:grid;grid-template-columns:1fr 220px;gap:12px;align-items:center;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);margin-bottom:8px}
+.fn-meta{font-size:13px}
+.fn-controls{display:flex;flex-direction:column;gap:8px}
+.fn-inputs{display:flex;gap:8px;flex-wrap:wrap}
+.fn-inputs input{padding:6px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--text)}
+.result{font-family:monospace;background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;color:#cfffb8;font-size:13px}
+.small{font-size:12px;color:rgba(230,238,248,0.7)}
+footer{padding:12px 20px;color:rgba(230,238,248,0.6)}
+@media(max-width:900px){main{grid-template-columns:1fr}}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../layouts/css/global.css" />
+    <link rel="stylesheet" href="./register.css" />
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script type="module" src="../layouts/js/connectwallet.js " ></script>
+    <script type="module" src="../layouts/js/sidebar.js"></script>
+    <base href="../layouts/">
+</head>
+<body>
+    <div data-include="../layouts/header.html"></div>
+
+
+
+
+<!-- Form register untuk user baru -->
+
+
+<div class="background">
+    <div class="register">
+  <form class="register-form">
+    <input type="text" name="name" placeholder="Full Name" required>
+    <input type="number" name="age" placeholder="Age" min="18" required>
+    <input type="text" name="github" placeholder="GitHub Account URL" required>
+    <button type="submit">Register</button>
+  </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+    <div data-include="../layouts/footer.html"></div>
+
+    <script>
+document.querySelectorAll("[data-include]").forEach(async el => {
+    const file = el.getAttribute("data-include");
+    const res = await fetch(file);
+    el.innerHTML = await res.text();
+});
+</script>
+
+</body>
+</html>

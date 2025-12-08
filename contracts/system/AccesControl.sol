@@ -40,6 +40,17 @@ contract AccessControl is UUPSUpgradeable {
     /// @param newOwner The address of the new owner
     event OwnerChanged(address indexed oldOwner, address indexed newOwner);
 
+    // ================================
+    // Custom Errors
+    // ================================
+
+    error NotOwner();
+    error ZeroAddress();
+    error AlredyHaveRole();
+    error DoesNotHaveRole();
+    error OwnerCannotBeEmployee();
+    
+
      function initialize() public initializer {
         __UUPSUpgradeable_init();
         owner = msg.sender;
@@ -51,7 +62,7 @@ contract AccessControl is UUPSUpgradeable {
     
     /// @notice Ensures that only the contract owner can call the function
     modifier onlyOwner() {
-        require(msg.sender == owner, "EmployeeAssignment: caller is not the owner");
+        if(msg.sender != owner) revert NotOwner();
         _;
     }
 
@@ -65,7 +76,7 @@ contract AccessControl is UUPSUpgradeable {
      * @param x Address to validate
      */
     function zero_Address(address x) internal pure {
-        require(x != address(0), "EmployeeAssignment: zero address not allowed");
+        if (x == address(0)) revert ZeroAddress();
     }
     
     // ================================
@@ -82,11 +93,11 @@ contract AccessControl is UUPSUpgradeable {
         //require(keccak256(bytes(role)) == keccak256(bytes("Employe")), "EmployeeAssignment: invalid role");
         
         // Validate that employee address is not zero
-        require(newEmployee != address(0), "EmployeeAssignment: employee cannot be zero address");
+        zero_Address(newEmployee);
         
         // Validate that employee doesn't already have this role
-        require(!employees[newEmployee], "EmployeeAssignment: employee already has this role");
-        require(newEmployee != owner,"EmployeeAssignment: owner can be employee");
+        if (employees[newEmployee]) revert AlredyHaveRole();
+        if (newEmployee == owner) revert OwnerCannotBeEmployee();
         
         // Assign the role to the employee
         employees[newEmployee]= true;
@@ -104,7 +115,7 @@ contract AccessControl is UUPSUpgradeable {
     function removeEmployee(address employee) external onlyOwner {
         
         // Validate that employee currently has this role
-        require(employees[employee], "EmployeeAssignment: employee does not have this role");
+        if (!employees[employee]) revert DoesNotHaveRole();
         
         // Remove the role from the employee
         employees[employee] = false;

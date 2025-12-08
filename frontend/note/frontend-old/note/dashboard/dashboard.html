@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Web3Modal HTML Only</title>
+  <script type="module">
+    import { createWeb3Modal, defaultWagmiConfig } from "https://esm.sh/@web3modal/wagmi";
+    import { mainnet, polygon, bsc } from "https://esm.sh/wagmi/chains";
+
+    // PROJECT ID
+    const projectId = "52a9a44c36c9cf0288d553c34e8a662d"; 
+
+    // Metadata
+    const metadata = {
+      name: "My Wallet UI",
+      description: "Wallet Connect",
+      url: "https://localhost",
+      icons: ["https://avatars.githubusercontent.com/u/37784886"]
+    };
+
+    // Wagmi Config
+    const chains = [mainnet, polygon, bsc];
+    const wagmiConfig = defaultWagmiConfig({
+      projectId,
+      chains,
+      metadata
+    });
+
+    // Init Web3Modal
+    createWeb3Modal({
+      wagmiConfig,
+      projectId,
+      chains
+    });
+  </script>
+
+  <style>
+    body {
+      background: #0f111a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- INI TOMBOL RESMI WEB3MODAL -->
+  <w3m-button></w3m-button>
+
+</body>
+</html>

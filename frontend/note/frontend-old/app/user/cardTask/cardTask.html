@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../layouts/css/global.css" />
+    <link rel="stylesheet" href="./cardTask.css" />
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script type="module" src="../layouts/js/connectwallet.js " ></script>
+    <script type="module" src="../layouts/js/sidebar.js"></script>
+    <base href="../layouts/">
+</head>
+<body>
+    <div data-include="../layouts/header.html"></div>
+
+
+
+
+
+
+
+<div class="background">
+    <!-- INI DIISI  dengan detail task dan disini owner bisa pilih buat activate,open,close registeration,dll.jika yang buka adalah selain creator maka dia bisa join ke task ini-->
+</div>
+
+
+
+
+
+
+
+
+    <div data-include="../layouts/footer.html"></div>
+
+    <script>
+document.querySelectorAll("[data-include]").forEach(async el => {
+    const file = el.getAttribute("data-include");
+    const res = await fetch(file);
+    el.innerHTML = await res.text();
+});
+</script>
+
+</body>
+</html>

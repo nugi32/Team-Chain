@@ -1,0 +1,13 @@
+{
+  "name": "pop-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p . && node ./scripts/copy-contracts.js",
+    "start": "npm run build && npx http-server -c-1 -p 8080 ./dist"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "typescript": "^5.1.6"
+  }
+}

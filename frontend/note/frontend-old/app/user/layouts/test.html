@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="./css/global.css" />
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script type="module" src="./js/connectwallet.js"></script>
+    <script type="module" src="./js/sidebar.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div data-include="./header.html"></div>
+<div class="background">
+        <h1>nigga</h1>
+    </div>
+    <div data-include="./footer.html"></div>
+
+    <script>
+document.querySelectorAll("[data-include]").forEach(async el => {
+    const file = el.getAttribute("data-include");
+    const res = await fetch(file);
+    el.innerHTML = await res.text();
+});
+</script>
+
+</body>
+</html>

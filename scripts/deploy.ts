@@ -66,46 +66,50 @@ async function main() {
 
   const StateVariableFactory = await ethers.getContractFactory("stateVariable");
 
-  const svArgs = [
-    // Component weights
-    4,
-    3,
-    2,
-    1,
-    // Stakes
-    1,
-    2,
-    3,
-    4,
-    5,
-    10,
-    // Reputation Points
-    10,
-    5,
-    5,
-    2,
-    20,
-    20,
-    15,
-    15,
-    // State vars
-    10,
-    10,
-    24,
-    24,
-    10,
-    5,
-    3,
-    // Categories
-    1,
-    2,
-    3,
-    4,
-    5,
-    10,
-    // Access control
-    accessControlAddress,
-  ];
+const svArgs = [
+  // ------- Weight (4)
+  4, // _rewardScore
+  3, // _reputationScore
+  2, // _deadlineScore
+  1, // _revisionScore
+
+  // ------- Stake Amounts (6)
+  1, // lowStake
+  2, // midLowStake
+  3, // midStake
+  4, // midHighStake
+  5, // highStake
+  10, // ultraHighStake
+
+  // ------- Reputation Points (6)
+  10, // CancelByMeRP
+  5,  // revisionRP
+  5,  // taskAcceptCreatorRP
+  2,  // taskAcceptMemberRP
+  20, // deadlineHitCreatorRP
+  20, // deadlineHitMemberRP
+
+  // ------- State Vars (7)
+  10, // _maxStakeInEther
+  10, // _maxRewardInEther
+  24, // _cooldownInHour
+  24, // _minRevisionTimeInHour
+  10, // _NegPenalty
+  5,  // _feePercentage
+  3,  // _maxRevision
+
+  // ------- Stake Categories (6)
+  1, // lowCat
+  2, // midLowCat
+  3, // midCat
+  4, // midHighCat
+  5, // highCat
+  10, // ultraHighCat
+
+  // ------- accessControl (1)
+  accessControlAddress,
+];
+
 
   const stateVar = await StateVariableFactory.deploy(...svArgs);
   await stateVar.waitForDeployment();
@@ -146,6 +150,7 @@ async function main() {
   // ======================================================
   // OPTIONAL VERIFY FOR REAL NETWORK
   // ======================================================
+  
   const networkName = network.name;
 
   if (networkName !== "hardhat" && networkName !== "localhost") {
@@ -240,13 +245,13 @@ async function main() {
     "..",
     "frontend",
     "app",
-    "scripts",
+    "address",
     "addresses.json"
   );
 
   writeFileSync(addrPath, JSON.stringify(addresses, null, 2));
 
-  console.log("\nDeployment completed! Addresses saved to frontend/app/scripts/addresses.json");
+  console.log("\nDeployment completed! Addresses saved to frontend/app/address/addresses.json");
 
   return addresses;
 }

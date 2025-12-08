@@ -1,0 +1,182 @@
+/* ===== MAIN HEADER ===== */
+.main-header {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto;
+    padding-top: 90px;
+    padding-bottom: 40px;
+}
+
+.main-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.main-header p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+
+/* Join BTN Section */
+.joinBTN {
+  text-align: center;
+  margin: 60px auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(5, 10, 20, 0.45);
+  backdrop-filter: blur(14px);
+  border-radius: 50px;
+  padding: 24px 16px;
+  min-width: 280px;
+  max-width: 30%;
+}
+
+
+/* Primary CTA button */
+.join {
+    background: linear-gradient(90deg, #4cafef, #1e3c72);
+    color: #e9f4ff;
+    border: 1px solid rgba(72,140,255,0.6);
+    border-radius: 30px;
+    padding: 14px 38px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .28s ease;
+    box-shadow: 0 5px 18px rgba(0, 136, 255, 0.35);
+}
+
+.join:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(0,136,255,0.45);
+    background: linear-gradient(90deg, var(--accent-blue-dark), var(--accent-blue));
+}
+
+.join:active {
+    transform: translateY(1px);
+}
+
+
+/* Intro Section */
+.intro {
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 0;
+}
+
+.intro h2 {
+    font-size: 2rem;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+}
+
+.intro p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+}
+
+
+
+/* Feature Section */
+
+.features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    justify-content: center;
+    min-width: 280px;
+    max-width: 50%;
+    margin: 60px auto;
+    
+    background: rgba(5, 10, 20, 0.45);
+    backdrop-filter: blur(14px);
+    border-radius: 20px;
+    padding: 24px 16px;
+    align-items: center;
+
+    box-shadow: 0 6px 20px rgba(5, 10, 20, 0.25);
+    overflow: hidden;
+      padding: 36px 24px;
+}
+
+/* item fitur */
+.features li,
+.feature-card {
+    width: 280px;
+    padding: 24px 20px;
+    line-height: 1.55;
+    font-size: 0.95rem;
+
+    /* biar smooth saat hover */
+    border: 1px solid transparent;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+/* hover mengikuti style global */
+.features li:hover,
+.feature-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(73,168,255,0.4);
+    box-shadow: 0 6px 20px rgba(73,168,255,0.25);
+}
+
+
+
+/* How-To Section */
+.how-to {
+    margin: 80px auto;
+    text-align: center;
+    padding: 32px 30px;
+    line-height: 1.75;
+      background: rgba(5, 10, 20, 0.45);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 24px 16px;
+  max-width: 75%;
+  margin: 60px auto;
+  align-items: center;
+}
+
+.how-to h2 {
+    font-size: 1.75rem;
+    margin-bottom: 18px;
+}
+
+.how-to ol {
+    padding-left: 26px;
+    font-size: 1.08rem;
+    text-align: left;
+}
+
+
+.intro {
+  background: rgba(5, 10, 20, 0.45);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 24px 16px;
+  max-width: 75%;
+  margin: 60px auto;
+  align-items: center;
+}
+
+/* Tablet / mobile kecil */
+@media (max-width: 600px) {
+  .features li:hover,
+  .feature-card:hover {
+    transform: none;
+    border-color: rgba(73,168,255,0.3);
+    box-shadow: inset 0 0 12px rgba(73,168,255,0.15);
+  }
+}
+

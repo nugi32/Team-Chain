@@ -36,10 +36,8 @@ contract stateVariable is AccesControl, Pausable {
 
     /// @notice Reputation point values based on user actions.
     struct ReputationPoint {
-        uint32 CancelByMe;
-        uint32 requestCancel;
-        uint32 respondCancel;
-        uint32 revision;
+        uint64 CancelByMe;
+        uint64 revision;
         uint32 taskAcceptCreator;
         uint32 taskAcceptMember;
         uint32 deadlineHitCreator;
@@ -48,13 +46,12 @@ contract stateVariable is AccesControl, Pausable {
 
     /// @notice Global system variables, including limits and penalty percentages.
     struct StateVar {
-        uint64 maxStake;
-        uint64 maxReward;
-        uint32 cooldownInHour;
-        uint32 minRevisionTimeInHour;
-        uint32 NegPenalty;
-        uint16 feePercentage;
-        uint16 maxRevision;
+        uint256 maxStake;
+        uint256 maxReward;
+        uint64 minRevisionTimeInHour;
+        uint64 NegPenalty;
+        uint64 feePercentage;
+        uint64 maxRevision;
     }
 
     /// @notice Predefined stake categories for classification.
@@ -100,10 +97,8 @@ contract stateVariable is AccesControl, Pausable {
     );
 
     event reputationPointsChanged(
-        uint32 CancelByMe,
-        uint32 requestCancel,
-        uint32 respondCancel,
-        uint32 revision,
+        uint64 CancelByMe,
+        uint64 revision,
         uint32 taskAcceptCreator,
         uint32 taskAcceptMember,
         uint32 deadlineHitCreator,
@@ -111,14 +106,14 @@ contract stateVariable is AccesControl, Pausable {
     );
 
     event StateVarsChanged(
-        uint32 cooldownInHour,
-        uint32 minRevisionTimeInHour,
-        uint32 NegPenalty,
-        uint64 maxReward,
-        uint16 feePercentage,
-        uint64 maxStake,
-        uint16 maxRevision
+        uint256 maxStake,
+        uint256 maxReward,
+        uint64 minRevisionTimeInHour,
+        uint64 NegPenalty,
+        uint64 feePercentage,
+        uint64 maxRevision
     );
+    
 
     event stakeCategorysChanged(
         uint256 low,
@@ -138,8 +133,10 @@ contract stateVariable is AccesControl, Pausable {
     // Errors
     // =============================================================
 
-    error TotalMustBe10();
+    error TotalMustBe100();
     error InvalidMaxStakeAmount();
+    error FeeCantBe100();
+    error NegPenaltyCantBe100();
 
 
     // =============================================================
@@ -166,23 +163,20 @@ contract stateVariable is AccesControl, Pausable {
         uint256 ultraHighStake,
 
         // Reputation Points
-        uint32 CancelByMeRP,
-        uint32 requestCancelRP,
-        uint32 respondCancelRP,
-        uint32 revisionRP,
+        uint64 CancelByMeRP,
+        uint64 revisionRP,
         uint32 taskAcceptCreatorRP,
         uint32 taskAcceptMemberRP,
         uint32 deadlineHitCreatorRP,
         uint32 deadlineHitMemberRP,
 
         // State Vars
-        uint64 _maxStakeInEther,
-        uint64 _maxRewardInEther,
-        uint32 _cooldownInHour,
-        uint32 _minRevisionTimeInHour,
-        uint32 _NegPenalty,
-        uint16 _feePercentage,
-        uint16 _maxRevision,
+        uint256 _maxStakeInEther,
+        uint256 _maxRewardInEther,
+        uint64 _minRevisionTimeInHour,
+        uint64 _NegPenalty,
+        uint64 _feePercentage,
+        uint64 _maxRevision,
 
         // Stake Categories
         uint256 lowCat,
@@ -195,6 +189,9 @@ contract stateVariable is AccesControl, Pausable {
         //access control 
         address _accessControl
     ) {
+        uint256 total = _rewardScore + _reputationScore + _deadlineScore + _revisionScore;
+        if (total != 100) revert TotalMustBe100();
+
         componentWeightPercentages = ComponentWeightPercentage({
             rewardScore: _rewardScore,
             reputationScore: _reputationScore,
@@ -213,8 +210,6 @@ contract stateVariable is AccesControl, Pausable {
 
         reputationPoints = ReputationPoint({
             CancelByMe: CancelByMeRP,
-            requestCancel: requestCancelRP,
-            respondCancel: respondCancelRP,
             revision: revisionRP,
             taskAcceptCreator: taskAcceptCreatorRP,
             taskAcceptMember: taskAcceptMemberRP,
@@ -225,7 +220,6 @@ contract stateVariable is AccesControl, Pausable {
         StateVars = StateVar({
             maxStake: _maxStakeInEther * 1 ether,
             maxReward: _maxRewardInEther * 1 ether,
-            cooldownInHour: _cooldownInHour,
             minRevisionTimeInHour: _minRevisionTimeInHour,
             NegPenalty: _NegPenalty,
             feePercentage: _feePercentage,
@@ -301,19 +295,11 @@ function __getStakeUltraHigh() external view returns (uint256) {
 // 3. ReputationPoint Getters
 // =============================================================
 
-function __getCancelByMe() external view returns (uint32) {
+function __getCancelByMe() external view returns (uint64) {
     return reputationPoints.CancelByMe;
 }
 
-function __getRequestCancel() external view returns (uint32) {
-    return reputationPoints.requestCancel;
-}
-
-function __getRespondCancel() external view returns (uint32) {
-    return reputationPoints.respondCancel;
-}
-
-function __getRevisionPenalty() external view returns (uint32) {
+function __getRevisionPenalty() external view returns (uint64) {
     return reputationPoints.revision;
 }
 
@@ -338,34 +324,29 @@ function __getDeadlineHitMember() external view returns (uint32) {
 // 4. StateVar Getters
 // =============================================================
 
-function __getCooldownInHour() external view returns (uint32) {
-    return StateVars.cooldownInHour;
-}
-
-function __getMinRevisionTimeInHour() external view returns (uint32) {
-    return StateVars.minRevisionTimeInHour;
-}
-
-function __getNegPenalty() external view returns (uint32) {
-    return StateVars.NegPenalty;
-}
-
-function __getMaxReward() external view returns (uint64) {
-    return StateVars.maxReward;
-}
-
-function __getFeePercentage() external view returns (uint16) {
-    return StateVars.feePercentage;
-}
-
-function __getMaxStake() external view returns (uint64) {
+function __getMaxStake() external view returns (uint256) {
     return StateVars.maxStake;
 }
 
-function __getMaxRevision() external view returns (uint16) {
-    return StateVars.maxRevision;
+function __getMaxReward() external view returns (uint256) {
+    return StateVars.maxReward;
 }
 
+function __getMinRevisionTimeInHour() external view returns (uint64) {
+    return StateVars.minRevisionTimeInHour;
+}
+
+function __getNegPenalty() external view returns (uint64) {
+    return StateVars.NegPenalty;
+}
+
+function __getFeePercentage() external view returns (uint64) {
+    return StateVars.feePercentage;
+}
+
+function __getMaxRevision() external view returns (uint64) {
+    return StateVars.maxRevision;
+}
 
 // =============================================================
 // 5. StakeCategory Getters
@@ -413,6 +394,10 @@ function __getCategoryUltraHigh() external view returns (uint256) {
         uint64 deadlineScore,
         uint64 revisionScore
     ) external onlyEmployes {
+
+        uint256 total = rewardScore + reputationScore + deadlineScore + revisionScore;
+        if (total != 100) revert TotalMustBe100();
+
         componentWeightPercentages = ComponentWeightPercentage(
             rewardScore,
             reputationScore,
@@ -447,13 +432,19 @@ function __getCategoryUltraHigh() external view returns (uint256) {
         uint256 ultraHigh
     ) external onlyEmployes {
 
+         StateVar storage sv =  StateVars;
+
+        if (low >= midLow || midLow >= mid || mid >= midHigh || midHigh >= high || high >= ultraHigh) revert InvalidMaxStakeAmount();
+
+        if (ultraHigh > sv.maxStake) revert InvalidMaxStakeAmount();
+
         stakeAmounts = StakeAmount({
-            low: low * 1 ether,
-            midLow: midLow * 1 ether,
-            mid: mid * 1 ether,
-            midHigh: midHigh * 1 ether,
-            high: high * 1 ether,
-            ultraHigh: ultraHigh * 1 ether
+            low: low,
+            midLow: midLow,
+            mid: mid,
+            midHigh: midHigh,
+            high: high,
+            ultraHigh: ultraHigh
         });
 
         emit stakeAmountsChanged(
@@ -471,10 +462,8 @@ function __getCategoryUltraHigh() external view returns (uint256) {
      * @dev Only employees can call this function.
      */
     function setReputationPoints(
-        uint32 CancelByMeRP,
-        uint32 requestCancelRP,
-        uint32 respondCancelRP,
-        uint32 revisionRP,
+        uint64 CancelByMeRP,
+        uint64 revisionRP,
         uint32 taskAcceptCreatorRP,
         uint32 taskAcceptMemberRP,
         uint32 deadlineHitCreatorRP,
@@ -483,8 +472,6 @@ function __getCategoryUltraHigh() external view returns (uint256) {
 
         reputationPoints = ReputationPoint({
             CancelByMe: CancelByMeRP,
-            requestCancel: requestCancelRP,
-            respondCancel: respondCancelRP,
             revision: revisionRP,
             taskAcceptCreator: taskAcceptCreatorRP,
             taskAcceptMember: taskAcceptMemberRP,
@@ -494,8 +481,6 @@ function __getCategoryUltraHigh() external view returns (uint256) {
 
         emit reputationPointsChanged(
             CancelByMeRP,
-            requestCancelRP,
-            respondCancelRP,
             revisionRP,
             taskAcceptCreatorRP,
             taskAcceptMemberRP,
@@ -509,19 +494,20 @@ function __getCategoryUltraHigh() external view returns (uint256) {
      * @dev All stake/reward values must be given in ETH units (converted internally).
      */
     function setStateVars(
-        uint64 maxStakeInEther,
-        uint64 maxRewardInEther,
-        uint32 cooldownInHour,
-        uint32 minRevisionTimeInHour,
-        uint32 NegPenalty,
-        uint16 feePercentage,
-        uint16 maxRevision
+        uint256 maxStakeInEther,
+        uint256 maxRewardInEther,
+        uint64 minRevisionTimeInHour,
+        uint64 NegPenalty,
+        uint64 feePercentage,
+        uint64 maxRevision
     ) external onlyEmployes {
 
+        if (feePercentage > 100) revert FeeCantBe100();
+        if (NegPenalty > 100) revert NegPenaltyCantBe100();
+
         StateVars = StateVar({
-            maxStake: maxStakeInEther * 1 ether,
-            maxReward: maxRewardInEther * 1 ether,
-            cooldownInHour: cooldownInHour,
+            maxStake: maxStakeInEther,
+            maxReward: maxRewardInEther,
             minRevisionTimeInHour: minRevisionTimeInHour,
             NegPenalty: NegPenalty,
             feePercentage: feePercentage,
@@ -529,13 +515,12 @@ function __getCategoryUltraHigh() external view returns (uint256) {
         });
 
         emit StateVarsChanged(
-            cooldownInHour,
-            minRevisionTimeInHour,
-            NegPenalty,
-            maxRewardInEther * 1 ether,
-            feePercentage,
-            maxStakeInEther * 1 ether,
-            maxRevision
+         maxStakeInEther,
+         maxRewardInEther,
+         minRevisionTimeInHour,
+         NegPenalty,
+         feePercentage,
+         maxRevision
         );
     }
 
@@ -551,22 +536,28 @@ function __getCategoryUltraHigh() external view returns (uint256) {
         uint256 ultraHigh
     ) external onlyEmployes {
 
+        StateVar storage sv =  StateVars;
+
+        if (low >= midLow || midLow >= mid || mid >= midHigh || midHigh >= high || high >= ultraHigh) revert InvalidMaxStakeAmount();
+
+        if (ultraHigh > sv.maxStake) revert InvalidMaxStakeAmount();
+
         StakeCategorys = StakeCategory({
-            low: low * 1 ether,
-            midleLow: midLow * 1 ether,
-            midle: mid * 1 ether,
-            midleHigh: midHigh * 1 ether,
-            high: high * 1 ether,
-            ultraHigh: ultraHigh * 1 ether
+            low: low,
+            midleLow: midLow,
+            midle: mid,
+            midleHigh: midHigh,
+            high: high,
+            ultraHigh: ultraHigh
         });
 
         emit stakeCategorysChanged(
-            low * 1 ether,
-            midLow * 1 ether,
-            mid * 1 ether,
-            midHigh * 1 ether,
-            high * 1 ether,
-            ultraHigh * 1 ether
+            low,
+            midLow,
+            mid,
+            midHigh,
+            high,
+            ultraHigh
         );
     }
 
@@ -578,11 +569,11 @@ function __getCategoryUltraHigh() external view returns (uint256) {
     }
 
     //pause / unpause contract
-    function pause() external onlyEmployes {
+    function pause() external onlyOwner {
     _pause();
     emit ContractPaused(msg.sender);
     }
-    function unpause() external onlyEmployes {
+    function unpause() external onlyOwner {
     _unpause();
     emit ContractUnpaused(msg.sender);
     }

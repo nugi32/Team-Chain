@@ -56,24 +56,18 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: {
-      // Standard supported networks
-      mainnet: ETHERSCAN_API_KEY,
-      sepolia: ETHERSCAN_API_KEY,
-      // Custom mapping for liskSepolia (some explorers use Blockscout-like API)
-      liskSepolia: ETHERSCAN_API_KEY,
-    },
-    customChains: [
-      {
-        network: "liskSepolia",
-        chainId: 4202,
-        urls: {
-          apiURL: "https://sepolia-blockscout.lisk.com/api",
-          browserURL: "https://sepolia-blockscout.lisk.com",
-        },
+  apiKey: ETHERSCAN_API_KEY,
+  customChains: [
+    {
+      network: "liskSepolia",
+      chainId: 4202,
+      urls: {
+        apiURL: "https://sepolia-blockscout.lisk.com/api",
+        browserURL: "https://sepolia-blockscout.lisk.com",
       },
-    ],
-  },
+    },
+  ],
+},
   paths: {
     sources: "./contracts",
     tests: "./test",

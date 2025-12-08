@@ -66,6 +66,10 @@ const DEST_WALLET = path.join(__dirname, '..', 'app', 'owner', 'artifact');
 const SRC_MAIN = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'User', 'TrustlessTeamProtocol.sol');
 const DEST_MAIN = path.join(__dirname, '..', 'app', 'owner', 'artifact');
 
+const SRC_USR = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'User', 'TrustlessTeamProtocol.sol');
+const DEST_USR = path.join(__dirname, '..', 'app', 'user', 'artifact');
+
+
 
 // =============================
 // 🔥 EKSEKUSI SEKALI SAJA
@@ -77,5 +81,6 @@ copyJob(SRC_STATE_VAR, DEST_STATE_VAR, "STATE VAR");
 copyJob(SRC_ACCESS, DEST_ACCESS, "ACCESS CONTROL");
 copyJob(SRC_WALLET, DEST_WALLET, "EMPLOYEE MODULE");
 copyJob(SRC_MAIN, DEST_MAIN, "EMPLOYEE MODULE");
+copyJob(SRC_USR, DEST_USR, "Team-Chain MODULE");
 
 console.log("\n🎉 ALL TASK FINISHED!");

@@ -83,8 +83,8 @@ contract TrustlessTeamProtocol is
         uint256 totalTasksCreated;    /// @dev Total tasks created by user
         uint256 totalTasksCompleted;  /// @dev Total tasks successfully completed
         uint256 totalTasksFailed;     /// @dev Total tasks failed or cancelled
-        uint32 reputation;           /// @dev Reputation score (affects project valuation)
-        uint8 age;                   /// @dev User age (must be 18-100)
+        uint128 reputation;           /// @dev Reputation score (affects project valuation)
+        uint128 age;                   /// @dev User age (must be 18-100)
         bool isRegistered;           /// @dev Registration status
         string name;                 /// @dev User display name
     }
@@ -169,8 +169,8 @@ contract TrustlessTeamProtocol is
     // =============================================================
 
     // User events
-    event UserRegistered(address indexed user, string name, uint8 age);
-    event UserUnregistered(address indexed user, string name, uint8 age);
+    event UserRegistered(address indexed user, string name, uint128 age);
+    event UserUnregistered(address indexed user, string name, uint128 age);
 
     // Task lifecycle events
     event TaskCreated(string title, uint256 indexed taskId, address indexed creator, uint256 reward, uint256 creatorStake);
@@ -244,8 +244,6 @@ contract TrustlessTeamProtocol is
     error DeadlineNotExceeded();
     
     // System errors
-    error InvalidMaxStakeAmount();
-    error TotalMustBe10();
     error InvalidMemberStakePercentReward();
     
     // Submission errors
@@ -334,7 +332,7 @@ contract TrustlessTeamProtocol is
      * @param Age User's age (must be between 18-100)
      * @dev Creates a new user profile with initial reputation and counters
      */
-    function Register(string calldata Name, uint8 Age)
+    function Register(string calldata Name, uint128 Age)
         external
         onlyUser
         callerZeroAddr
@@ -948,7 +946,7 @@ contract TrustlessTeamProtocol is
         }
         
         // Normalize value
-        uint256 _value = (rawValue * 1 ether) / 10;
+        uint256 _value = (rawValue * 1 ether) / 100;
         return _value;
     }
 
@@ -1024,7 +1022,7 @@ contract TrustlessTeamProtocol is
      * @return reputation score (0 if user not registered)
      * @dev Fallback for compatibility with different user data structures
      */
-    function __seeReputation(address who) internal view returns (uint32) {
+    function __seeReputation(address who) internal view returns (uint128) {
         if (Users[who].isRegistered) {
             return Users[who].reputation;
         } else {
@@ -1085,7 +1083,7 @@ contract TrustlessTeamProtocol is
      * @return Counter penalty percentage (100 - negative penalty)
      * @dev Used to calculate the portion returned to the non-penalized party
      */
-    function __CounterPenalty() internal view returns (uint32) {
+    function __CounterPenalty() internal view returns (uint64) {
         return uint32(100) - ___getNegPenalty();
     }
 
@@ -1183,6 +1181,9 @@ contract TrustlessTeamProtocol is
         emit FeeWithdrawnToSystemWallet(amount);
     }
 
+
+    // ============================================================= Only Owner Functions ============================================================
+
     /**
      * @notice Updates system wallet address
      * @param _NewsystemWallet New system wallet address
@@ -1220,7 +1221,7 @@ contract TrustlessTeamProtocol is
      * @notice Pauses contract functionality
      * @dev Only callable by employees, prevents most state-changing functions
      */
-    function pause() external onlyEmployes {
+    function pause() external onlyOwner {
         _pause();
         emit ContractPaused(msg.sender);
     }
@@ -1229,7 +1230,7 @@ contract TrustlessTeamProtocol is
      * @notice Unpauses contract functionality
      * @dev Only callable by employees, restores normal operation
      */
-    function unpause() external onlyEmployes {
+    function unpause() external onlyOwner {
         _unpause();
         emit ContractUnpaused(msg.sender);
     }

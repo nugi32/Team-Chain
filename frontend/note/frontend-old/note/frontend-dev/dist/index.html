@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contracts UI — POP (no framework)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>POP Contracts UI (plain HTML/JS)</h1>
+    <div id="wallet">
+      <button id="connectBtn">Connect Wallet</button>
+      <span id="account">Not connected</span>
+    </div>
+  </header>
+
+  <main>
+    <section id="config">
+      <h2>Contracts</h2>
+      <p>Enter deployed proxy addresses for each contract (or leave blank to interact later):</p>
+      <div class="contract-input">
+        <label>EmployeeAssignment address</label>
+        <input id="addr_employee" placeholder="0x..." />
+      </div>
+      <div class="contract-input">
+        <label>System_wallet address</label>
+        <input id="addr_wallet" placeholder="0x..." />
+      </div>
+      <div class="contract-input">
+        <label>TrustlessTeamProtocol address</label>
+        <input id="addr_protocol" placeholder="0x..." />
+      </div>
+      <div class="actions">
+        <button id="loadBtn">Load ABIs & Render</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+      <p class="hint">This UI uses the ABIs shipped in the Hardhat artifacts folder. If a contract is not deployed yet, you can still inspect its function signatures.</p>
+    </section>
+
+    <section id="contracts"></section>
+  </main>
+
+  <footer>
+    <small>Static frontend (no framework). Uses ethers.js (CDN). Designed to be served from the repo root so it can load artifact ABIs from /artifacts.</small>
+  </footer>
+
+  <!-- Ethers (v6) UMD from jsdelivr -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/dist/ethers.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

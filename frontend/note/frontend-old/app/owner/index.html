@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./main.css" />
+
+  <!-- Ethers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <!-- Web3Modal v3 -->
+  <script type="module">
+    import '@web3modal/html';
+  </script>
+
+  <!-- JS Kamu-->
+  <script type="module" src="./ownerWallet.js"></script>
+  <script type="module" src="./AccessControl-connector.js"></script>
+  <script type="module" src="./systemWallet-conectors.js"></script>
+  <script type="module" src="./StateVar.js"></script>
+  <script type="module" src="./trustlessTeamProtocol.js"></script>
+</head>
+
+<body>
+  <!-- ================= HEADER ================= -->
+  <header class="topbar"> 
+    <div class="brand">
+      <h1>Team chain</h1>
+    </div>
+
+    <h1 id="center">For Owner & Employee</h1>
+
+    <div class="wallet-container">
+      <w3m-button></w3m-button>
+    </div>
+  </header>
+  <!-- ================= CONTENT WRAPPER ================= -->
+  <div class="background">
+
+    <!-- ============ ACCESS CONTROL ============ -->
+    <div class="cards">
+      <h2>Access Control</h2>
+
+      <div class="AssignEmployee">
+        <h3>Assign Employee</h3>
+        <form class="assign-form">
+          <input type="text" name="assignEmployee" placeholder="New Employee Address" required>
+          <button type="submit">Assign</button>
+        </form>
+      </div>
+
+      <div class="RemoveEmployee">
+        <h3>Remove Employee</h3>
+        <form class="remove-form">
+          <input type="text" name="removeEmployee" placeholder="Employee Address" required>
+          <button type="submit">Remove</button>
+        </form>
+      </div>
+
+      <div class="changeOwner">
+        <h3>Change Owner</h3>
+        <form class="change-form">
+          <input type="text" name="changeOwner" placeholder="New Owner Address" required>
+          <button type="submit">Change</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ SYSTEM WALLET ============ -->
+    <div class="SystemWallet cards">
+      <h2>System Wallet</h2>
+
+      <div class="transfer">
+        <h3>Transfer Fund</h3>
+        <form class="transfer-form">
+          <input type="text" name="toAddress" placeholder="Recipient Address" required>
+          <input type="number" name="amount" placeholder="Amount" required>
+          <button type="submit">Transfer</button>
+        </form>
+      </div>
+
+      <div class="seeBalance">
+        <h3>See Balance</h3>
+        <button id="checkBalanceBtn">See Contract Balance</button>
+      </div>
+    </div>
+
+    <!-- ============ STATE VARIABLES ============ -->
+    <div class="StateVariable cards">
+      <h2>State Variable Section</h2>
+
+      <div class="ComponentWeightPercentages">
+        <h3>Component Weight Percentages</h3>
+        <form class="WeightPercentages">
+          <input type="number" name="rewardScore" placeholder="Reward Score %" required>
+          <input type="number" name="reputationScore" placeholder="Reputation Score %" required>
+          <input type="number" name="deadlineScore" placeholder="Deadline Score %" required>
+          <input type="number" name="revisionScore" placeholder="Revision Score %" required>
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <div class="StakeAmounts">
+        <h3>Stake Amounts</h3>
+        <form class="stakeAmounts">
+          <input type="number" name="low" placeholder="Low Stake Amount">
+          <input type="number" name="midLow" placeholder="Mid Low Stake Amount">
+          <input type="number" name="mid" placeholder="Mid Stake Amount">
+          <input type="number" name="midHigh" placeholder="Mid High Stake Amount">
+          <input type="number" name="high" placeholder="High Stake Amount">
+          <input type="number" name="ultraHigh" placeholder="Ultra High Stake Amount">
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <!-- ============ REPUTATION POINTS ============ -->
+      <div class="ReputationPoints cards">
+        <h3>Reputation Points</h3>
+        <form class="reputationPoints">
+          <input type="number" name="CancelByMeRP" placeholder="CancelByMe RP" required>
+          <input type="number" name="revisionRP" placeholder="Revision RP" required>
+          <input type="number" name="taskAcceptCreatorRP" placeholder="Task Accept Creator RP" required>
+          <input type="number" name="taskAcceptMemberRP" placeholder="Task Accept Member RP" required>
+          <input type="number" name="deadlineHitCreatorRP" placeholder="Deadline Hit Creator RP" required>
+          <input type="number" name="deadlineHitMemberRP" placeholder="Deadline Hit Member RP" required>
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <!-- ============ ADDITIONAL STATE VARIABLES ============ -->
+      <div class="AditionalStateVar cards">
+        <h3>Additional State Variables</h3>
+        <form class="aditionalStateVar">
+          <input type="number" name="maxStakeInEther" placeholder="Max Stake (Ether)" required>
+          <input type="number" name="maxRewardInEther" placeholder="Max Reward (Ether)" required>
+          <input type="number" name="cooldownInHour" placeholder="Cooldown (Hour)" required>
+          <input type="number" name="minRevisionTimeInHour" placeholder="Min Revision Time (Hour)" required>
+          <input type="number" name="NegPenalty" placeholder="Negative Penalty" required>
+          <input type="number" name="feePercentage" placeholder="Fee Percentage" required>
+          <input type="number" name="maxRevision" placeholder="Max Revision" required>
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <!-- ============ STAKE CATEGORIES ============ -->
+      <div class="StakeCategorys cards">
+        <h3>Stake Categories</h3>
+        <form class="stakeCategorys">
+          <input type="number" name="low" placeholder="Low" required>
+          <input type="number" name="midLow" placeholder="Mid Low" required>
+          <input type="number" name="mid" placeholder="Mid" required>
+          <input type="number" name="midHigh" placeholder="Mid High" required>
+          <input type="number" name="high" placeholder="High" required>
+          <input type="number" name="ultraHigh" placeholder="Ultra High" required>
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+          <div class="ChangeAccessControl">
+          <h3>Change Access Control Address</h3>
+          <form class="changeAccessControl">
+          <input type="text" name="changeAccessControlAddress" placeholder="New Access Control Address" required>
+          <button type="submit">Change</button>
+          </form>
+        </div>
+
+
+      <button type="submit">Return Test</button>
+    </div>
+
+    <!-- ============ MAIN CONTRACT ============ -->
+    <div class="cards">
+      <h1>Main Contract</h1>
+
+      <div class="admins">
+        <h2>Only Admins</h2>
+
+        <div class="setMemberStakeFromReward">
+          <h3>Set Member Stake Percentage From Reward</h3>
+          <input type="number" name="SetMemberStakePercentageFromReward"
+                 placeholder="SetMemberStakePercentageFromReward" required>
+          <button type="submit">Set</button>
+        </div>
+
+        <div class="WithdrawFeeToSystemWallet">
+          <h3>Withdraw Fee To System Wallet</h3>
+          <button type="submit">Withdraw</button>
+        </div>
+
+        <div class="pause">
+          <h3>Pause Contract</h3>
+          <button type="submit">Pause</button>
+        </div>
+
+        <div class="unpause">
+          <h3>Unpause Contract</h3>
+          <button type="submit">Unpause</button>
+        </div>
+      </div>
+
+      <div class="owner">
+        <h2>Only Owner</h2>
+
+        <div class="changeSystemWallet">
+          <h3>Change System Wallet Address</h3>
+          <input type="text" name="changeSystemWalletAddress" placeholder="New System Wallet Address" required>
+          <button type="submit">Change</button>
+        </div>
+
+        <div class="changeAccessControl">
+          <h3>Change Access Control Address</h3>
+          <input type="text" name="changeAccessControlAddress" placeholder="New Access Control Address" required>
+          <button type="submit">Change</button>
+        </div>
+
+        <div class="changeStateVar">
+          <h3>Change State Variable Address</h3>
+          <input type="text" name="changeStateVariableAddress" placeholder="New State Variable Address" required>
+          <button type="submit">Change</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

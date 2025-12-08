@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../layouts/css/global.css" />
+    <link rel="stylesheet" href="./projects.css" />
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script type="module" src="../layouts/js/connectwallet.js " ></script>
+    <script type="module" src="../layouts/js/sidebar.js"></script>
+    <base href="../layouts/">
+</head>
+<body>
+    <div data-include="../layouts/header.html"></div>
+
+
+
+
+
+<!-- task yang ada dalam bentuk cards dengan informasi awal dibawahnya serta foto diatasnya-->
+
+<div class="background">
+    <div class="projects-container">
+
+  <!-- SEARCH + FILTER BAR -->
+  <div class="projects-toolbar">
+    <input type="text" id="searchInput" placeholder="Search Task...">
+
+    <select id="filterSelect">
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+
+      <option value="stakeHigh">Highest Stake</option>
+      <option value="stakeLow">Lowest Stake</option>
+
+      <option value="deadlineSoon">Closest Deadline</option>
+      <option value="deadlineLate">Farthest Deadline</option>
+
+      <option value="reputationHigh">Author Reputation ↑</option>
+      <option value="reputationLow">Author Reputation ↓</option>
+    </select>
+  </div>
+
+  <!-- TASK CARDS -->
+  <div id="projectsGrid" class="projects-grid"></div>
+
+</div>
+
+</div>
+
+
+
+
+
+
+
+    <div data-include="../layouts/footer.html"></div>
+
+    <script>
+document.querySelectorAll("[data-include]").forEach(async el => {
+    const file = el.getAttribute("data-include");
+    const res = await fetch(file);
+    el.innerHTML = await res.text();
+});
+</script>
+
+</body>
+</html>
