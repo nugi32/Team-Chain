@@ -68,17 +68,17 @@ async function main() {
 
 const svArgs = [
   // ------- Weight (4)
-  4, // _rewardScore
-  3, // _reputationScore
-  2, // _deadlineScore
-  1, // _revisionScore
+  40, // _rewardScore
+  30, // _reputationScore
+  20, // _deadlineScore
+  10, // _revisionScore
 
   // ------- Stake Amounts (6)
-  1, // lowStake
-  2, // midLowStake
-  3, // midStake
-  4, // midHighStake
-  5, // highStake
+  1,  // lowStake
+  2,  // midLowStake
+  3,  // midStake
+  4,  // midHighStake
+  5,  // highStake
   10, // ultraHighStake
 
   // ------- Reputation Points (6)
@@ -89,26 +89,26 @@ const svArgs = [
   20, // deadlineHitCreatorRP
   20, // deadlineHitMemberRP
 
-  // ------- State Vars (7)
+  // ------- State Vars (6) — sudah dibetulkan
   10, // _maxStakeInEther
   10, // _maxRewardInEther
-  24, // _cooldownInHour
   24, // _minRevisionTimeInHour
   10, // _NegPenalty
   5,  // _feePercentage
   3,  // _maxRevision
 
   // ------- Stake Categories (6)
-  1, // lowCat
-  2, // midLowCat
-  3, // midCat
-  4, // midHighCat
-  5, // highCat
+  1,  // lowCat
+  2,  // midLowCat
+  3,  // midCat
+  4,  // midHighCat
+  5,  // highCat
   10, // ultraHighCat
 
   // ------- accessControl (1)
   accessControlAddress,
 ];
+
 
 
   const stateVar = await StateVariableFactory.deploy(...svArgs);

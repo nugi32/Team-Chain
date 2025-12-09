@@ -19,7 +19,7 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { PRIVATE_KEY, ALCHEMY_API_KEY } from "./config.js";
 
-console.log("📦 systemWallet.js loaded");
+console.log("📦 System Wallet loaded");
 
 /***************************************
  * 1. Wallet Setup
@@ -39,7 +39,7 @@ async function loadABI(path) {
 }
 
 const ARTIFACT_PATH = "./artifact/System_wallet.json"; // Path to contract ABI
-const CONTRACT_ADDRESS = "0x643733A7Dc50a793AdCC462E9F9Af90d71Df46eF"; // Contract address
+const CONTRACT_ADDRESS = "0x1C6f816B036d389b76557CB9577E16C44360E029"; // Contract address
 
 /***************************************
  * 3. Get Contract Instance
@@ -55,12 +55,14 @@ async function getContract() {
  ***************************************/
 // Custom human-readable messages for known smart contract errors
 const errors_messages = {
-  InsufficientFunds: "System Wallet: Action failed — insufficient funds in the system wallet to complete the transfer."
+  InsufficientFunds: "System Wallet: Action failed — insufficient funds in the system wallet to complete the transfer.",
+  ZeroAddress: "System Wallet: Invalid address — the zero address (0x000...0) is not allowed.",
 };
 
 // Selector map for decoding custom errors from revert data
 const selectorMap = {
-  "0x12345678": "InsufficientFunds"
+  "0x08c379a0": "InsufficientFunds",
+  "0x1b4ce173": "ZeroAddress"
 };
 
 // Decode error selector from raw error object
@@ -98,14 +100,8 @@ let iface;
   iface = new ethers.Interface(artifact.abi);
 })();
 
-/***************************************
- * 6. DOM + Event Listeners
- ***************************************/
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("📌 Systemwallet DOM ready");
-
   /***************************************
-   * 6.1 Transfer Form Submission
+   * 6. Transfer Form Submission
    ***************************************/
   document.querySelector(".transfer-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -155,10 +151,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // change accesscontrol kurang
-
   /***************************************
-   * 6.2 Check System Wallet Balance
+   * 6.1 Check System Wallet Balance
    ***************************************/
   document.getElementById("checkBalanceBtn").addEventListener("click", async () => {
     try {
@@ -170,61 +164,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-    /***************************************
-   * 6.3 Change Access Control
-   ***************************************/
-
-  document.querySelector(".changeAccessControl")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    try {
-      const contract = await getContract();
-
-      // Get form values
-      const newAccesControl = e.target.toAddress.value;
-
-      // Execute transfer
-      const tx = await contract.changeAccessControl(newAccesControl);
-      const receipt = await tx.wait(); // Wait for confirmation
-
-      console.log("Access Control Changed:", receipt);
-
-      // Parse emitted events
-      for (const log of receipt.logs) {
-        try {
-          const parsed = iface.parseLog(log);
-          if (parsed?.name === "AccessControlChanged") {
-            console.log("📌 EVENT AccessControlChanged:", parsed.args.newAccesControl);
-            alert(
-              `✔ Access Control Changed To: ${parsed.args.newAccesControl}`
-            );
-          }
-        } catch {}
-      }
-    } catch (err) {
-      // Decode custom error or fallback to generic message
-      const errorName =
-        decodeErrorSelector(err) ||
-        err?.data?.errorName ||
-        err?.errorName ||
-        err?.info?.errorName ||
-        err?.reason ||
-        err?.shortMessage?.replace("execution reverted: ", "") ||
-        null;
-
-      console.log("FINAL DETECTED errorName:", errorName);
-
-      if (errorName && errors_messages[errorName]) {
-        alert(errors_messages[errorName]);
-        return;
-      }
-
-      alert("An error occurred while changing access control address.");
-    }
-  });
-
-
   /***************************************
-   * 6.4 Listen for Received Funds
+   * 6.2 Listen for Received Funds
    ***************************************/
   async function setupEventListener() {
     const contract = await getContract();
@@ -249,4 +190,3 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Page loaded, setting up event listener...");
     await setupEventListener();
   });
-});

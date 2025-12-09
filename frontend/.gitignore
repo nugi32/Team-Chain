@@ -7,6 +7,7 @@ node_modules
 /app/user/artifact
 /app/owner/artifact
 /app/address
+/app/owner/connectors/config.js
 
 # TypeChain files
 /typechain

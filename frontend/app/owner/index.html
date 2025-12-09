@@ -9,7 +9,9 @@
 
     <script type="module" src="./connectors/AccessControl-connector.js"></script>
     <script type="module" src="./connectors/systemWallet-conectors.js"></script>
-    <script type="module" src="./connectors/StateVar.js"></script>
+    <script type="module" src="./connectors/StateVar-connector.js"></script>
+    <script type="module" src="./connectors/MainContract-connector.js"></script>
+    <script type="module" src="./connectors/ContractUtils.js"></script>
 </head>
 
 <body>
@@ -31,72 +33,6 @@
   </header>
   <!-- ================= CONTENT WRAPPER ================= -->
   <div class="background">
-
-    <!-- ============ ACCESS CONTROL ============ -->
-    <div class="cards">
-      <h2>Access Control</h2>
-
-      <div class="AssignEmployee">
-        <h3>Assign Employee</h3>
-        <form class="assign-form">
-          <input type="text" name="assignEmployee" placeholder="New Employee Address" required>
-          <button type="submit">Assign</button>
-        </form>
-      </div>
-
-      <div class="RemoveEmployee">
-        <h3>Remove Employee</h3>
-        <form class="remove-form">
-          <input type="text" name="removeEmployee" placeholder="Employee Address" required>
-          <button type="submit">Remove</button>
-        </form>
-      </div>
-
-      <div class="changeOwner">
-        <h3>Change Owner</h3>
-        <form class="change-form">
-          <input type="text" name="changeOwner" placeholder="New Owner Address" required>
-          <button type="submit">Change</button>
-        </form>
-      </div>
-
-      <div class="employee-count">
-        <h3>Employee Count</h3>
-        <button id="btnEmployeeCount" type="button">EmployeeCount</button>
-      </div>
-
-      <div class="has-role">
-        <h3>Role Check</h3>
-        <button id="HasRole" type="button">Has Role</button>
-      </div>
-    </div>
-
-    <!-- ============ SYSTEM WALLET ============ -->
-    <div class="SystemWallet cards">
-      <h2>System Wallet</h2>
-
-      <div class="transfer">
-        <h3>Transfer Fund</h3>
-        <form class="transfer-form">
-          <input type="text" name="toAddress" placeholder="Recipient Address" required>
-          <input type="number" name="amount" placeholder="Amount" required>
-          <button type="submit">Transfer</button>
-        </form>
-      </div>
-
-        <div class="ChangeAccessControl">
-          <h3>Change Access Control Address</h3>
-          <form class="changeAccessControl">
-          <input type="text" name="changeAccessControlAddress" placeholder="New Access Control Address" required>
-          <button type="submit">Change</button>
-          </form>
-        </div>
-
-      <div class="seeBalance">
-        <h3>See Balance</h3>
-        <button id="checkBalanceBtn">See Contract Balance</button>
-      </div>
-    </div>
 
     <!-- ============ STATE VARIABLES ============ -->
     <div class="StateVariable cards">
@@ -168,43 +104,95 @@
         </form>
       </div>
 
-          <div class="ChangeAccessControl">
-          <h3>Change Access Control Address</h3>
-          <form class="changeAccessControl">
-          <input type="text" name="changeAccessControlAddress" placeholder="New Access Control Address" required>
+      <button id= "TestBTN" type="button">Return Test</button>
+    </div>
+
+    <!-- ============ ACCESS CONTROL ============ -->
+    <div class="cards">
+      <h2>Access Control</h2>
+
+      <div class="AssignEmployee">
+        <h3>Assign Employee</h3>
+        <form class="assign-form">
+          <input type="text" name="assignEmployee" placeholder="New Employee Address" required>
+          <button type="submit">Assign</button>
+        </form>
+      </div>
+
+      <div class="RemoveEmployee">
+        <h3>Remove Employee</h3>
+        <form class="remove-form">
+          <input type="text" name="removeEmployee" placeholder="Employee Address" required>
+          <button type="submit">Remove</button>
+        </form>
+      </div>
+
+      <div class="changeOwner">
+        <h3>Change Owner</h3>
+        <form class="change-form">
+          <input type="text" name="changeOwner" placeholder="New Owner Address" required>
           <button type="submit">Change</button>
-          </form>
-        </div>
+        </form>
+      </div>
 
-        <div class="pause-unpause">
-          <h3>Pause & Unpause Contract</h3>
-          <button id="pauseBtn" type="button">Pause Contract</button>
-          <button id="unpauseBtn" type="button">Unpause Contract</button>
-        </div>
+      <div class="employee-count">
+        <h3>Employee Count</h3>
+        <button id="btnEmployeeCount" type="button">EmployeeCount</button>
+      </div>
 
+      <div class="has-role">
+        <h3>Role Check</h3>
+        <button id="HasRole" type="button">Has Role</button>
+      </div>
 
-      <button type="submit">Return Test</button>
+        <div class="owner-check">
+        <h3>owner Check</h3>
+        <button id="owner" type="button">Owner</button>
+      </div>
+    </div>
+
+    <!-- ============ SYSTEM WALLET ============ -->
+    <div class="SystemWallet-cards">
+      <h2>System Wallet</h2>
+
+      <div class="transfer">
+        <h3>Transfer Fund</h3>
+        <form class="transfer-form">
+          <input type="text" name="toAddress" placeholder="Recipient Address" required>
+          <input type="number" name="amount" placeholder="Amount" required>
+          <button type="submit">Transfer</button>
+        </form>
+      </div>
+
+      <div class="seeBalance">
+        <h3>See Balance</h3>
+        <button id="checkBalanceBtn">See Contract Balance</button>
+      </div>
     </div>
 
     <!-- ============ MAIN CONTRACT ============ -->
     <div class="cards">
       <h1>Main Contract</h1>
 
+      <div class="Return-Info">
+        <h3>Return Contract Info</h3>
+        <button id="ReturnInfo" type="button">Return</button>
+      </div>
+
       <div class="admins">
         <h2>Only Admins</h2>
 
-        <div class="setMemberStakeFromReward">
+        <div class="MemberStakeFromReward">
           <h3>Set Member Stake Percentage From Reward</h3>
           <form class="setMemberStakeFromReward">
-          <input type="number" name="MemberStakePercentageFromReward"
-                 placeholder="SetMemberStakePercentageFromReward" required>
-          </form>
+          <input type="number" name="MemberStakePercentageFromReward" placeholder="Member Stake Percentage From Reward" required>
           <button type="submit">Set</button>
+          </form>
         </div>
 
         <div class="WithdrawFeeToSystemWallet">
           <h3>Withdraw Fee To System Wallet</h3>
-          <button type="submit">Withdraw</button>
+          <button id="TransferToSystemWallet" type="button">Withdraw</button>
         </div>
       </div>
 
@@ -215,34 +203,63 @@
           <h3>Change System Wallet Address</h3>
           <form class="changeSystemWallet">
           <input type="text" name="SystemWalletAddress" placeholder="New System Wallet Address" required>
-          </form>
           <button type="submit">Change</button>
-        </div>
-
-        <div class="changeAccessControl">
-          <h3>Change Access Control Address</h3>
-          <form class="changeAccessControl">
-          <input type="text" name="changeAccessControlAddress" placeholder="New Access Control Address" required>
           </form>
-          <button type="submit">Change</button>
         </div>
 
         <div class="changeStateVar">
           <h3>Change State Variable Address</h3>
           <form class="changeStateVar">
           <input type="text" name="changeStateVariableAddress" placeholder="New State Variable Address" required>
-          </form>
           <button type="submit">Change</button>
-        </div>
-
-        <div class="pause-unpause">
-          <h3>Pause & Unpause Contract</h3>
-          <button id="pauseBtn" type="button">Pause Contract</button>
-          <button id="unpauseBtn" type="button">Unpause Contract</button>
+          </form>>
         </div>
 
     </div>
   </div>
+
+      <div class="cards">
+        <h2>for SystemWallet, StateVar, Main contract</h2>
+          <div class="changeAccessControl">
+          <h3>Change Access Control Address</h3>
+          <form class="changeAccessControl">
+          <input type="text" name="changeAccessControlAddress" placeholder="New Access Control Address" required>
+          <button type="submit">Change</button>
+          </form>
+        </div>
+
+          <div class="pause-unpause">
+          <h3>Pause & Unpause Contract</h3>
+          <button id="pauseBtn" type="button">Pause Contract</button>
+          <button id="unpauseBtn" type="button">Unpause Contract</button>
+          <button id="checkPausedBtn" type="button">Is System Paused</button>
+        </div>
+      </div>
+
+          <footer class="site-footer">
+  <div class="footer-content">
+    <h3>Contact Our Team</h3>
+    <p class="footer-desc">
+      Have questions, feedback, or need support? Reach us anytime at  
+      <a href="mailto:support@trustlessteam.pro">support@trustlessteam.pro</a>
+    </p>
+
+    <div class="footer-links">
+      <a href="#docs">Documentation</a>
+      <a href="#governance">Governance</a>
+      <a href="#community">Community</a>
+      <a href="#status">System Status</a>
+    </div>
+
+    <div class="footer-socials">
+      <a href="#" aria-label="Twitter">🐦</a>
+      <a href="#" aria-label="GitHub">💻</a>
+      <a href="#" aria-label="Discord">💬</a>
+    </div>
+
+    <small>© 2025 Trustless Team Protocol — All Rights Reserved</small>
+  </div>
+</footer>
 
 </body>
 </html>

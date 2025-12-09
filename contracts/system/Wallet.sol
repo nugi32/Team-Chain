@@ -4,12 +4,13 @@ pragma solidity ^0.8.20;
 import "../Pipe/AccesControlPipes.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 /// @title System Wallet
 /// @notice Upgradeable contract for managing system funds with role-based access control
 /// @dev This contract handles receiving and transferring funds with proper access control and reentrancy protection
-/// @author Your Name
-contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradeable {
+/// @author nugi
+contract System_wallet is AccesControl, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     /// @notice Total equity tracked by the system wallet
     uint256 internal Total_Equity;
     
@@ -28,8 +29,12 @@ contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradea
 
     event AccessControlChanged(address newAccessControl);
 
+        event ContractPaused(address indexed caller);
+    event ContractUnpaused(address indexed caller);
+
     /// @notice Custom error for insufficient funds in the wallet
     error InsufficientFunds();
+    error ZeroAddress();
 
     /// @notice Initializes the contract with the employee assignment address
     /// @dev This function replaces the constructor for upgradeable contracts
@@ -48,7 +53,7 @@ contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradea
     /// @custom:security Checks: Zero address validation, insufficient balance check, transfer success validation
     function transfer (address payable _to, uint256 _amount) external onlyOwner nonReentrant callerZeroAddr {
         // Validate that recipient is not zero address
-        zero_Address(_to);
+        if (_to == address(0)) revert ZeroAddress();
         
         // Check if wallet has sufficient balance
         if (address(this).balance < _amount){
@@ -67,6 +72,24 @@ contract System_wallet is AccesControl, UUPSUpgradeable, ReentrancyGuardUpgradea
         zero_Address(_newAccesControl);
         accessControl = IAccessControl(_newAccesControl);
         emit AccessControlChanged(_newAccesControl);
+    }
+
+        /**
+     * @notice Pauses contract functionality
+     * @dev Only callable by employees, prevents most state-changing functions
+     */
+    function pause() external onlyOwner {
+        _pause();
+        emit ContractPaused(msg.sender);
+    }
+
+    /**
+     * @notice Unpauses contract functionality
+     * @dev Only callable by employees, restores normal operation
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+        emit ContractUnpaused(msg.sender);
     }
 
 

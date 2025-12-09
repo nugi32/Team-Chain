@@ -1,38 +1,39 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { PRIVATE_KEY, ALCHEMY_API_KEY } from "./config.js";
 
-console.log("📦 accessControl.js loaded");
+console.log("📦 Access Control loaded");
 
-// ======================
-// BASIC WALLET CONNECTION
-// ======================
+// ==============================
+// 1. BASIC WALLET CONNECTION
+// ==============================
 const privatekey = PRIVATE_KEY;
 const provider = new ethers.JsonRpcProvider(ALCHEMY_API_KEY);
 const signer = new ethers.Wallet(privatekey, provider);
+
 console.log("signer address:", signer.address);
 
-// ======================
-// LOAD ABI FUNCTION
-// ======================
+// ==============================
+// 2. LOAD ABI FROM JSON FILE
+// ==============================
 async function loadABI(path) {
   const res = await fetch(path);
   return res.json();
 }
 
 const ARTIFACT_PATH = "./artifact/AccessControl.json";
-const CONTRACT_ADDRESS = "0x137a4013B700d35df33e8bCA8869F17CC9B5876C";
+const CONTRACT_ADDRESS = "0xF5215fFf0bBD334B8C73813a69839AF4a3De8989";
 
-// ======================
-// CONTRACT INSTANCE
-// ======================
+// ==============================
+// 3. CONTRACT INSTANCE
+// ==============================
 async function getContract() {
   const artifact = await loadABI(ARTIFACT_PATH);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 
-// ======================
-// CUSTOM ERROR MESSAGES
-// ======================
+// ==============================
+// 4. CUSTOM ERROR MESSAGES
+// ==============================
 const errors_messages = {
   NotOwner: "Access Control: Action not allowed — only the contract owner can perform this operation.",
   ZeroAddress: "Access Control: Invalid address — the zero address (0x000...0) is not allowed.",
@@ -41,9 +42,9 @@ const errors_messages = {
   OwnerCannotBeEmployee: "Access Control: Invalid operation — the contract owner cannot be assigned as an employee."
 };
 
-// ======================
-// ERROR SELECTOR MAP
-// ======================
+// ==============================
+// 5. ERROR SELECTOR LOOKUP TABLE
+// ==============================
 const selectorMap = {
   "0x3797687a": "NotOwner",
   "0x1b4ce173": "ZeroAddress",
@@ -52,9 +53,9 @@ const selectorMap = {
   "0x4df6bedc": "OwnerCannotBeEmployee"
 };
 
-// ======================
-// DECODE ERROR FUNCTION
-// ======================
+// ==============================
+// 6. ERROR DECODER (Custom)
+// ==============================
 function decodeErrorSelector(err) {
   console.log("RAW ERROR:", err);
 
@@ -79,195 +80,203 @@ function decodeErrorSelector(err) {
   return errorName;
 }
 
-/***************************************
- * 5. Load Contract Interface
- ***************************************/
+/****************************************
+ * 7. Load ABI interface for event parsing
+ ****************************************/
 let iface;
 (async () => {
-  // Load contract ABI interface once to parse events
   const artifact = await loadABI(ARTIFACT_PATH);
   iface = new ethers.Interface(artifact.abi);
 })();
 
-// ======================
-// DOM EVENTS
-// ======================
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("📌 AccessControl DOM Ready");
-
-
-  // ----------------------
-  // ASSIGN EMPLOYEE FORM
-  // ----------------------
+// =====================================================
+// 8. ASSIGN EMPLOYEE FORM HANDLER
+// =====================================================
 document.querySelector(".assign-form")?.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  e.preventDefault();
+
+  try {
+    const employeeAddr = e.target.assignEmployee.value.trim();
+
+    // Validate address format
+    if (!ethers.isAddress(employeeAddr)) alert("⚠ Invalid Address");
+
+    const contract = await getContract();
+    const tx = await contract.assignNewEmployee(employeeAddr);
+    const receipt = await tx.wait();
+
+    // Decode EmployeeAssigned event
+    const iface = new ethers.Interface([
+      "event EmployeeAssigned(address indexed employee)"
+    ]);
+
+    for (const log of receipt.logs) {
       try {
-        const employeeAddr = e.target.assignEmployee.value.trim();
-        if (!ethers.isAddress(employeeAddr)) alert("⚠ Invalid Address");
-
-        const contract = await getContract();
-        const tx = await contract.assignNewEmployee(employeeAddr);
-        const receipt = await tx.wait();
-
-        // --- Decode EmployeeAssigned event ---
-        const iface = new ethers.Interface([
-          "event EmployeeAssigned(address indexed employee)"
-        ]);
-
-        for (const log of receipt.logs) {
-          try {
-            const parsed = iface.parseLog(log);
-            if (parsed?.name === "EmployeeAssigned") {
-              console.log("📌 EVENT EmployeeAssigned:", parsed.args.employee);
-              alert(`✔ Employee assigned: ${parsed.args.employee}`);
-            }
-          } catch {}
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "EmployeeAssigned") {
+          console.log("📌 EVENT EmployeeAssigned:", parsed.args.employee);
+          alert(`✔ Employee assigned: ${parsed.args.employee}`);
         }
-
-      } catch (err) {
-        // --- Custom Error Decoder ---
-        const errorName =
-          decodeErrorSelector(err) ||
-          err?.data?.errorName ||
-          err?.errorName ||
-          err?.info?.errorName ||
-          err?.reason ||
-          err?.shortMessage?.replace("execution reverted: ", "") ||
-          null;
-
-        console.log("FINAL DETECTED errorName:", errorName);
-
-        if (errorName && errors_messages[errorName]) {
-          alert(errors_messages[errorName]);
-          return;
-        }
-
-        alert("An error occurred while assigning employee.");
-      }
-    });
-  });
-
-
-  // ----------------------
-  // REMOVE EMPLOYEE FORM
-  // ----------------------
-  document.querySelector(".remove-form")?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      try {
-        const employeeAddr = e.target.removeEmployee.value.trim();
-        if (!ethers.isAddress(employeeAddr)) throw new Error("⚠ Address tidak valid");
-
-        const contract = await getContract();
-        const tx = await contract.removeEmployee(employeeAddr);
-        const receipt = await tx.wait();
-
-        // --- Decode EmployeeRemoved event ---
-        for (const log of receipt.logs) {
-          try {
-            const parsed = iface.parseLog(log);
-            if (parsed?.name === "EmployeeRemoved") {
-              console.log("📌 EVENT EmployeeRemoved:", parsed.args.employee);
-              alert(`✔ Employee removed: ${parsed.args.employee}`);
-            }
-          } catch {}
-        }
-
-      } catch (err) {
-        // --- Custom Error Decoder ---
-        const errorName =
-          decodeErrorSelector(err) ||
-          err?.data?.errorName ||
-          err?.errorName ||
-          err?.info?.errorName ||
-          err?.reason ||
-          err?.shortMessage?.replace("execution reverted: ", "") ||
-          null;
-
-        console.log("FINAL DETECTED errorName:", errorName);
-
-        if (errorName && errors_messages[errorName]) {
-          alert(errors_messages[errorName]);
-          return;
-        }
-
-        alert("An error occurred while removing employee.");
-      }
-    });
-  
-
-
-  // ----------------------
-  // CHANGE OWNER FORM
-  // ----------------------
-  document.querySelector(".change-form")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    try {
-      const newOwnerAddr = e.target.changeOwner.value.trim();
-      if (!ethers.isAddress(newOwnerAddr)) throw new Error("⚠ Address tidak valid");
-
-      const contract = await getContract();
-      const tx = await contract.changeOwner(newOwnerAddr);
-      const receipt = await tx.wait();
-
-      // --- Decode OwnerChanged event ---
-      const iface = new ethers.Interface([
-        "event OwnerChanged(address indexed oldOwner, address indexed newOwner)"
-      ]);
-
-      for (const log of receipt.logs) {
-        try {
-          const parsed = iface.parseLog(log);
-          if (parsed?.name === "OwnerChanged") {
-            console.log(
-              "📌 EVENT OwnerChanged:",
-              parsed.args.oldOwner,
-              "→",
-              parsed.args.newOwner
-            );
-            alert(`✔ Owner changed: ${parsed.args.oldOwner} → ${parsed.args.newOwner}`);
-          }
-        } catch {}
-      }
-
-    } catch (err) {
-      // --- Custom Error Decoder ---
-      const errorName =
-        decodeErrorSelector(err) ||
-        err?.data?.errorName ||
-        err?.errorName ||
-        err?.info?.errorName ||
-        err?.reason ||
-        err?.shortMessage?.replace("execution reverted: ", "") ||
-        null;
-
-      console.log("FINAL DETECTED errorName:", errorName);
-
-      if (errorName && errors_messages[errorName]) {
-        alert(errors_messages[errorName]);
-        return;
-      }
-
-      alert("An error occurred while changing owner.");
+      } catch {}
     }
-  });
 
-  document.getElementById("btnEmployeeCount").addEventListener("click", async () => {
-    try {
-      const contract = await getContract();
-      const employeeCount = await contract.employeeCount();
-      alert(`✔ Employee Count: ${employeeCount}`);
-    } catch (err) {
-      console.error(err);
-      alert("An error occurred while fetching employee count.");
-    }});
+  } catch (err) {
+    const errorName =
+      decodeErrorSelector(err) ||
+      err?.data?.errorName ||
+      err?.errorName ||
+      err?.info?.errorName ||
+      err?.reason ||
+      err?.shortMessage?.replace("execution reverted: ", "") ||
+      null;
 
+    console.log("FINAL DETECTED errorName:", errorName);
 
-  document.getElementById("HasRole").addEventListener("click", async () => {
-    try {
-      const contract = await getContract();
-      const HasRole = await contract.hasRole();
-      alert(`✔ Roles : ${HasRole}`);
-    } catch (err) {
-      console.error(err);
-      alert("An error occurred while checking address roles.");
-    }});
+    if (errorName && errors_messages[errorName]) {
+      alert(errors_messages[errorName]);
+      return;
+    }
+
+    alert("An error occurred while assigning employee.");
+  }
+});
+
+// =====================================================
+// 9. REMOVE EMPLOYEE FORM HANDLER
+// =====================================================
+document.querySelector(".remove-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  try {
+    const employeeAddr = e.target.removeEmployee.value.trim();
+
+    if (!ethers.isAddress(employeeAddr)) throw new Error("⚠ Address tidak valid");
+
+    const contract = await getContract();
+    const tx = await contract.removeEmployee(employeeAddr);
+    const receipt = await tx.wait();
+
+    // Decode EmployeeRemoved event
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "EmployeeRemoved") {
+          console.log("📌 EVENT EmployeeRemoved:", parsed.args.employee);
+          alert(`✔ Employee removed: ${parsed.args.employee}`);
+        }
+      } catch {}
+    }
+
+  } catch (err) {
+    const errorName =
+      decodeErrorSelector(err) ||
+      err?.data?.errorName ||
+      err?.errorName ||
+      err?.info?.errorName ||
+      err?.reason ||
+      err?.shortMessage?.replace("execution reverted: ", "") ||
+      null;
+
+    console.log("FINAL DETECTED errorName:", errorName);
+
+    if (errorName && errors_messages[errorName]) {
+      alert(errors_messages[errorName]);
+      return;
+    }
+
+    alert("An error occurred while removing employee.");
+  }
+});
+
+// =====================================================
+// 10. CHANGE OWNER FORM HANDLER
+// =====================================================
+document.querySelector(".change-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  try {
+    const newOwnerAddr = e.target.changeOwner.value.trim();
+
+    if (!ethers.isAddress(newOwnerAddr)) throw new Error("⚠ Address tidak valid");
+
+    const contract = await getContract();
+    const tx = await contract.changeOwner(newOwnerAddr);
+    const receipt = await tx.wait();
+
+    // Decode OwnerChanged event
+    const iface = new ethers.Interface([
+      "event OwnerChanged(address indexed oldOwner, address indexed newOwner)"
+    ]);
+
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "OwnerChanged") {
+          console.log("📌 EVENT OwnerChanged:", parsed.args.oldOwner, "→", parsed.args.newOwner);
+          alert(`✔ Owner changed: ${parsed.args.oldOwner} → ${parsed.args.newOwner}`);
+        }
+      } catch {}
+    }
+
+  } catch (err) {
+    const errorName =
+      decodeErrorSelector(err) ||
+      err?.data?.errorName ||
+      err?.errorName ||
+      err?.info?.errorName ||
+      err?.reason ||
+      err?.shortMessage?.replace("execution reverted: ", "") ||
+      null;
+
+    console.log("FINAL DETECTED errorName:", errorName);
+
+    if (errorName && errors_messages[errorName]) {
+      alert(errors_messages[errorName]);
+      return;
+    }
+
+    alert("An error occurred while changing owner.");
+  }
+});
+
+// =====================================================
+// 11. BUTTON: GET EMPLOYEE COUNT
+// =====================================================
+document.getElementById("btnEmployeeCount").addEventListener("click", async () => {
+  try {
+    const contract = await getContract();
+    const employeeCount = await contract.employeeCount();
+    alert(`✔ Employee Count: ${employeeCount}`);
+  } catch (err) {
+    console.error(err);
+    alert("An error occurred while fetching employee count.");
+  }
+});
+
+// =====================================================
+// 12. BUTTON: GET OWNER ADDRESS
+// =====================================================
+document.getElementById("owner").addEventListener("click", async () => {
+  try {
+    const contract = await getContract();
+    const tx = await contract.owner();
+    alert(`✔ Owner Address : ${tx}`);
+  } catch (err) {
+    alert("An error occurred while fetching owner address.");
+  }
+});
+
+// =====================================================
+// 13. BUTTON: CHECK ROLE OF SIGNER
+// =====================================================
+document.getElementById("HasRole").addEventListener("click", async () => {
+  try {
+    const contract = await getContract();
+    const msg_sender = signer.getAddress();
+    const HasRole = await contract.hasRole(msg_sender);
+    alert(`✔ Roles : ${HasRole}`);
+  } catch (err) {
+    console.error(err);
+    alert("An error occurred while checking address roles.");
+  }
+});
