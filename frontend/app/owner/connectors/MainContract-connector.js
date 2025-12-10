@@ -1,15 +1,7 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
-import { PRIVATE_KEY, ALCHEMY_API_KEY } from "./config.js";
 
 console.log("📦 Main contract loaded");
 
-/***************************************
- * 1. WALLET SETUP
- ***************************************/
-const privatekey = PRIVATE_KEY;
-const provider = new ethers.JsonRpcProvider(ALCHEMY_API_KEY);
-const signer = new ethers.Wallet(privatekey, provider);
-console.log("Signer address:", signer.address);
 
 /***************************************
  * 2. CONTRACT CONFIGURATION
@@ -30,7 +22,7 @@ async function loadABI(path) {
 /***************************************
  * 4. CONTRACT INSTANCE GETTER
  ***************************************/
-async function getContract() {
+async function getContract(signer) {
   const artifact = await loadABI(ARTIFACT_PATH);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
@@ -90,6 +82,13 @@ document.querySelector(".setMemberStakeFromReward")?.addEventListener("submit", 
   e.preventDefault();
   
   try {
+
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const value = e.target.MemberStakePercentageFromReward.value.trim();
 
     if (value == 100) {
@@ -98,7 +97,7 @@ document.querySelector(".setMemberStakeFromReward")?.addEventListener("submit", 
       return;
     }
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const tx = await contract.setMemberStakePercentageFromStake(value);
     const receipt = await tx.wait();
 
@@ -139,10 +138,18 @@ document.querySelector(".setMemberStakeFromReward")?.addEventListener("submit", 
 // ---------- Withdraw Fee to System Wallet ----------
 document.getElementById("TransferToSystemWallet")?.addEventListener("click", async () => {
   try {
-    const balance = await provider.getBalance(CONTRACT_ADDRESS);
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+
+    const contract = await getContract(signer);
+
+    const balance = await contract.feeCollected(CONTRACT_ADDRESS);
     console.log(`Transferring ${ethers.formatEther(balance)} to: ${SYSTEM_WALLET_ADDRESS}`);
 
-    const contract = await getContract();
     const tx = await contract.withdrawToSystemWallet();
     const receipt = await tx.wait();
 
@@ -188,7 +195,13 @@ document.querySelector(".changeSystemWallet")?.addEventListener("submit", async 
   e.preventDefault();
   
   try {
-    const contract = await getContract();
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+    const contract = await getContract(signer);
     const newSystemWallet = e.target.SystemWalletAddress.value;
 
     const tx = await contract.changeSystemwallet(newSystemWallet);
@@ -234,7 +247,13 @@ document.querySelector(".changeStateVar")?.addEventListener("submit", async (e) 
   e.preventDefault();
   
   try {
-    const contract = await getContract();
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+    const contract = await getContract(signer);
     const newStateVariable = e.target.changeStateVariableAddress.value;
 
     const tx = await contract.changeStateVarAddress(newStateVariable);
@@ -280,7 +299,13 @@ document.querySelector(".changeStateVar")?.addEventListener("submit", async (e) 
  ***************************************/
 document.getElementById("ReturnInfo")?.addEventListener("click", async () => {
   try {
-    const contract = await getContract();
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+    const contract = await getContract(signer);
 
     const _taskCounter = await contract.taskCounter();
     const _feeCollected = await contract.feeCollected();

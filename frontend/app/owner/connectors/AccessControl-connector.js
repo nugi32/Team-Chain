@@ -1,16 +1,6 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
-import { PRIVATE_KEY, ALCHEMY_API_KEY } from "./config.js";
 
 console.log("📦 Access Control loaded");
-
-// ==============================
-// 1. BASIC WALLET CONNECTION
-// ==============================
-const privatekey = PRIVATE_KEY;
-const provider = new ethers.JsonRpcProvider(ALCHEMY_API_KEY);
-const signer = new ethers.Wallet(privatekey, provider);
-
-console.log("signer address:", signer.address);
 
 // ==============================
 // 2. LOAD ABI FROM JSON FILE
@@ -26,9 +16,10 @@ const CONTRACT_ADDRESS = "0xF5215fFf0bBD334B8C73813a69839AF4a3De8989";
 // ==============================
 // 3. CONTRACT INSTANCE
 // ==============================
-async function getContract() {
+async function getContract(signer) {
   const artifact = await loadABI(ARTIFACT_PATH);
-  return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
+return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
+
 }
 
 // ==============================
@@ -47,6 +38,7 @@ const errors_messages = {
 // ==============================
 const selectorMap = {
   "0x3797687a": "NotOwner",
+  "0x30cd7471": "NotOwner",
   "0x1b4ce173": "ZeroAddress",
   "0x69119ae0": "AlredyHaveRole",
   "0xC2d3accf": "DoesNotHaveRole",
@@ -96,12 +88,19 @@ document.querySelector(".assign-form")?.addEventListener("submit", async (e) => 
   e.preventDefault();
 
   try {
+
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const employeeAddr = e.target.assignEmployee.value.trim();
 
     // Validate address format
     if (!ethers.isAddress(employeeAddr)) alert("⚠ Invalid Address");
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const tx = await contract.assignNewEmployee(employeeAddr);
     const receipt = await tx.wait();
 
@@ -148,11 +147,17 @@ document.querySelector(".remove-form")?.addEventListener("submit", async (e) => 
   e.preventDefault();
 
   try {
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const employeeAddr = e.target.removeEmployee.value.trim();
 
     if (!ethers.isAddress(employeeAddr)) throw new Error("⚠ Address tidak valid");
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const tx = await contract.removeEmployee(employeeAddr);
     const receipt = await tx.wait();
 
@@ -195,11 +200,18 @@ document.querySelector(".change-form")?.addEventListener("submit", async (e) => 
   e.preventDefault();
 
   try {
+
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const newOwnerAddr = e.target.changeOwner.value.trim();
 
     if (!ethers.isAddress(newOwnerAddr)) throw new Error("⚠ Address tidak valid");
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const tx = await contract.changeOwner(newOwnerAddr);
     const receipt = await tx.wait();
 
@@ -244,7 +256,15 @@ document.querySelector(".change-form")?.addEventListener("submit", async (e) => 
 // =====================================================
 document.getElementById("btnEmployeeCount").addEventListener("click", async () => {
   try {
-    const contract = await getContract();
+
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+
+    const contract = await getContract(signer);
     const employeeCount = await contract.employeeCount();
     alert(`✔ Employee Count: ${employeeCount}`);
   } catch (err) {
@@ -258,7 +278,15 @@ document.getElementById("btnEmployeeCount").addEventListener("click", async () =
 // =====================================================
 document.getElementById("owner").addEventListener("click", async () => {
   try {
-    const contract = await getContract();
+
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+
+    const contract = await getContract(signer);
     const tx = await contract.owner();
     alert(`✔ Owner Address : ${tx}`);
   } catch (err) {
@@ -271,8 +299,14 @@ document.getElementById("owner").addEventListener("click", async () => {
 // =====================================================
 document.getElementById("HasRole").addEventListener("click", async () => {
   try {
-    const contract = await getContract();
-    const msg_sender = signer.getAddress();
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+    const contract = await getContract(signer);
+    const msg_sender = await signer.getAddress();
     const HasRole = await contract.hasRole(msg_sender);
     alert(`✔ Roles : ${HasRole}`);
   } catch (err) {

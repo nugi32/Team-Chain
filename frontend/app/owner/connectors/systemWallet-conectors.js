@@ -17,18 +17,13 @@
  ****************************************************************************************/
 
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
-import { PRIVATE_KEY, ALCHEMY_API_KEY } from "./config.js";
 
 console.log("📦 System Wallet loaded");
 
 /***************************************
  * 1. Wallet Setup
  ***************************************/
-const privatekey = PRIVATE_KEY; // System wallet private key
-const provider = new ethers.JsonRpcProvider(ALCHEMY_API_KEY); // Ethereum provider
-const signer = new ethers.Wallet(privatekey, provider); // Signer instance
-console.log("signer address:", signer.address);
-
+const provider = new ethers.JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/");
 /***************************************
  * 2. Load Smart Contract ABI
  ***************************************/
@@ -44,7 +39,7 @@ const CONTRACT_ADDRESS = "0x1C6f816B036d389b76557CB9577E16C44360E029"; // Contra
 /***************************************
  * 3. Get Contract Instance
  ***************************************/
-async function getContract() {
+async function getContract(signer) {
   // Returns ethers.js Contract instance connected to the signer
   const artifact = await loadABI(ARTIFACT_PATH);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
@@ -106,7 +101,13 @@ let iface;
   document.querySelector(".transfer-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     try {
-      const contract = await getContract();
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+      const contract = await getContract(signer);
 
       // Get form values
       const toAddress = e.target.toAddress.value;
@@ -168,7 +169,13 @@ let iface;
    * 6.2 Listen for Received Funds
    ***************************************/
   async function setupEventListener() {
-    const contract = await getContract();
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+    const contract = await getContract(signer);
 
     // Remove previous listeners to prevent duplicates
     contract.removeAllListeners("contract_received_fund");

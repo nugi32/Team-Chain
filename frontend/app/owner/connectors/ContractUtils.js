@@ -1,15 +1,6 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
-import { PRIVATE_KEY, ALCHEMY_API_KEY } from "./config.js";
 
 console.log("📦 Contrac tUtils loaded");
-
-/***************************************
- * 1. Wallet Setup
- ***************************************/
-const privatekey = PRIVATE_KEY;                 // System wallet private key
-const provider = new ethers.JsonRpcProvider(ALCHEMY_API_KEY); 
-const signer = new ethers.Wallet(privatekey, provider); // Signer (system wallet)
-console.log("signer address:", signer.address);
 
 /***************************************
  * 2. Load Smart Contract ABI (Helper)
@@ -32,7 +23,7 @@ const MainContract_ADDRESS = "0x80e7F58aF8b9E99743a1a20cd0e706B9F6c3149d";
 /***************************************
  * 3. Get Contract Instance
  ***************************************/
-async function getContract(ARTIFACT_PATH, CONTRACT_ADDRESS) {
+async function getContract(ARTIFACT_PATH, CONTRACT_ADDRESS, signer) {
   const artifact = await loadABI(ARTIFACT_PATH);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
@@ -53,22 +44,28 @@ async function loadIface(ARTIFACT_PATH) {
     e.preventDefault();
 
     try {
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
       const newAccesControl = e.target.changeAccessControlAddress.value.trim();
 
       // System Wallet Contract
-      const SystemWalletContract = await getContract(SystemWallet_ARTIFACT, SystemWallet_ADDRESS);
+      const SystemWalletContract = await getContract(SystemWallet_ARTIFACT, SystemWallet_ADDRESS, signer);
       const tx1 = await SystemWalletContract.changeAccessControl(newAccesControl);
       const receipt1 = await tx1.wait();
       console.log("System Wallet Access Control Changed:", receipt1);
 
       // State Variable Contract
-      const StateVarContract = await getContract(StateVar_ARTIFACT, StateVar_ADDRESS);
+      const StateVarContract = await getContract(StateVar_ARTIFACT, StateVar_ADDRESS, signer);
       const tx2 = await StateVarContract.changeAccessControl(newAccesControl);
       const receipt2 = await tx2.wait();
       console.log("State Variables Access Control Changed:", receipt2);
 
       // Main Contract
-      const MainContract = await getContract(MainContract_ARTIFACT, MainContract_ADDRESS);
+      const MainContract = await getContract(MainContract_ARTIFACT, MainContract_ADDRESS, signer);
       const tx3 = await MainContract.changeAccessControl(newAccesControl);
       const receipt3 = await tx3.wait();
       console.log("Main Contract Access Control Changed:", receipt3);
@@ -119,17 +116,24 @@ async function loadIface(ARTIFACT_PATH) {
    ***************************************/
   document.getElementById("pauseBtn").addEventListener("click", async () => {
     try {
-      const SystemWalletContract = await getContract(SystemWallet_ARTIFACT, SystemWallet_ADDRESS);
+
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+      const SystemWalletContract = await getContract(SystemWallet_ARTIFACT, SystemWallet_ADDRESS, signer);
       const tx1 = await SystemWalletContract.pause();
       const receipt1 = await tx1.wait();
       console.log("System Wallet Contract Paused:", receipt1);
 
-      const StateVarContract = await getContract(StateVar_ARTIFACT, StateVar_ADDRESS);
+      const StateVarContract = await getContract(StateVar_ARTIFACT, StateVar_ADDRESS, signer);
       const tx2 = await StateVarContract.pause();
       const receipt2 = await tx2.wait();
       console.log("State Variable Contract Paused:", receipt2);
 
-      const MainContract = await getContract(MainContract_ARTIFACT, MainContract_ADDRESS);
+      const MainContract = await getContract(MainContract_ARTIFACT, MainContract_ADDRESS, signer);
       const tx3 = await MainContract.pause();
       const receipt3 = await tx3.wait();
       console.log("Main Contract Paused:", receipt3);
@@ -180,17 +184,24 @@ async function loadIface(ARTIFACT_PATH) {
    ***************************************/
   document.getElementById("unpauseBtn").addEventListener("click", async () => {
     try {
-      const SystemWalletContract = await getContract(SystemWallet_ARTIFACT, SystemWallet_ADDRESS);
+
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+      const SystemWalletContract = await getContract(SystemWallet_ARTIFACT, SystemWallet_ADDRESS, signer);
       const tx1 = await SystemWalletContract.unpause();
       const receipt1 = await tx1.wait();
       console.log("System Wallet Contract UnPaused:", receipt1);
 
-      const StateVarContract = await getContract(StateVar_ARTIFACT, StateVar_ADDRESS);
+      const StateVarContract = await getContract(StateVar_ARTIFACT, StateVar_ADDRESS, signer);
       const tx2 = await StateVarContract.unpause();
       const receipt2 = await tx2.wait();
       console.log("State Variable Contract UnPaused:", receipt2);
 
-      const MainContract = await getContract(MainContract_ARTIFACT, MainContract_ADDRESS);
+      const MainContract = await getContract(MainContract_ARTIFACT, MainContract_ADDRESS, signer);
       const tx3 = await MainContract.unpause();
       const receipt3 = await tx3.wait();
       console.log("Main Contract UnPaused:", receipt3);
@@ -241,15 +252,22 @@ async function loadIface(ARTIFACT_PATH) {
    ***************************************/
   document.getElementById("checkPausedBtn").addEventListener("click", async () => {
     try {
-      const SystemWalletContract = await getContract(SystemWallet_ARTIFACT, SystemWallet_ADDRESS);
+
+      const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+      const SystemWalletContract = await getContract(SystemWallet_ARTIFACT, SystemWallet_ADDRESS, signer);
       const tx1 = await SystemWalletContract.paused();
       console.log("System Wallet Contract Checked:", tx1);
 
-      const StateVarContract = await getContract(StateVar_ARTIFACT, StateVar_ADDRESS);
+      const StateVarContract = await getContract(StateVar_ARTIFACT, StateVar_ADDRESS, signer);
       const tx2 = await StateVarContract.paused();
       console.log("State Variable Contract Checked:", tx2);
 
-      const MainContract = await getContract(MainContract_ARTIFACT, MainContract_ADDRESS);
+      const MainContract = await getContract(MainContract_ARTIFACT, MainContract_ADDRESS, signer);
       const tx3 = await MainContract.paused();
       console.log("Main Contract UnPaused:", tx3);
 

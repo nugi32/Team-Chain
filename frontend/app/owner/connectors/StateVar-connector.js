@@ -1,15 +1,6 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
-import { PRIVATE_KEY, ALCHEMY_API_KEY } from "./config.js";
 
 console.log("📦 State Variable loaded");
-
-/***************************************
- * 1. WALLET SETUP
- ***************************************/
-const privatekey = PRIVATE_KEY;
-const provider = new ethers.JsonRpcProvider(ALCHEMY_API_KEY);
-const signer = new ethers.Wallet(privatekey, provider);
-console.log("Signer address:", signer.address);
 
 /***************************************
  * 2. CONTRACT CONFIGURATION
@@ -28,7 +19,7 @@ async function loadABI(path) {
 /***************************************
  * 4. CONTRACT INSTANCE GETTER
  ***************************************/
-async function getContract() {
+async function getContract(signer) {
   const artifact = await loadABI(ARTIFACT_PATH);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
@@ -95,6 +86,12 @@ document.querySelector(".WeightPercentages")?.addEventListener("submit", async (
   e.preventDefault();
   
   try {
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const rs = parseInt(e.target.rewardScore.value);
     const rep = parseInt(e.target.reputationScore.value);
     const dl = parseInt(e.target.deadlineScore.value);
@@ -105,7 +102,7 @@ document.querySelector(".WeightPercentages")?.addEventListener("submit", async (
       return;
     }
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const tx = await contract.setComponentWeightPercentages(rs, rep, dl, rev);
     const receipt = await tx.wait();
 
@@ -160,6 +157,12 @@ document.querySelector(".stakeAmounts")?.addEventListener("submit", async (e) =>
   e.preventDefault();
   
   try {
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const form = e.target;
     const low = ethers.parseEther(form.low.value);
     const midLow = ethers.parseEther(form.midLow.value);
@@ -168,7 +171,7 @@ document.querySelector(".stakeAmounts")?.addEventListener("submit", async (e) =>
     const high = ethers.parseEther(form.high.value);
     const ultraHigh = ethers.parseEther(form.ultraHigh.value);
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const tx = await contract.setStakeAmounts(low, midLow, mid, midHigh, high, ultraHigh);
     const receipt = await tx.wait();
 
@@ -228,6 +231,12 @@ document.querySelector(".reputationPoints")?.addEventListener("submit", async (e
   e.preventDefault();
   
   try {
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const f = e.target;
 
     const cMy = parseInt(f.CancelByMeRP.value);
@@ -237,7 +246,7 @@ document.querySelector(".reputationPoints")?.addEventListener("submit", async (e
     const dhc = parseInt(f.deadlineHitCreatorRP.value);
     const dhm = parseInt(f.deadlineHitMemberRP.value);
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const tx = await contract.setReputationPoints(cMy, rRP, tac, tam, dhc, dhm);
     const receipt = await tx.wait();
 
@@ -297,6 +306,12 @@ document.querySelector(".aditionalStateVar")?.addEventListener("submit", async (
   e.preventDefault();
   
   try {
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const f = e.target;
 
     const maxStake = ethers.parseEther(f.maxStakeInEther.value);
@@ -316,7 +331,7 @@ document.querySelector(".aditionalStateVar")?.addEventListener("submit", async (
       return;
     }
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const stakeAmount = await contract.__getStakeUltraHigh();
     
     if (maxStake < stakeAmount) {
@@ -390,6 +405,12 @@ document.querySelector(".stakeCategorys")?.addEventListener("submit", async (e) 
   e.preventDefault();
   
   try {
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
     const f = e.target;
     const low = ethers.parseEther(f.low.value);
     const midLow = ethers.parseEther(f.midLow.value);
@@ -398,7 +419,7 @@ document.querySelector(".stakeCategorys")?.addEventListener("submit", async (e) 
     const high = ethers.parseEther(f.high.value);
     const ultraHigh = ethers.parseEther(f.ultraHigh.value);
 
-    const contract = await getContract();
+    const contract = await getContract(signer);
     const tx = await contract.setStakeCategorys(
       low, midLow, mid, midHigh, high, ultraHigh
     );
@@ -460,7 +481,13 @@ document.querySelector(".stakeCategorys")?.addEventListener("submit", async (e) 
  ***************************************/
 document.getElementById("TestBTN")?.addEventListener("click", async () => {
   try {
-    const contract = await getContract();
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        console.error("No signer available. Please connect wallet.");
+        return;
+      }
+    const contract = await getContract(signer);
 
     // Get all contract data in parallel
     const [
