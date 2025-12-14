@@ -1,76 +1,181 @@
-.register {
-  position: fixed; /* paling gampang center */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-
-  width: 65vw;     /* lebih besar dari 50% */
-  height: 60vh;    /* biar lega */
-
+.background{
+  padding: 40px;
   display: flex;
   justify-content: center;
-  align-items: center;
-
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-
-  border-radius: 22px;
-  padding: 40px;
-  box-sizing: border-box;
-  margin-top: 400px;
 }
-
-
-
-/* Form */
-.register form {
-  width: 100%;
-  max-width: 550px; /* agar tidak terlalu lebar di monitor besar */
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-
-
-/* Input */
-.register-form input{
-  padding: 12px;
-  border: none;
-  border-radius: 100px;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  outline: 1px solid transparent;
-  transition: .25s;
-}
-
-.register-form input:focus{
-  outline: 1px solid #7c5cff;
-  box-shadow: 0 0 8px #7c5cff;
-}
-
-/* Tombol */
-.register-form button{
-  margin-top: 5px;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  background: #7c5cff;
-  color: #fff;
-  cursor: pointer;
-  font-weight: 600;
-  transition: .35s;
-}
-
-.register-form button:hover{
-  background: #6a46ff;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(124,92,255,0.35);
-}
-
-/* Animasi muncul */
-@keyframes fadeIn{
-  0% { opacity:0; transform:translateY(15px); }
-  100% { opacity:1; transform:translateY(0); }
-}
+.card {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Header card */
+        .card::before {
+            content: 'Registration';
+            display: block;
+            text-align: center;
+            color: white;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Form styling */
+        .registerForm {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+        
+        /* Input styling */
+        .registerForm input {
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .registerForm input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .registerForm input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Tombol styling */
+        .registerForm button {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .submit {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            color: white;
+            letter-spacing: 0.5px;
+        }
+        
+        .submit:hover {
+            background: linear-gradient(135deg, #3a56d4, #2d0a8a);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.2);
+        }
+        
+        .submit {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .submit:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Menghilangkan tombol panah di input number */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        /* Responsif untuk tablet dan mobile */
+        @media (max-width: 768px) {
+            .card {
+                max-width: 90%;
+                padding: 35px 25px;
+            }
+            
+            .card::before {
+                font-size: 22px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 30px 20px;
+                max-width: 95%;
+            }
+            
+            .card::before {
+                font-size: 20px;
+                margin-bottom: 25px;
+            }
+            
+            .registerForm input, .registerForm button {
+                padding: 14px 18px;
+            }
+        }
+        
+        /* Efek animasi saat load */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        
+        /* Efek glow pada card */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #6e8efb, #a777e3, #6e8efb);
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.4;
+            filter: blur(10px);
+        }

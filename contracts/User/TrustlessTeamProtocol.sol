@@ -27,7 +27,7 @@ contract TrustlessTeamProtocol is
     AccesControl,
     StateVarPipes,
     ReentrancyGuardUpgradeable,
-    PausableUpgradeable,
+    PausableUpgradeable,    
     UUPSUpgradeable
 {
     // =============================================================
@@ -41,7 +41,6 @@ contract TrustlessTeamProtocol is
         Active, 
         OpenRegistration, 
         InProgres, 
-        CancelRequested, 
         Completed, 
         Cancelled 
     }
@@ -87,6 +86,7 @@ contract TrustlessTeamProtocol is
         uint128 age;                   /// @dev User age (must be 18-100)
         bool isRegistered;           /// @dev Registration status
         string name;                 /// @dev User display name
+        string GitProfile;
     }
 
     /// @notice Core task data structure
@@ -179,8 +179,6 @@ contract TrustlessTeamProtocol is
     event JoinRequested(uint256 indexed taskId, address indexed applicant, uint256 stakeAmount);
     event JoinApproved(uint256 indexed taskId, address indexed applicant);
     event JoinRejected(uint256 indexed taskId, address indexed applicant);
-    event CancelRequestedEvent(uint256 indexed taskId, address indexed requester, string reason, uint256 cooldown);
-    event CancelResponded(uint256 indexed taskId, bool approved);
     event TaskCancelledByMe(uint256 indexed taskId, address indexed initiator);
     event TaskSubmitted(uint256 indexed taskId, address indexed member, string githubURL);
     event TaskReSubmitted(uint256 indexed taskId, address indexed member);
@@ -332,12 +330,12 @@ contract TrustlessTeamProtocol is
      * @param Age User's age (must be between 18-100)
      * @dev Creates a new user profile with initial reputation and counters
      */
-    function Register(string calldata Name, uint128 Age)
+    function Register(string calldata Name, uint128 Age, string calldata githubURL, address user)
         external
         onlyUser
         callerZeroAddr
     {
-        User storage u = Users[msg.sender];
+        User storage u = Users[user];
         
         // Validate registration
         if (u.isRegistered) revert AlredyRegistered();
@@ -351,8 +349,9 @@ contract TrustlessTeamProtocol is
         u.isRegistered = true;
         u.name = Name;
         u.age = Age;
+        u.GitProfile = githubURL;
 
-        emit UserRegistered(msg.sender, Name, Age);
+        emit UserRegistered(user, Name, Age);
     }
 
     /**
@@ -360,16 +359,16 @@ contract TrustlessTeamProtocol is
      * @return confirmation Confirmation message
      * @dev Removes user from protocol and clears their data
      */
-    function Unregister()
+    function Unregister(address user)
         external
         onlyRegistered
         onlyUser
         callerZeroAddr
         returns (string memory)
     {
-        User memory u = Users[msg.sender];
-        emit UserUnregistered(msg.sender, u.name, u.age);
-        delete Users[msg.sender];
+        User memory u = Users[user];
+        emit UserUnregistered(user, u.name, u.age);
+        delete Users[user];
         return "Unregister Successfully";
     }
 
@@ -389,7 +388,8 @@ contract TrustlessTeamProtocol is
         string memory Title,
         string memory GithubURL,
         uint32 DeadlineHours,
-        uint8 MaximumRevision
+        uint8 MaximumRevision,
+        address user
     ) external payable whenNotPaused onlyRegistered nonReentrant onlyUser callerZeroAddr {
         // Increment and get new task ID
         taskCounter++;
@@ -406,8 +406,8 @@ contract TrustlessTeamProtocol is
         Tasks[taskId] = Task({
             taskId: taskId,
             status: TaskStatus.Created,
-            value: __getProjectValueCategory(DeadlineHours, MaximumRevision, msg.value, msg.sender),
-            creator: msg.sender,
+            value: __getProjectValueCategory(DeadlineHours, MaximumRevision, msg.value, user),
+            creator: user,
             member: address(0),
             title: Title,
             githubURL: GithubURL,
@@ -425,9 +425,9 @@ contract TrustlessTeamProtocol is
         });
 
         // Update creator statistics
-        Users[msg.sender].totalTasksCreated++;
+        Users[user].totalTasksCreated++;
 
-        emit TaskCreated(Title, taskId, msg.sender, msg.value, 0);
+        emit TaskCreated(Title, taskId, user, msg.value, 0);
     }
 
     /**
@@ -488,18 +488,18 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task to join
      * @dev Requires exact member stake amount in msg.value, creates pending join request
      */
-    function requestJoinTask(uint256 taskId) external payable taskExists(taskId) whenNotPaused onlyRegistered onlyUser callerZeroAddr {
+    function requestJoinTask(uint256 taskId, address user) external payable taskExists(taskId) whenNotPaused onlyRegistered onlyUser callerZeroAddr {
         Task storage t = Tasks[taskId];
         JoinRequest[] storage reqs = joinRequests[taskId];
 
         // Check for duplicate pending requests
         for (uint256 i = 0; i < reqs.length; ++i) {
-            if (reqs[i].applicant == msg.sender && reqs[i].isPending) revert AlreadyRequestedJoin();
+            if (reqs[i].applicant == user && reqs[i].isPending) revert AlreadyRequestedJoin();
         }
 
         // Validate task state and permissions
         if (t.status != TaskStatus.OpenRegistration) revert TaskNotOpen();
-        if (msg.sender == t.creator) revert TaskNotOpen();
+        if (user == t.creator) revert TaskNotOpen();
 
         // Validate stake amount
         uint256 memberStake = getMemberRequiredStake(taskId);
@@ -508,14 +508,14 @@ contract TrustlessTeamProtocol is
 
         // Create new join request
         joinRequests[taskId].push(JoinRequest({
-            applicant: msg.sender,
+            applicant: user,
             stakeAmount: msg.value,
             status: UserTask.Request,
             isPending: true,
             hasWithdrawn: false
         }));
 
-        emit JoinRequested(taskId, msg.sender, msg.value);
+        emit JoinRequested(taskId, user, msg.value);
     }
 
     /**
@@ -523,18 +523,18 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task to withdraw join request from
      * @dev Returns stake to user's withdrawable balance
      */
-    function withdrawJoinRequest(uint256 taskId) external nonReentrant onlyRegistered {
+    function withdrawJoinRequest(uint256 taskId, address user) external nonReentrant onlyRegistered {
         JoinRequest[] storage reqs = joinRequests[taskId];
         
         // Find and process pending request
         for (uint256 i = 0; i < reqs.length; ++i) {
-            if (reqs[i].applicant == msg.sender && reqs[i].isPending && !reqs[i].hasWithdrawn) {
+            if (reqs[i].applicant == user && reqs[i].isPending && !reqs[i].hasWithdrawn) {
                 reqs[i].isPending = false;
                 reqs[i].hasWithdrawn = true;
                 uint256 stake = reqs[i].stakeAmount;
                 reqs[i].stakeAmount = 0;
-                withdrawable[msg.sender] += stake;
-                emit JoinrequestCancelled(taskId, msg.sender);
+                withdrawable[user] += stake;
+                emit JoinrequestCancelled(taskId, user);
                 return;
             }
         }
@@ -612,14 +612,14 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task to cancel
      * @dev Applies penalties based on who initiates cancellation and updates reputation
      */
-    function cancelByMe(uint256 taskId) external taskExists(taskId) nonReentrant onlyUser whenNotPaused {
+    function cancelByMe(uint256 taskId, address user) external taskExists(taskId) nonReentrant onlyUser whenNotPaused {
         Task storage t = Tasks[taskId];
 
         // Validate permissions and state
-        if (msg.sender != t.creator && msg.sender != t.member) revert NotCounterparty();
+        if (user != t.creator && user != t.member) revert NotCounterparty();
         if (t.status != TaskStatus.InProgres) revert TaskNotOpen();
 
-        if (msg.sender == t.member) {
+        if (user == t.member) {
             // Member cancellation: member loses portion of stake to creator
             uint256 penaltyToCreator = (t.memberStake * ___getNegPenalty()) / 100;
             uint256 memberReturn = (t.memberStake * __CounterPenalty()) / 100;
@@ -649,18 +649,18 @@ contract TrustlessTeamProtocol is
         t.status = TaskStatus.Cancelled;
 
         // Apply reputation penalty
-        if (Users[msg.sender].isRegistered) {
-            if (Users[msg.sender].reputation < ___getCancelByMe()) {
-                Users[msg.sender].reputation = 0;
+        if (Users[user].isRegistered) {
+            if (Users[user].reputation < ___getCancelByMe()) {
+                Users[user].reputation = 0;
             } else {
-                Users[msg.sender].reputation -= ___getCancelByMe();
+                Users[user].reputation -= ___getCancelByMe();
             }
         }
 
         // Update failure counter
-        Users[msg.sender].totalTasksFailed++;
+        Users[user].totalTasksFailed++;
 
-        emit TaskCancelledByMe(taskId, msg.sender);
+        emit TaskCancelledByMe(taskId, user);
     }
 
     // =============================================================
@@ -674,7 +674,7 @@ contract TrustlessTeamProtocol is
      * @param Note Description/notes about the submission
      * @dev Creates submission record in Pending status for creator review
      */
-    function requestSubmitTask(uint256 taskId, string calldata PullRequestURL, string calldata Note)
+    function requestSubmitTask(uint256 taskId, string calldata PullRequestURL, string calldata Note, address user)
         external
         taskExists(taskId)
         onlyTaskMember(taskId)
@@ -685,7 +685,7 @@ contract TrustlessTeamProtocol is
         
         // Validate task state and input
         if (t.status != TaskStatus.InProgres) revert TaskNotOpen();
-        if (t.member != msg.sender) revert NotTaskMember();
+        if (t.member != user) revert NotTaskMember();
         if (bytes(PullRequestURL).length == 0) revert InvalidGithubURL();
         if (bytes(Note).length == 0) revert InvalidNote();
 
@@ -695,14 +695,14 @@ contract TrustlessTeamProtocol is
         // Create submission record
         TaskSubmits[taskId] = TaskSubmit({
             githubURL: PullRequestURL,
-            sender: msg.sender,
+            sender: user,
             note: Note,
             status: SubmitStatus.Pending,
             revisionTime: 0,
             newDeadline: t.deadlineAt
         });
 
-        emit TaskSubmitted(taskId, msg.sender, PullRequestURL);
+        emit TaskSubmitted(taskId, user, PullRequestURL);
     }
 
     /**
@@ -712,7 +712,7 @@ contract TrustlessTeamProtocol is
      * @param GithubFixedURL Updated GitHub URL
      * @dev Updates submission and returns it to Pending status
      */
-    function reSubmitTask(uint256 taskId, string calldata Note, string calldata GithubFixedURL)
+    function reSubmitTask(uint256 taskId, string calldata Note, string calldata GithubFixedURL, address user)
         external
         taskExists(taskId)
         onlyTaskMember(taskId)
@@ -724,7 +724,7 @@ contract TrustlessTeamProtocol is
 
         // Validate submission state
         if (s.sender == address(0)) revert NoSubmision();
-        if (t.member != msg.sender) revert NotTaskMember();
+        if (t.member != user) revert NotTaskMember();
         if (s.status != SubmitStatus.RevisionNeeded) revert TaskNotOpen();
 
         // Auto-approve if revision limit exceeded
@@ -745,7 +745,7 @@ contract TrustlessTeamProtocol is
         s.status = SubmitStatus.Pending;
         s.githubURL = GithubFixedURL;
 
-        emit TaskReSubmitted(taskId, msg.sender);
+        emit TaskReSubmitted(taskId, user);
     }
 
     /**
@@ -894,18 +894,18 @@ contract TrustlessTeamProtocol is
      * @notice Withdraws available balance to caller
      * @dev Implements pull payment pattern, transfers available ETH to caller
      */
-    function withdraw() external nonReentrant onlyUser whenNotPaused {
-        uint256 amount = withdrawable[msg.sender];
+    function withdraw(address user) external nonReentrant onlyUser whenNotPaused {
+        uint256 amount = withdrawable[user];
         if (amount == 0) revert NoFunds();
         
         // Reset balance before transfer to prevent reentrancy
-        withdrawable[msg.sender] = 0;
+        withdrawable[user] = 0;
         
         // Transfer funds
-        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        (bool ok, ) = payable(user).call{value: amount}("");
         require(ok, "withdraw failed");
         
-        emit Withdrawal(msg.sender, amount);
+        emit Withdrawal(user, amount);
     }
 
     // =============================================================
@@ -1095,16 +1095,16 @@ contract TrustlessTeamProtocol is
      * @notice Checks if caller is registered
      * @return Registration status of caller
      */
-    function isRegistered() external view returns (bool) {
-        return Users[msg.sender].isRegistered;
+    function isRegistered(address user) external view returns (bool) {
+        return Users[user].isRegistered;
     }
 
     /**
      * @notice Retrieves caller's user profile
      * @return User profile data
      */
-    function getMyData() external view onlyRegistered returns (User memory) {
-        return Users[msg.sender];
+    function getMyData(address user) external view onlyRegistered returns (User memory) {
+        return Users[user];
     }
 
     /**
@@ -1129,12 +1129,12 @@ contract TrustlessTeamProtocol is
      * @notice Retrieves caller's withdrawable balance
      * @return Withdrawable amount in wei
      */
-    function getWithdrawableAmount() external view onlyRegistered returns (uint256) {
-        return withdrawable[msg.sender];
+    function getWithdrawableAmount(address user) external view onlyRegistered returns (uint256) {
+        return withdrawable[user];
     }
 
     /**
-     * @notice Calculates required creator stake for a task
+     * @notice Calculates required creator stake for a taskF
      * @param taskId ID of the task
      * @return Required creator stake amount in wei
      */
@@ -1221,18 +1221,18 @@ contract TrustlessTeamProtocol is
      * @notice Pauses contract functionality
      * @dev Only callable by employees, prevents most state-changing functions
      */
-    function pause() external onlyOwner {
+    function pause(address caller) external onlyOwner {
         _pause();
-        emit ContractPaused(msg.sender);
+        emit ContractPaused(caller);
     }
 
     /**
      * @notice Unpauses contract functionality
      * @dev Only callable by employees, restores normal operation
      */
-    function unpause() external onlyOwner {
+    function unpause(address caller) external onlyOwner {
         _unpause();
-        emit ContractUnpaused(msg.sender);
+        emit ContractUnpaused(caller);
     }
 
     // =============================================================

@@ -1,499 +1,559 @@
-/* ================= ROOT ================= */
+/* ================= VARIABLES & RESET ================= */
 :root {
-  --bg: #0f1724;
-  --card: rgba(255, 255, 255, 0.08);
-  --accent: #7c5cff;
-  --accent-hover: #6a4be5;
-  --muted: #a3aab9;
-  --text: #e9eef9;
-  --text-secondary: #bcc3d1;
-  --radius: 12px;
-  --border: rgba(255, 255, 255, 0.15);
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Light Theme Colors */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #f1f5f9;
+  --bg-hover: #f8fafc;
+  
+  /* Text Colors */
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  
+  /* Accent Colors */
+  --accent-primary: #3b82f6;
+  --accent-secondary: #8b5cf6;
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
+  --accent-info: #06b6d4;
+  
+  /* Borders & Shadows */
+  --border-color: #e2e8f0;
+  --border-radius: 12px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.12);
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.4s ease;
 }
 
-/* RESET & BASE */
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--transition-normal);
 }
 
-/* ================== HEADER ================== */
-.topbar {
-  position: sticky;
+/* ================= BACKGROUND STREET GIF ================= */
+body::before {
+  content: "";
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(rgba(248, 250, 252, 0.95), rgba(248, 250, 252, 0.98)),
+    url('./street.png') center/cover no-repeat;
+  z-index: -1;
+  opacity: 0.15;
+}
+
+/* ================= HEADER ================= */
+.topbar {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background: rgba(15, 23, 36, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
 .brand h1 {
-  font-size: 1.75rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #7c5cff, #9a8bff);
+  color: var(--accent-primary);
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  color: transparent;
 }
 
 #center {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.4rem;
   color: var(--text-secondary);
+  font-weight: 600;
   text-align: center;
-  flex-grow: 1;
+  flex: 1;
+  padding: 0 1rem;
 }
 
 .wallet-container {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-shrink: 0;
 }
 
-/* ================== CONTENT LAYOUT ================== */
+/* ================= W3M BUTTON STYLES (LIGHT MODE) ================= */
+w3m-button {
+  --w3m-accent-color: var(--accent-primary);
+  --w3m-accent-fill-color: #ffffff;
+  --w3m-text-medium-regular-size: 14px;
+  --w3m-button-border-radius: 10px;
+  --w3m-background-color: var(--accent-primary);
+  --w3m-color-fg-1: var(--text-primary);
+  --w3m-color-fg-2: var(--text-secondary);
+  --w3m-color-fg-3: var(--text-muted);
+}
+
+.wallet-container w3m-button {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.wallet-container w3m-button:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* ================= CONTENT WRAPPER ================= */
 .background {
-  position: relative;
-  min-height: calc(100vh - 80px);
-  background: 
-    linear-gradient(rgba(15, 23, 36, 0.85), rgba(15, 23, 36, 0.95)),
-    url("../user/layouts/components/street.png") center/cover fixed;
-  padding: 2rem 1rem;
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
-  align-items: start;
 }
 
-@media (min-width: 1200px) {
-  .background {
-    grid-template-columns: repeat(3, 1fr);
-    padding: 2rem 4rem;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1199px) {
-  .background {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 2rem;
-  }
-}
-
-/* ================= CARD STYLES ================= */
-.cards {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.75rem;
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow);
-  transition: var(--transition);
+/* ================= CARDS (FLEXIBLE LAYOUT) ================= */
+.cards, .SystemWallet-cards {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
   height: fit-content;
 }
 
-.cards:hover {
+.cards:hover, .SystemWallet-cards:hover {
+  box-shadow: var(--shadow-hover);
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-  border-color: rgba(124, 92, 255, 0.3);
+  border-color: var(--accent-primary);
+}
+
+/* State Variable Cards - Flexible Layout */
+.StateVariable {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* State Variable Cards Container */
+.StateVariable > .cards {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+/* Container for State Variable sections - Flex layout */
+.ComponentWeightPercentages,
+.StakeAmounts,
+.ReputationPoints,
+.AditionalStateVar,
+.StakeCategorys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+
+/* State Variable Forms - Flexible Layout */
+.WeightPercentages,
+.stakeAmounts,
+.reputationPoints,
+.aditionalStateVar,
+.stakeCategorys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  flex: 1;
+  min-width: 300px;
+}
+
+.WeightPercentages input,
+.stakeAmounts input,
+.reputationPoints input,
+.aditionalStateVar input,
+.stakeCategorys input {
+  flex: 1 1 calc(33.333% - 1rem);
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.WeightPercentages button,
+.stakeAmounts button,
+.reputationPoints button,
+.aditionalStateVar button,
+.stakeCategorys button {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin-top: 0;
+}
+
+/* Responsive adjustments for State Variable forms */
+@media (max-width: 1200px) {
+  .WeightPercentages input,
+  .stakeAmounts input,
+  .reputationPoints input,
+  .aditionalStateVar input,
+  .stakeCategorys input {
+    flex: 1 1 calc(50% - 1rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .ComponentWeightPercentages,
+  .StakeAmounts,
+  .ReputationPoints,
+  .AditionalStateVar,
+  .StakeCategorys {
+    flex-direction: column;
+  }
+  
+  .WeightPercentages input,
+  .stakeAmounts input,
+  .reputationPoints input,
+  .aditionalStateVar input,
+  .stakeCategorys input {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+/* ================= CARD TYPOGRAPHY ================= */
+.cards h1, .cards h2, .cards h3 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.cards h1 {
+  font-size: 1.8rem;
+  border-bottom: 2px solid var(--accent-primary);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .cards h2 {
   font-size: 1.5rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid rgba(124, 92, 255, 0.3);
-  color: var(--text);
-  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.2rem;
 }
 
 .cards h3 {
   font-size: 1.1rem;
-  margin-bottom: 0.75rem;
   color: var(--text-secondary);
-  font-weight: 600;
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.cards > div {
-  margin-bottom: 1.5rem;
+.cards h3::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-primary);
+  border-radius: 50%;
+  margin-right: 0.5rem;
 }
 
-.cards > div:last-child {
-  margin-bottom: 0;
-}
-
-/* ================= FORM STYLES ================= */
+/* ================= FORMS ================= */
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-input {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
+input[type="number"], input[type="text"] {
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
   font-size: 0.95rem;
-  transition: var(--transition);
+  transition: all var(--transition-fast);
+  font-family: inherit;
 }
 
-input:focus {
+input[type="number"]:focus, input[type="text"]:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-primary);
+  background-color: var(--bg-secondary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 input::placeholder {
-  color: var(--muted);
+  color: var(--text-light);
+  opacity: 0.8;
 }
 
-/* ================= BUTTON STYLES ================= */
-button {
-  padding: 0.875rem 1.5rem;
+/* Form Layout Variations */
+.assign-form,
+.remove-form,
+.change-form,
+.transfer-form,
+.setMemberStakeFromReward,
+.changeSystemWallet,
+.changeStateVar,
+.changeAccessControl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.assign-form input,
+.remove-form input,
+.change-form input,
+.transfer-form input,
+.setMemberStakeFromReward input,
+.changeSystemWallet input,
+.changeStateVar input,
+.changeAccessControl input {
+  flex: 1 1 300px;
+  min-width: 250px;
+}
+
+.assign-form button,
+.remove-form button,
+.change-form button,
+.transfer-form button,
+.setMemberStakeFromReward button,
+.changeSystemWallet button,
+.changeStateVar button,
+.changeAccessControl button {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+/* ================= BUTTONS ================= */
+button, button[type="submit"], button[type="button"] {
+  padding: 0.85rem 1.75rem;
+  border-radius: 10px;
   border: none;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  background-color: var(--accent-primary);
   color: white;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--transition-normal);
+  letter-spacing: 0.3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  text-transform: none;
+  white-space: nowrap;
 }
 
-button:hover {
+button:hover, button[type="submit"]:hover, button[type="button"]:hover {
+  background-color: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(124, 92, 255, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 button:active {
   transform: translateY(0);
 }
 
-#connectBtn {
-  background: rgba(124, 92, 255, 0.1);
-  border: 1px solid rgba(124, 92, 255, 0.3);
-  color: var(--accent);
-}
-
-#connectBtn:hover {
-  background: rgba(124, 92, 255, 0.2);
-}
-
-/* Form submit buttons */
-form button {
+/* Specific Button Styles */
+#TestBTN, #btnEmployeeCount, #HasRole, #owner, 
+#checkBalanceBtn, #ReturnInfo, #TransferToSystemWallet,
+#pauseBtn, #unpauseBtn, #checkPausedBtn {
+  width: 100%;
   margin-top: 0.5rem;
-  width: 100%;
 }
 
-/* Section-specific buttons */
-.employee-count button,
-.has-role button,
-.owner-check button,
-.seeBalance button,
-.Return-Info button,
-.WithdrawFeeToSystemWallet button,
-.pause-unpause button,
-#TestBTN {
-  width: 100%;
+#pauseBtn {
+  background-color: var(--accent-danger);
 }
 
-.pause-unpause {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+#pauseBtn:hover {
+  background-color: #dc2626;
 }
 
-.pause-unpause button:first-child {
-  background: linear-gradient(135deg, #ff4757, #ff6b81);
+#unpauseBtn {
+  background-color: var(--accent-success);
 }
 
-.pause-unpause button:first-child:hover {
-  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.3);
+#unpauseBtn:hover {
+  background-color: #059669;
 }
 
-.pause-unpause button:nth-child(2) {
-  background: linear-gradient(135deg, #2ed573, #3ae374);
+#checkPausedBtn {
+  background-color: var(--accent-warning);
 }
 
-.pause-unpause button:nth-child(2):hover {
-  box-shadow: 0 6px 20px rgba(46, 213, 115, 0.3);
+#checkPausedBtn:hover {
+  background-color: #d97706;
 }
 
-/* ================= SECTION GROUPS ================= */
-.admins, .owner {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+/* ================= SECTION SPECIFIC STYLES ================= */
+/* Access Control specific */
+.AssignEmployee, .RemoveEmployee, .changeOwner,
+.employee-count, .has-role, .owner-check {
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
 
-.admins h2, .owner h2 {
-  font-size: 1.25rem;
-  color: var(--accent);
-  margin: 1.5rem 0 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(124, 92, 255, 0.2);
+/* System Wallet specific */
+.transfer, .seeBalance {
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
 
-/* ====State var==== */
-/* ====== WRAPPER ====== */
-.StateVariable-cards {
-  width: 100%;
-  padding: 20px;
-  box-sizing: border-box;
-
-  display: flex;
-  flex-direction: row;      /* Horizontal dulu */
-  flex-wrap: wrap;          /* Boleh turun ke bawah */
-  gap: 20px;                /* Jarak antar card */
-  justify-content: center;  /* Rata tengah */
-  align-items: flex-start;
+/* Main Contract specific */
+.Return-Info, .admins, .owner {
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
-
-/* ====== CARD STYLE ====== */
-.StateVariable-cards > div {
-  background: #ffffff;
-  width: 350px;                 /* ukuran default card */
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  box-sizing: border-box;
-}
-
-/* Heading */
-.StateVariable-cards h3 {
-  margin-bottom: 10px;
-}
-
-/* ====== FORM LAYOUT ====== */
-.StateVariable-cards form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.StateVariable-cards input {
-  flex: 1 1 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-/* Button */
-.StateVariable-cards button {
-  padding: 10px 15px;
-  margin-top: 10px;
-  background: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* ====== RESPONSIVE ====== */
-@media (max-width: 900px) {
-  .StateVariable-cards > div {
-    width: 300px;   /* mengecil saat layar menurun */
-  }
-}
-
-@media (max-width: 600px) {
-  .StateVariable-cards {
-    flex-direction: column;   /* jadi full vertical supaya rapih */
-    align-items: center;
-  }
-
-  .StateVariable-cards > div {
-    width: 100%;              /* full width */
-    max-width: 400px;
-  }
-}
-
 
 /* ================= FOOTER ================= */
 .site-footer {
-  grid-column: 1 / -1;
+  background-color: var(--bg-secondary);
   margin-top: 3rem;
-  padding: 2rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(15, 23, 36, 0.8);
+  padding: 3rem 0;
+  border-top: 1px solid var(--border-color);
+  grid-column: 1 / -1;
 }
 
 .footer-content {
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
+  padding: 0 2rem;
 }
 
-.site-footer h3 {
+.footer-content h3 {
+  color: var(--text-primary);
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: var(--text);
+  font-weight: 700;
 }
 
 .footer-desc {
   color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  line-height: 1.7;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
 
-.site-footer a {
-  color: var(--accent);
+.footer-desc a {
+  color: var(--accent-primary);
   text-decoration: none;
-  transition: var(--transition);
+  font-weight: 600;
+  transition: color var(--transition-fast);
 }
 
-.site-footer a:hover {
-  color: #9a8bff;
+.footer-desc a:hover {
+  color: var(--accent-secondary);
   text-decoration: underline;
 }
 
 .footer-links {
   display: flex;
   justify-content: center;
+  gap: 2.5rem;
+  margin: 2rem 0;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
 }
 
 .footer-links a {
-  font-size: 0.95rem;
   color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
 }
 
 .footer-links a:hover {
-  color: var(--text);
+  color: var(--accent-primary);
+  background-color: var(--bg-hover);
 }
 
 .footer-socials {
   display: flex;
   justify-content: center;
   gap: 1.5rem;
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
+  margin: 2rem 0;
 }
 
 .footer-socials a {
-  opacity: 0.7;
-  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background-color: var(--bg-input);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  transition: all var(--transition-normal);
+  text-decoration: none;
 }
 
 .footer-socials a:hover {
-  opacity: 1;
-  transform: translateY(-2px);
+  background-color: var(--accent-primary);
+  color: white;
+  transform: translateY(-3px);
 }
 
 .site-footer small {
-  color: var(--muted);
-  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
   display: block;
-  margin-top: 1rem;
+  margin-top: 2rem;
 }
 
-/* ================= RESPONSIVE ADJUSTMENTS ================= */
-@media (max-width: 767px) {
-  .topbar {
-    padding: 0.75rem 1rem;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .brand h1 {
-    font-size: 1.5rem;
-  }
-  
-  #center {
-    font-size: 1rem;
-    order: 3;
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-  
-  .wallet-container {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .background {
-    grid-template-columns: 1fr;
-    padding: 1rem;
-    gap: 1rem;
-  }
-  
-  .cards {
-    padding: 1.25rem;
-  }
-  
-  .cards h2 {
-    font-size: 1.25rem;
-  }
-  
-  .footer-links {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-}
-
-/* Dark mode scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(124, 92, 255, 0.3);
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(124, 92, 255, 0.5);
-}
-
-/* Improve text selection */
-::selection {
-  background: rgba(124, 92, 255, 0.3);
-  color: white;
-}
-
-/* Loading state for buttons */
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-/* Animation for cards entrance */
+/* ================= ANIMATIONS ================= */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -505,14 +565,164 @@ button:disabled {
   }
 }
 
-.cards {
+.cards, .SystemWallet-cards, .site-footer {
   animation: fadeInUp 0.5s ease-out forwards;
-  opacity: 0;
 }
 
-.cards:nth-child(1) { animation-delay: 0.1s; }
-.cards:nth-child(2) { animation-delay: 0.2s; }
-.cards:nth-child(3) { animation-delay: 0.3s; }
-.cards:nth-child(4) { animation-delay: 0.4s; }
-.cards:nth-child(5) { animation-delay: 0.5s; }
+/* ================= RESPONSIVE DESIGN ================= */
+@media (max-width: 1400px) {
+  .background {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
 
+@media (max-width: 1024px) {
+  .background {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    padding: 1.5rem;
+  }
+  
+  .StateVariable {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  #center {
+    order: 3;
+    width: 100%;
+    padding: 0.5rem 0;
+  }
+  
+  .brand h1 {
+    font-size: 1.5rem;
+  }
+  
+  .background {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .cards, .SystemWallet-cards {
+    padding: 1.25rem;
+  }
+  
+  .footer-links {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .footer-links a {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .WeightPercentages,
+  .stakeAmounts,
+  .reputationPoints,
+  .aditionalStateVar,
+  .stakeCategorys {
+    flex-direction: column;
+  }
+  
+  .WeightPercentages input,
+  .stakeAmounts input,
+  .reputationPoints input,
+  .aditionalStateVar input,
+  .stakeCategorys input {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards h1 {
+    font-size: 1.5rem;
+  }
+  
+  .cards h2 {
+    font-size: 1.3rem;
+  }
+  
+  .cards h3 {
+    font-size: 1rem;
+  }
+  
+  input[type="number"], input[type="text"] {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  button, button[type="submit"], button[type="button"] {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .footer-content {
+    padding: 0 1rem;
+  }
+}
+
+/* ================= UTILITY CLASSES ================= */
+.flex-horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.flex-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.flex-grow {
+  flex: 1;
+}
+
+.min-width-300 {
+  min-width: 300px;
+}
+
+/* Card Layout Toggle Styles (Optional for dynamic switching) */
+.card-layout-horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.card-layout-vertical {
+  flex-direction: column;
+}
+
+/* ================= PRINT STYLES ================= */
+@media print {
+  .topbar,
+  .wallet-container,
+  button,
+  .site-footer {
+    display: none;
+  }
+  
+  .background {
+    display: block;
+    padding: 0;
+  }
+  
+  .cards {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}

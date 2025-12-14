@@ -47,7 +47,7 @@ html, body {
   justify-content: center;
   text-align: left;
   margin-left: 20px;
-}/*
+}
 
 .wallet-container {
   display: flex;
@@ -68,7 +68,7 @@ html, body {
   transform: translateY(-2px) scale(1.015);
   box-shadow: 0 0 28px -6px rgba(73,168,255,.35);
   border-radius: 500px;
-}*/
+}
 
 
 
@@ -206,7 +206,7 @@ body {
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  background: url("../components/street.gif") center/cover no-repeat fixed;
+  background: url("./components/street.png") center/cover no-repeat fixed;
   padding: 50px 20px;
 }
 

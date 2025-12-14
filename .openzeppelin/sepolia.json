@@ -355,6 +355,21 @@
       "address": "0x80e7F58aF8b9E99743a1a20cd0e706B9F6c3149d",
       "txHash": "0xa05f0042fb95ff2487ce984003634d7aae9b4103e1b93cdb9c9970c19972e1c6",
       "kind": "uups"
+    },
+    {
+      "address": "0x1024AB9a145991C2D43da640ef26E22A99fbF3F5",
+      "txHash": "0xc75f3974455caf466183cad4d46d8ae808a5ee2a596d24612ebba05be4c532a6",
+      "kind": "uups"
+    },
+    {
+      "address": "0x4409B52814ac6a1927A61F9045020eF0979eD5D5",
+      "txHash": "0xc06faa55ea950decdb56804d90cb9677dcebfcc286b72ed2a4683a63bc453001",
+      "kind": "uups"
+    },
+    {
+      "address": "0xEEB12f99f71F38b3f3fBE2Ce28ea6DDe368cf014",
+      "txHash": "0x151cb317ef99d705b61b6d3a96ee30250c15761800c47541f6c47e4a4d8a2117",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -3558,6 +3573,560 @@
               "label": "_paused",
               "type": "t_bool",
               "src": "@openzeppelin\\contracts-upgradeable\\utils\\PausableUpgradeable.sol:21",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "945aa8a959eec660b861f62da55d11e99760c825910f248a57314c0052ae1ae1": {
+      "address": "0xEF8697eC39141c6051570f40532286749B1F3538",
+      "txHash": "0x50a1d1e7f222a5678842bba9f691e64f3a120432612f199d98b2d1864f642ae8",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "accessControl",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IAccessControl)1682",
+            "contract": "AccesControl",
+            "src": "contracts\\Pipe\\AccesControlPipes.sol:25"
+          },
+          {
+            "label": "stateVar",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(stateVariable)6554",
+            "contract": "StateVarPipes",
+            "src": "contracts\\Pipe\\StateVarPipes.sol:10"
+          },
+          {
+            "label": "Users",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_address,t_struct(User)2157_storage)",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:138"
+          },
+          {
+            "label": "TaskSubmits",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_mapping(t_uint256,t_struct(TaskSubmit)2251_storage)",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:141"
+          },
+          {
+            "label": "withdrawable",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:144"
+          },
+          {
+            "label": "Tasks",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_struct(Task)2214_storage)",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:147"
+          },
+          {
+            "label": "joinRequests",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_array(t_struct(JoinRequest)2231_storage)dyn_storage)",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:150"
+          },
+          {
+            "label": "taskCounter",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:153"
+          },
+          {
+            "label": "feeCollected",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:156"
+          },
+          {
+            "label": "memberStakePercentReward",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_uint256",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:159"
+          },
+          {
+            "label": "systemWallet",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_address_payable",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:162"
+          },
+          {
+            "label": "___gap",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_array(t_uint256)40_storage",
+            "contract": "TrustlessTeamProtocol",
+            "src": "contracts\\User\\TrustlessTeamProtocol.sol:165"
+          }
+        ],
+        "types": {
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)7_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(PausableStorage)158_storage": {
+            "label": "struct PausableUpgradeable.PausableStorage",
+            "members": [
+              {
+                "label": "_paused",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ReentrancyGuardStorage)222_storage": {
+            "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
+            "members": [
+              {
+                "label": "_status",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_address_payable": {
+            "label": "address payable",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(JoinRequest)2231_storage)dyn_storage": {
+            "label": "struct TrustlessTeamProtocol.JoinRequest[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)40_storage": {
+            "label": "uint256[40]",
+            "numberOfBytes": "1280"
+          },
+          "t_contract(IAccessControl)1682": {
+            "label": "contract IAccessControl",
+            "numberOfBytes": "20"
+          },
+          "t_contract(stateVariable)6554": {
+            "label": "contract stateVariable",
+            "numberOfBytes": "20"
+          },
+          "t_enum(SubmitStatus)2132": {
+            "label": "enum TrustlessTeamProtocol.SubmitStatus",
+            "members": [
+              "NoneStatus",
+              "Pending",
+              "RevisionNeeded",
+              "Accepted"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(TaskStatus)2110": {
+            "label": "enum TrustlessTeamProtocol.TaskStatus",
+            "members": [
+              "NonExistent",
+              "Created",
+              "Active",
+              "OpenRegistration",
+              "InProgres",
+              "Completed",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(TaskValue)2118": {
+            "label": "enum TrustlessTeamProtocol.TaskValue",
+            "members": [
+              "Low",
+              "MidleLow",
+              "Midle",
+              "MidleHigh",
+              "High",
+              "UltraHigh"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(UserTask)2126": {
+            "label": "enum TrustlessTeamProtocol.UserTask",
+            "members": [
+              "None",
+              "Request",
+              "Accepted",
+              "Submitted",
+              "Revision",
+              "Cancelled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_struct(User)2157_storage)": {
+            "label": "mapping(address => struct TrustlessTeamProtocol.User)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(JoinRequest)2231_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct TrustlessTeamProtocol.JoinRequest[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Task)2214_storage)": {
+            "label": "mapping(uint256 => struct TrustlessTeamProtocol.Task)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(TaskSubmit)2251_storage)": {
+            "label": "mapping(uint256 => struct TrustlessTeamProtocol.TaskSubmit)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(JoinRequest)2231_storage": {
+            "label": "struct TrustlessTeamProtocol.JoinRequest",
+            "members": [
+              {
+                "label": "applicant",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stakeAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(UserTask)2126",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "isPending",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "2"
+              },
+              {
+                "label": "hasWithdrawn",
+                "type": "t_bool",
+                "offset": 2,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Task)2214_storage": {
+            "label": "struct TrustlessTeamProtocol.Task",
+            "members": [
+              {
+                "label": "taskId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(TaskStatus)2110",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "value",
+                "type": "t_enum(TaskValue)2118",
+                "offset": 1,
+                "slot": "1"
+              },
+              {
+                "label": "creator",
+                "type": "t_address",
+                "offset": 2,
+                "slot": "1"
+              },
+              {
+                "label": "member",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "githubURL",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "reward",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "deadlineHours",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "deadlineAt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "createdAt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "creatorStake",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "memberStake",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "10"
+              },
+              {
+                "label": "maxRevision",
+                "type": "t_uint8",
+                "offset": 0,
+                "slot": "11"
+              },
+              {
+                "label": "isMemberStakeLocked",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "11"
+              },
+              {
+                "label": "isCreatorStakeLocked",
+                "type": "t_bool",
+                "offset": 2,
+                "slot": "11"
+              },
+              {
+                "label": "isRewardClaimed",
+                "type": "t_bool",
+                "offset": 3,
+                "slot": "11"
+              },
+              {
+                "label": "exists",
+                "type": "t_bool",
+                "offset": 4,
+                "slot": "11"
+              }
+            ],
+            "numberOfBytes": "384"
+          },
+          "t_struct(TaskSubmit)2251_storage": {
+            "label": "struct TrustlessTeamProtocol.TaskSubmit",
+            "members": [
+              {
+                "label": "githubURL",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "sender",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "note",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(SubmitStatus)2132",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "revisionTime",
+                "type": "t_uint8",
+                "offset": 1,
+                "slot": "3"
+              },
+              {
+                "label": "newDeadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(User)2157_storage": {
+            "label": "struct TrustlessTeamProtocol.User",
+            "members": [
+              {
+                "label": "totalTasksCreated",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "totalTasksCompleted",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "totalTasksFailed",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "reputation",
+                "type": "t_uint128",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "age",
+                "type": "t_uint128",
+                "offset": 16,
+                "slot": "3"
+              },
+              {
+                "label": "isRegistered",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "GitProfile",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_uint128": {
+            "label": "uint128",
+            "numberOfBytes": "16"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Pausable": [
+            {
+              "contract": "PausableUpgradeable",
+              "label": "_paused",
+              "type": "t_bool",
+              "src": "@openzeppelin\\contracts-upgradeable\\utils\\PausableUpgradeable.sol:21",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin\\contracts-upgradeable\\utils\\ReentrancyGuardUpgradeable.sol:43",
               "offset": 0,
               "slot": "0"
             }

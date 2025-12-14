@@ -1,2 +1,0 @@
-export const PROVIDER = new JsonRpcProvider("ALCHEMY_API_KEY=https://eth-sepolia.g.alchemy.com/v2/cka4F66cHyvFHccHvsdTpjUni9t3NDYR");
-export const ALCHEMY_API_KEY = "ALCHEMY_API_KEY=https://eth-sepolia.g.alchemy.com/v2/cka4F66cHyvFHccHvsdTpjUni9t3NDYR";

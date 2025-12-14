@@ -1,115 +1,370 @@
-// ================= SAMPLE DATA =================
-// ganti dari backend / onchain
-const activeTasks = [
-  {
-    title: "Fix Dashboard UI",
-    desc: "Update top bar + mobile responsive.",
-    stake: 5,
-    deadline: 3,
-    authorRep: 70,
-    created: 17000
-  },
-  {
-    title: "Bridge Metamask",
-    desc: "Implement reconnect + disconnect.",
-    stake: 8,
-    deadline: 1,
-    authorRep: 50,
-    created: 18000
-  },
-];
+import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 
-const inactiveTasks = [
-  {
-    title: "Old React Refactor",
-    desc: "Convert class to hooks.",
-    stake: 2,
-    deadline: 10,
-    authorRep: 85,
-    created: 11000
+console.log("📦 register loaded");
+
+const ARTIFACT_PATH = "../artifact/TrustlessTeamProtocol.json";
+const CONTRACT_ADDRESS = "0x80e7F58aF8b9E99743a1a20cd0e706B9F6c3149d";
+
+// ==============================
+// LOAD ABI
+// ==============================
+async function loadABI(path) {
+  const res = await fetch(path);
+  return res.json();
+}
+
+// ==============================
+// CONTRACT
+// ==============================
+async function getContract(signer) {
+  const artifact = await loadABI(ARTIFACT_PATH);
+  return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
+}
+
+// ==============================
+// RENDER TASKS
+// ==============================
+async function searchCreatedTask() {
+  try {
+    const signer = await window.wallet.getSigner();
+    if (!signer) return;
+
+    const contract = await getContract(signer);
+
+    const container = document.getElementById("taskContainer");
+    const template = document.getElementById("taskCardTemplate");
+
+    // clear card lama
+    container.innerHTML = "";
+
+    const CreatedSelector = 1;
+    const taskCount = Number(await contract.taskCounter());
+
+for (let i = 0; i < taskCount; i++) {
+  const task = await contract.Tasks(i);
+
+  if (!task.exists) continue;
+  if (Number(task.status) !== CreatedSelector) continue;
+  if (task.creator == signer.address) continue;
+
+  const clone = template.content.cloneNode(true);
+  const card = clone.querySelector(".task-card");
+
+  // =========================
+  // FILL DATA - SESUAIKAN INDEX ARRAY DI SINI
+  // =========================
+  
+  // Task ID (index 0)
+  card.querySelector(".taskId").textContent = task[0].toString();
+  
+  // Status (index 1)
+  const statusValue = Number(task[1]);
+  card.querySelector(".status").textContent = getStatusText(statusValue);
+  
+  // Value Category (index 2)
+  const valueValue = Number(task[2]);
+  card.querySelector(".value").textContent = getValueText(valueValue);
+  
+  // Creator (index 3)
+  const creatorAddress = task[3];
+  card.querySelector(".creator").textContent = shortenAddress(creatorAddress);
+  
+  // Member (index 4)
+  const memberAddress = task[4];
+  card.querySelector(".member").textContent = memberAddress === ethers.ZeroAddress ? 
+    "Not Assigned" : shortenAddress(memberAddress);
+  
+  // Title (index 5)
+  card.querySelector(".title").textContent = task[5];
+  
+  // GitHub URL (index 6)
+  const githubURL = task[6];
+  const githubLink = card.querySelector(".githubURL");
+  githubLink.href = githubURL;
+  githubLink.textContent = githubURL.length > 30 ? 
+    githubURL.substring(0, 30) + "..." : githubURL;
+  
+  // Reward (index 7)
+  const reward = ethers.formatEther(task[7]);
+  card.querySelector(".reward").textContent = reward;
+  
+  // Deadline Hours (index 8)
+  card.querySelector(".deadlineHours").textContent = task[8].toString();
+  
+  // Deadline At (index 9)
+  const deadlineAt = Number(task[9]);
+  card.querySelector(".deadlineAt").textContent = new Date(deadlineAt * 1000).toLocaleString();
+  
+  // Created At (index 10)
+  const createdAt = Number(task[10]);
+  card.querySelector(".createdAt").textContent = new Date(createdAt * 1000).toLocaleString();
+  
+  // Creator Stake (index 11)
+  const creatorStake = ethers.formatEther(task[11]);
+  card.querySelector(".creatorStake").textContent = creatorStake;
+  
+  // Member Stake (index 12)
+  const memberStake = ethers.formatEther(task[12]);
+  card.querySelector(".memberStake").textContent = memberStake;
+  
+  // Max Revision (index 13)
+  card.querySelector(".maxRevision").textContent = task[13].toString();
+  
+  // isMemberStakeLocked (index 14) - boolean
+  card.querySelector(".isMemberStakeLocked").textContent = task[14] ? "Yes" : "No";
+  
+  // isCreatorStakeLocked (index 15) - boolean
+  card.querySelector(".isCreatorStakeLocked").textContent = task[15] ? "Yes" : "No";
+  
+  // isRewardClaimed (index 16) - boolean
+  card.querySelector(".isRewardClaimed").textContent = task[16] ? "Yes" : "No";
+  
+  // exists (index 17) - boolean
+  card.querySelector(".exists").textContent = task[17] ? "Yes" : "No";
+
+
+
+  // Update badges
+  card.querySelector(".task-status.badge").textContent = getStatusText(statusValue);
+  card.querySelector(".task-value.badge").textContent = getValueText(valueValue);
+
+  // =========================
+  // BUTTON ACTIONS - SESUAIKAN DENGAN FUNGSI KONTRAK
+  // =========================
+  
+  // Button: ActivateTask
+  card.querySelector(".ActivateTask").onclick = () => {
+    console.log("Activate Task:", task[0]);
+    // Panggil fungsi kontrak: contract.activateTask(task[0]);
+  };
+
+  // Button: OpenRegisteration (typo: seharusnya OpenRegistration)
+  card.querySelector(".OpenRegisteration").onclick = () => {
+    console.log("Open Registration for Task:", task[0]);
+    // Panggil fungsi kontrak: contract.openRegistration(task[0]);
+  };
+
+  // Button: CloseRegisteration (typo: seharusnya CloseRegistration)
+  card.querySelector(".CloseRegisteration").onclick = () => {
+    console.log("Close Registration for Task:", task[0]);
+    // Panggil fungsi kontrak: contract.closeRegistration(task[0]);
+  };
+
+  // Button: CancelTask
+  card.querySelector(".CancelTask").onclick = () => {
+    console.log("Cancel Task:", task[0]);
+    // Panggil fungsi kontrak: contract.cancelTask(task[0]);
+  };
+
+  // Button: RequestRevision
+  card.querySelector(".RequestRevision").onclick = () => {
+    console.log("Request Revision for Task:", task[0]);
+    // Panggil fungsi kontrak: contract.requestRevision(task[0]);
+  };
+
+  // Button: ApproveTask
+  card.querySelector(".ApproveTask").onclick = () => {
+    console.log("Approve Task:", task[0]);
+    // Panggil fungsi kontrak: contract.approveTask(task[0]);
+  };
+}
+document.head.appendChild(style);
+  } catch (err) {
+    console.error(err);
+    alert("Team Chain: Failed to load task data.");
   }
-];
+}
 
-function render(list, dom, isActive = false) {
-  dom.innerHTML = "";
-  list.forEach(task => {
-    const card = document.createElement("div");
-    card.className = "task-card";
-    card.innerHTML = `
-      <h2>${task.title}</h2>
-      <p class="meta">
-        Stake: ${task.stake} • Deadline: ${task.deadline}h • Reputation: ${task.authorRep}
-      </p>
-      <p>${task.desc}</p>
-      ${isActive ? `<div class="badge">Active</div>` : ""}
-    `;
-    card.onclick = () => alert("Open Task: " + task.title);
-    dom.appendChild(card);
+
+
+
+
+
+
+
+
+
+
+async function searchJoinedTask() {
+  try {
+    const signer = await window.wallet.getSigner();
+    if (!signer) return;
+
+    const contract = await getContract(signer);
+
+    const container = document.getElementById("taskContainer");
+    const template = document.getElementById("taskCardTemplate");
+
+    // clear card lama
+    container.innerHTML = "";
+
+    const CreatedSelector = 1;
+    const taskCount = Number(await contract.taskCounter());
+
+for (let i = 0; i < taskCount; i++) {
+  const task = await contract.Tasks(i);
+
+  if (!task.exists) continue;
+  if (Number(task.status) !== CreatedSelector) continue;
+  if (task.creator == signer.address) continue;
+
+  const clone = template.content.cloneNode(true);
+  const card = clone.querySelector(".task-card");
+
+  // =========================
+  // FILL DATA - SESUAIKAN INDEX ARRAY DI SINI
+  // =========================
+  
+  // Task ID (index 0)
+  card.querySelector(".taskId").textContent = task[0].toString();
+  
+  // Status (index 1)
+  const statusValue = Number(task[1]);
+  card.querySelector(".status").textContent = getStatusText(statusValue);
+  
+  // Creator (index 3)
+  const creatorAddress = task[3];
+  card.querySelector(".creator").textContent = shortenAddress(creatorAddress);
+  
+  // Title (index 5)
+  card.querySelector(".title").textContent = task[5];
+  
+  // GitHub URL (index 6)
+  const githubURL = task[6];
+  const githubLink = card.querySelector(".githubURL");
+  githubLink.href = githubURL;
+  githubLink.textContent = githubURL.length > 30 ? 
+    githubURL.substring(0, 30) + "..." : githubURL;
+  
+  // Reward (index 7)
+  const reward = ethers.formatEther(task[7]);
+  card.querySelector(".reward").textContent = reward;
+  
+  // Deadline At (index 9)
+  const deadlineAt = Number(task[9]);
+  card.querySelector(".deadlineTime").textContent = new Date(deadlineAt * 1000).toLocaleString();
+  
+  // Max Revision (index 13)
+  card.querySelector(".maxRevision").textContent = task[13].toString();
+  
+  // isMemberStakeLocked (index 14) - boolean
+  card.querySelector(".isMemberStakeLocked").textContent = task[14] ? "Yes" : "No";
+  
+  // isCreatorStakeLocked (index 15) - boolean
+  card.querySelector(".isCreatorStakeLocked").textContent = task[15] ? "Yes" : "No";
+  
+  // isRewardClaimed (index 16) - boolean
+  card.querySelector(".isRewardClaimed").textContent = task[16] ? "Yes" : "No";
+
+
+  // Update badges
+  card.querySelector(".task-status.badge").textContent = getStatusText(statusValue);
+  card.querySelector(".task-value.badge").textContent = getValueText(valueValue);
+
+  // =========================
+  // BUTTON ACTIONS - SESUAIKAN DENGAN FUNGSI KONTRAK
+  // =========================
+  
+  // Button: ActivateTask
+  card.querySelector(".SubmitTask").onclick = () => {
+    console.log("Activate Task:", task[0]);
+    // Panggil fungsi kontrak: contract.activateTask(task[0]);
+  };
+
+  // Button: OpenRegisteration (typo: seharusnya OpenRegistration)
+  card.querySelector(".ReSubmitTask").onclick = () => {
+    console.log("Open Registration for Task:", task[0]);
+    // Panggil fungsi kontrak: contract.openRegistration(task[0]);
+  };
+
+  // Button: CloseRegisteration (typo: seharusnya CloseRegistration)
+  card.querySelector(".CancelTask").onclick = () => {
+    console.log("Close Registration for Task:", task[0]);
+    // Panggil fungsi kontrak: contract.closeRegistration(task[0]);
+  };
+}
+document.head.appendChild(style);
+  } catch (err) {
+    console.error(err);
+    alert("Team Chain: Failed to load task data.");
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ==============================
+// WALLET EVENTS
+// ==============================
+if (window.ethereum) {
+  window.ethereum.on("accountsChanged", (accounts) => {
+    if (accounts.length > 0) searchOpenTask();
   });
+
+  window.ethereum.on("chainChanged", () => searchOpenTask());
 }
 
+window.addEventListener("DOMContentLoaded", async () => {
+  if (!window.ethereum) return;
 
-// ================= SORT LOGIC =================
-function sortTasks(tasks, rule) {
-  switch (rule) {
-    case "newest":
-      return [...tasks].sort((a, b) => b.created - a.created);
-    case "oldest":
-      return [...tasks].sort((a, b) => a.created - b.created);
+  const accounts = await window.ethereum.request({
+    method: "eth_accounts",
+  });
 
-    case "stakeHigh":
-      return [...tasks].sort((a, b) => b.stake - a.stake);
-    case "stakeLow":
-      return [...tasks].sort((a, b) => a.stake - b.stake);
-
-    case "deadlineSoon":
-      return [...tasks].sort((a, b) => a.deadline - b.deadline);
-    case "deadlineLate":
-      return [...tasks].sort((a, b) => b.deadline - a.deadline);
-
-    case "reputationHigh":
-      return [...tasks].sort((a, b) => b.authorRep - a.authorRep);
-    case "reputationLow":
-      return [...tasks].sort((a, b) => a.authorRep - b.authorRep);
-
-    default:
-      return tasks;
-  }
-}
-
-
-// ================= SEARCH FILTER =================
-function searchFilter(list, term) {
-  return list.filter(t =>
-    t.title.toLowerCase().includes(term.toLowerCase())
-  );
-}
-
-
-// ================= INIT =================
-const activeDOM = document.getElementById("activeList");
-const inactiveDOM = document.getElementById("inactiveList");
-
-render(activeTasks, activeDOM, true);
-render(inactiveTasks, inactiveDOM);
-
-// ================= EVENT =================
-document.getElementById("filterActive").onchange = (e) => {
-  const sorted = sortTasks(activeTasks, e.target.value);
-  render(sorted, activeDOM, true);
-};
-
-document.getElementById("filterInactive").onchange = (e) => {
-  const sorted = sortTasks(inactiveTasks, e.target.value);
-  render(sorted, inactiveDOM);
-};
-
-document.getElementById("searchActive").onkeyup = (e) => {
-  const res = searchFilter(activeTasks, e.target.value);
-  render(res, activeDOM, true);
-};
-
-document.getElementById("searchInactive").onkeyup = (e) => {
-  const res = searchFilter(inactiveTasks, e.target.value);
-  render(res, inactiveDOM);
-};
+  if (accounts.length > 0) searchOpenTask();
+});

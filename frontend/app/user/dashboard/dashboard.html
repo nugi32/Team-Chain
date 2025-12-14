@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../layouts/css/global.css" />
-    <link rel="stylesheet" href="./dashboard.css" />
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
-    <script type="module" src="../layouts/js/connectwallet.js " ></script>
-    <script type="module" src="../layouts/js/sidebar.js"></script>
-    <base href="../layouts/">
+    <link rel="stylesheet" href="../global/global.css" />
+   <link rel="stylesheet" href="./dashboard.css" />
+   <!--<script type="module" src="./dashboard.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js"></script>
+    <script type="module" src="../global/connectwallet.js " ></script>
+    <script type="module" src="../global/sidebar.js"></script>-->
+    <script type="module" src="./test.js"></script>
 </head>
 <body>
-    <div data-include="../layouts/header.html"></div>
+    <div data-include="../global/header.html"></div>
 
 <!-- ini buat menampilkan data pribadi msg.sender, gauge harus active-->
 
@@ -26,10 +29,13 @@
         <h2>My Profile</h2>
       </div>
       <div class="profile-info">
-        <p><span>Name:</span> John Doe</p>
-        <p><span>GitHub:</span> johndev</p>
-        <p><span>Age:</span> 21</p>
+        <p><span>Name:</span> <span id="name">-</span> </p>
+        <p><span>GitHub:</span> <span id="GitProfile">-</span></p>
+        <p><span>Age:</span> <span id="Age">-</span></p>
+        <p><span>Withdrawable:</span> <span id="amount">-</span> <span>ETH</span></p>
       </div>
+      <button class="btn-card" id="withdrawToMe">Withdraw To This Address</button>
+      <button class="btn-card" id="UnRegister">UnRegister</button>
     </div>
 
 
@@ -40,38 +46,21 @@
         <h2>Task Progress</h2>
       </div>
 
-      <div class="gauge-box"> <!-- Gauge is displaying reputation points -->
-        <svg class="gauge-svg" viewBox="0 0 100 60">
-          <defs>
-            <linearGradient id="gStat" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#7c5cff"/>
-              <stop offset="100%" stop-color="#ffffff"/>
-            </linearGradient>
-          </defs>
-          <path class="g-track" d="M10 60 A40 40 0 0 1 90 60"/>
-          <path class="g-progress" id="g-stat" d="M10 60 A40 40 0 0 1 90 60"/>
-        </svg>
-
-        <!-- JARUM -->
-        <div class="needle" id="needle-stat"></div>
-        <span class="g-value" id="statValue">1250</span>
-      </div>
-
       <ul>
-        <li>Completed: <span>28</span></li>
-        <li>Failed: <span>3</span></li>
-        <li>Reputation: <span>1250</span></li>
+        <li>Created: <span id="created">-</span></li>
+        <li>Completed: <span id="completed">-</span></li>
+        <li>Failed: <span id="Failed">-</span></li>
+        <li>Reputation: <span id="reputation">-</span></li>
       </ul>
     </div>
 
 
     <!-- ACTIVE TASK -->
     <div class="card link-card open-panel" id="activePanel">
-        <a href="./tasks/active.html">
       <div class="card-header">
         <div class="indicator blue"></div>
         <h2>Active Tasks</h2>
-      </a>
+      <a href="../task/task.html" class="btn-card">View</a>
       </div>
 
       <div class="gauge-box">
@@ -87,19 +76,34 @@
         </svg>
 
         <div class="needle" id="needle-active"></div>
-        <span class="g-value" id="activeValue">10</span>
+        <span class="g-value" id="activeValue">-</span>
       </div>
     </div>
 
 
-    <!-- INACTIVE REDIRECT -->
-    <div class="card link-card">
+<!-- inactive-->
+        <div class="card link-card open-panel" id="activePanel">
       <div class="card-header">
         <div class="indicator red"></div>
-        <h2>Inactive Tasks</h2>
+        <h2>Not Activated Tasks</h2>
+      <a href="../task/task.html" class="btn-card">View</a>
       </div>
-      <p>See closed/idle tasks</p>
-      <a href="./tasks/inactive.html" class="btn-card">View</a>
+
+      <div class="gauge-box">
+        <svg class="gauge-svg" viewBox="0 0 100 60">
+          <defs>
+            <linearGradient id="gActive" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#35d1ff"/>
+              <stop offset="100%" stop-color="#ffffff"/>
+            </linearGradient>
+          </defs>
+          <path class="g-track" d="M10 60 A40 40 0 0 1 90 60"/>
+          <path class="g-progress" id="g-active" d="M10 60 A40 40 0 0 1 90 60"/>
+        </svg>
+
+        <div class="needle" id="needle-active"></div>
+        <span class="g-value" id="NotActivated">-</span>
+      </div>
     </div>
 
   </div>
@@ -107,15 +111,7 @@
 </div>
 
 
-
-
-
-
-
-
-
-
-    <div data-include="../layouts/footer.html"></div>
+    <div data-include="../global/footer.html"></div>
 
     <script>
 function updateGauge(gaugeId, needleId, percent){

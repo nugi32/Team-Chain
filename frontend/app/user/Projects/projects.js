@@ -1,104 +1,116 @@
-// ===== SAMPLE DATA =====
-const tasks = [
-  {
-    title: "Fix Smart Contract UUPS",
-    stake: 300,
-    deadline: "2025-02-01",
-    author: "Nugi",
-    reputation: 4.8,
-    status: "progress"
-  },
-  {
-    title: "Dashboard UI revamp",
-    stake: 150,
-    deadline: "2025-01-12",
-    author: "Ray",
-    reputation: 4.2,
-    status: "pending"
-  },
-  {
-    title: "Team Token Airdrop",
-    stake: 500,
-    deadline: "2025-01-30",
-    author: "Max",
-    reputation: 4.9,
-    status: "done"
-  }
-];
+import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 
-const grid = document.getElementById("projectsGrid");
-const searchInput = document.getElementById("searchInput");
-const filterSelect = document.getElementById("filterSelect");
+console.log("📦 register loaded");
 
-// ======== Render Cards ========
-function renderTasks(list){
-  grid.innerHTML = "";
-  list.forEach(t => {
-    const card = document.createElement("div");
-    card.className = "task-card";
+const ARTIFACT_PATH = "../artifact/TrustlessTeamProtocol.json";
+const CONTRACT_ADDRESS = "0x80e7F58aF8b9E99743a1a20cd0e706B9F6c3149d";
 
-    card.innerHTML = `
-      <h3>${t.title}</h3>
-      <ul class="task-meta">
-        <li>Stake: <b>${t.stake} USDT</b></li>
-        <li>Deadline: ${t.deadline}</li>
-        <li>Author: ${t.author} (${t.reputation})</li>
-        <li>Status: 
-          <span class="status-dot ${t.status}"></span>
-          ${t.status}
-        </li>
-      </ul>
-    `;
-
-    card.onclick = () => alert("Open Task → " + t.title);
-    grid.appendChild(card);
-  });
+// ==============================
+// LOAD ABI
+// ==============================
+async function loadABI(path) {
+  const res = await fetch(path);
+  return res.json();
 }
 
-// >>> render awal
-renderTasks(tasks);
+// ==============================
+// CONTRACT
+// ==============================
+async function getContract(signer) {
+  const artifact = await loadABI(ARTIFACT_PATH);
+  return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
+}
 
-// ===== SEARCH =====
-searchInput.addEventListener("input", e => {
-  const v = e.target.value.toLowerCase();
-  const filtered = tasks.filter(t => t.title.toLowerCase().includes(v));
-  renderTasks(filtered);
-});
+// ==============================
+// RENDER TASKS
+// ==============================
+async function searchOpenTask() {
+  try {
+    const signer = await window.wallet.getSigner();
+    if (!signer) return;
 
-// ===== FILTER =====
-filterSelect.addEventListener("change", () => {
-  let list = [...tasks];
-  const f = filterSelect.value;
+    const contract = await getContract(signer);
 
-  switch(f){
-    case "newest":
-      list.sort((a,b)=> new Date(b.deadline) - new Date(a.deadline));
-      break;
-    case "oldest":
-      list.sort((a,b)=> new Date(a.deadline) - new Date(b.deadline));
-      break;
+    const container = document.getElementById("taskContainer");
+    const template = document.getElementById("taskCardTemplate");
 
-    case "stakeHigh":
-      list.sort((a,b)=> b.stake - a.stake);
-      break;
-    case "stakeLow":
-      list.sort((a,b)=> a.stake - b.stake);
-      break;
+    // clear card lama
+    container.innerHTML = "";
 
-    case "deadlineSoon":
-      list.sort((a,b)=> new Date(a.deadline) - new Date(b.deadline));
-      break;
-    case "deadlineLate":
-      list.sort((a,b)=> new Date(b.deadline) - new Date(a.deadline));
-      break;
+    const OPEN_REGISTRATION = 3;
+    const taskCount = Number(await contract.taskCounter());
 
-    case "reputationHigh":
-      list.sort((a,b)=> b.reputation - a.reputation);
-      break;
-    case "reputationLow":
-      list.sort((a,b)=> a.reputation - b.reputation);
-      break;
+    for (let i = 0; i < taskCount; i++) {
+      const task = await contract.Tasks(i);
+
+      if (!task.exists) continue;
+      if (Number(task.status) !== OPEN_REGISTRATION) continue;
+
+      const creator = await contract.getMyData(task[3]);
+      const memberRequiredStake = await contract.getMemberRequiredStake(task[0]);
+
+      const clone = template.content.cloneNode(true);
+      const card = clone.querySelector(".task-card");
+
+      // =========================
+      // FILL DATA
+      // =========================
+      card.querySelector(".title").textContent = task[5];
+      card.querySelector(".taskId").textContent = task[0];
+
+      card.querySelector(".reward").textContent =
+        ethers.formatEther(task[7]);
+
+      card.querySelector(".CreatorAddress").textContent = task[3];
+
+      card.querySelector(".deadlineTime").textContent =
+        new Date(Number(task[8]) * 1000).toLocaleString();
+
+      card.querySelector(".revison").textContent = task[13];
+
+      card.querySelector(".memberStake").textContent =
+        ethers.formatEther(memberRequiredStake);
+
+      card.querySelector(".creatorReputaution").textContent =
+        creator[3].toString();
+
+      card.querySelector(".TaskGithubURl").textContent = task[6];
+
+      // =========================
+      // BUTTON ACTION
+      // =========================
+      card.querySelector(".joinBTN").onclick = () => {
+        console.log("Join task:", task[0]);
+      };
+
+      // =========================
+      // APPEND TO DOM
+      // =========================
+      container.appendChild(card);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Team Chain: Failed to load task data.");
   }
+}
 
-  renderTasks(list);
+// ==============================
+// WALLET EVENTS
+// ==============================
+if (window.ethereum) {
+  window.ethereum.on("accountsChanged", (accounts) => {
+    if (accounts.length > 0) searchOpenTask();
+  });
+
+  window.ethereum.on("chainChanged", () => searchOpenTask());
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  if (!window.ethereum) return;
+
+  const accounts = await window.ethereum.request({
+    method: "eth_accounts",
+  });
+
+  if (accounts.length > 0) searchOpenTask();
 });
