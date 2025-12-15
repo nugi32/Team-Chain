@@ -283,12 +283,15 @@
 </template>
    </div>
 
+
+
+
   <!-- ================= CREATE ================= --> <!-- creatte task tambahkan buat up pict juga-->
 
   <div class="create-task section">
   <h1 class="page-title">Create Task</h1>
 
-  <form class="task-form">
+  <form class="taskForm">
 
     <input type="text" name="title" placeholder="Task Title" required>
 
@@ -298,15 +301,15 @@
 
     <input type="number" name="maxRevision" placeholder="Maximum Revision" required>
 
-    <div class="stake-row">
-      <input type="number" name="stake" placeholder="Stake Value" required>
-      <select id="stakeUnit">
+    <div class="RewardRow">
+      <input type="number" name="reward" placeholder="Reward Value" required>
+      <select id="rewardUnit">
         <option value="wei">Wei</option>
         <option value="eth">Ether</option>
       </select>
     </div>
 
-    <button type="submit" class="btn-submit">Create Task</button>
+    <button type="submit">Create Task</button>
   </form>
 </div>
 

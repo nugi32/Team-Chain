@@ -297,74 +297,176 @@ document.head.appendChild(style);
 
 
 
+document.querySelector(".taskForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
+  try {
 
+    const signer = await window.wallet.getSigner();
+      
+      if (!signer) {
+        alert("No signer available. Please connect wallet.");
+        return;
+      }
 
+    const Title = e.target.title.value.trim();
+    const GithubUrl = e.target.github.value.trim();
+    const Deadline = Number(e.target.deadlineHours.value);
+    const MaxRevision = Number(e.target.maxRevision.value);
+    const rewardInput  = e.target.reward.value.trim();
 
+    const rewardUnit = document.getElementById("rewardUnit").value;
 
+    let rewardWei;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ==============================
-// WALLET EVENTS
-// ==============================
-if (window.ethereum) {
-  window.ethereum.on("accountsChanged", (accounts) => {
-    if (accounts.length > 0) searchOpenTask();
-  });
-
-  window.ethereum.on("chainChanged", () => searchOpenTask());
+if (isNaN(rewardInput) || Number(rewardInput) <= 0) {
+  alert("Invalid reward amount");
+  return;
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
-  if (!window.ethereum) return;
+if (rewardUnit === "eth") {
+  // ETH → Wei
+  rewardWei = ethers.parseEther(rewardInput);
+} else {
+  // Wei (pastikan integer)
+  rewardWei = BigInt(rewardInput);
+}
 
-  const accounts = await window.ethereum.request({
-    method: "eth_accounts",
-  });
+console.log("Reward In Wei Is:", rewardWei);
 
-  if (accounts.length > 0) searchOpenTask();
+try {
+  const url = new URL(GithubUrl);
+
+  if (url.hostname !== "github.com") {
+    throw new Error("❌ Team Chain: Not Github URL !");
+  }
+
+  const pathParts = url.pathname.split("/").filter(Boolean);
+
+  if (pathParts.length < 1) {
+    throw new Error("❌ Team Chain: Username Not Found !");
+  }
+
+  username = pathParts[0];
+} catch (e) {
+  alert("❌ Team Chain: Github URL Is Invalid !");
+  return;
+}
+
+
+
+    const addr = await signer.getAddress();
+    const contract = await getContract(signer);
+    const tx = await contract.createTask(Title, GithubUrl, Deadline, MaxRevision, addr, {value: rewardWei});
+    const receipt = await tx.wait();
+
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "TaskCreated") {
+          console.log("📌 EVENT Task Created !");
+          alert(`✔ Team Chain: Task Created Succesfuly !`);
+        }
+      } catch {}
+    }
+
+  } catch (err) {
+    const errorName =
+      decodeErrorSelector(err) ||
+      err?.data?.errorName ||
+      err?.errorName ||
+      err?.info?.errorName ||
+      err?.reason ||
+      err?.shortMessage?.replace("execution reverted: ", "") ||
+      null;
+
+    console.log("FINAL DETECTED errorName:", errorName);
+
+    if (errorName && errors_messages[errorName]) {
+      alert(errors_messages[errorName]);
+      return;
+    }
+
+    alert("Team Chain: An error occurred while processing.");
+  }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.getElementById("reload")?.addEventListener("click", async () => {
+  try {
+    loadData();
+    searchOpenTask();
+    SearchNotActivated();
+    console.log("tirggered");
+  } catch(e) {
+    console.error(e);
+  }
+})
+
+
+
+let lastAddress = null;
+
+const walletWatcher = setInterval(() => {
+  const addr = window.wallet?.currentAddress;
+
+  if (addr && addr !== lastAddress) {
+    lastAddress = addr;
+
+    // 🔥 Trigger function
+    onWalletConnected(addr);
+        loadData();
+    searchOpenTask();
+    SearchNotActivated();
+
+    // Optional: stop watcher jika cuma mau sekali
+    clearInterval(walletWatcher);
+  }
+}, 300);
+
+async function waitSignerAndRun() {
+  let signer = null;
+
+  while (!signer) {
+    signer = await window.wallet.getSigner();
+    if (!signer) {
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
+
+  await SearchNotActivated();
+  await loadData();
+  await searchOpenTask();
+  await SearchNotActivated();
+}
+
+
+function onWalletConnected(address) {
+  console.log("Wallet connected:", address);
+  waitSignerAndRun();
+}

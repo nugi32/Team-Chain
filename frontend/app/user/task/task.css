@@ -156,15 +156,15 @@ body {
 }
 
 /* FORM */
-.task-form {
+.taskForm {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
 /* INPUT STYLE */
-.task-form input,
-.task-form select {
+.taskForm input,
+.taskForm select {
   width: 100%;
   padding: 12px 14px;
   font-size: 15px;
@@ -177,28 +177,28 @@ body {
 }
 
 /* Focus glow */
-.task-form input:focus,
-.task-form select:focus {
+.taskForm input:focus,
+.taskForm select:focus {
   border-color: #7c5cff;
   background: rgba(255,255,255,0.14);
 }
 
 /* STAKE ROW */
-.stake-row {
+.RewardRow {
   display: flex;
   gap: 10px;
   align-items: center;
 }
 
-.stake-row input {
+.RewardRow input {
   flex: 2;
 }
 
-.stake-row select {
+.RewardRow select {
   flex: 1;
 }
 
-#stakeUnit option {
+#rewardUnit option {
   background-color: #272727;       /* background saat dropdown dibuka */
   color: #fff;
 }
@@ -224,7 +224,7 @@ body {
 
 /* === MOBILE ADAPTATION === */
 @media(max-width:720px){
-  .stake-row {
+  .RewardRow {
     flex-direction: column;
   }
 }
