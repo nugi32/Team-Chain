@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../global/global.css" />
    <link rel="stylesheet" href="./dashboard.css" />
-   <!--<script type="module" src="./dashboard.js"></script>
+<script type="module" src="./dashboard.js"></script>
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js"></script>
     <script type="module" src="../global/connectwallet.js " ></script>
-    <script type="module" src="../global/sidebar.js"></script>-->
+    <script type="module" src="../global/sidebar.js"></script>
     <script type="module" src="./test.js"></script>
 </head>
 <body>
@@ -29,13 +29,14 @@
         <h2>My Profile</h2>
       </div>
       <div class="profile-info">
+        <button class="btn-caard" id="UnRegister">UnRegister</button>
         <p><span>Name:</span> <span id="name">-</span> </p>
-        <p><span>GitHub:</span> <span id="GitProfile">-</span></p>
-        <p><span>Age:</span> <span id="Age">-</span></p>
-        <p><span>Withdrawable:</span> <span id="amount">-</span> <span>ETH</span></p>
+        <p><span>GitHub:</span> <span id="github">-</span></p>
+        <p><span>Age:</span> <span id="age">-</span></p>
+        <p><span>Withdrawable:</span> <span id="withdrawable">-</span> <span>ETH</span></p>
       </div>
       <button class="btn-card" id="withdrawToMe">Withdraw To This Address</button>
-      <button class="btn-card" id="UnRegister">UnRegister</button>
+      <button id="reload">Reload Data</button>
     </div>
 
 
@@ -49,7 +50,7 @@
       <ul>
         <li>Created: <span id="created">-</span></li>
         <li>Completed: <span id="completed">-</span></li>
-        <li>Failed: <span id="Failed">-</span></li>
+        <li>Failed: <span id="failed">-</span></li>
         <li>Reputation: <span id="reputation">-</span></li>
       </ul>
     </div>

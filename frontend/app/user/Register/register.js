@@ -151,10 +151,6 @@ try {
   }
 });
 
-
-
-//done
-
 document.getElementById("IsRegistered")?.addEventListener("click", async () => {
     try {
 
@@ -194,4 +190,4 @@ document.getElementById("IsRegistered")?.addEventListener("click", async () => {
 
     alert("Team Chain: An error occurred while get status.");
   }
-})
+});
