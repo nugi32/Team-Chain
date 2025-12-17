@@ -1,4 +1,5 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+import {CONTRACT_ADDRESS} from "../global/AddressConfig.js";
 
 console.log("📦 register loaded");
 
@@ -11,7 +12,6 @@ async function loadABI(path) {
 }
 
 const ARTIFACT_PATH = "../artifact/TrustlessTeamProtocol.json";
-const CONTRACT_ADDRESS = "0xEEB12f99f71F38b3f3fBE2Ce28ea6DDe368cf014";
 
 // ==============================
 // 3. CONTRACT INSTANCE

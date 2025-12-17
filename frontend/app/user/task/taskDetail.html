@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../global/global.css" />
+    <link rel="stylesheet" href="./task.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js"></script>
+        <script type="module" src="../global/connectwallet.js " ></script>
+    <script type="module" src="../global/sidebar.js"></script>
+    <script type="module" src="./taskDetail.js"></script>
+</head>
+<body>
+    <div data-include="../global/header.html"></div>
+
+
+
+
+
+
+
+<div class="background">
+
+  <div class="task-card">
+    <div class="card-header">
+      <h2><span class="title"></span></h2>
+    </div>
+
+    <div class="task-info">
+      <p><span>Task ID:</span> <span class="taskId">-</span></p>
+       <p><span>Point:</span> <span class="Points">-</span></p>
+      <p><span>Status:</span> <span class="status">-</span></p>
+      <p><span>Value Category:</span> <span class="value">-</span></p>
+      <p><span>Creator:</span> <span class="creator">-</span></p>
+      <p><span>Assigned Member:</span> <span class="member">-</span></p>
+      <p><span>Reward:</span> <span class="reward">-</span> <span>ETH</span></p>
+      <p><span>Deadline Hours:</span> <span class="deadlineHours">-</span> <span>hours</span></p>
+      <p><span>Deadline At:</span> <span class="deadlineAt">-</span></p>
+      <p><span>Created At:</span> <span class="createdAt">-</span></p>
+      <p><span>Creator Stake:</span> <span class="creatorStake">-</span> <span>ETH</span></p>
+      <p><span>Member Stake:</span> <span class="memberStake">-</span> <span>ETH</span></p>
+      <p><span>Max Revisions:</span> <span class="maxRevision">-</span></p>
+      <p><span>GitHub URL:</span> <a href="#" target="_blank" class="githubURL">-</a></p>
+    </div>
+
+    <div class="stake-status">
+      <p><span>Member Stake Locked:</span> <span class="isMemberStakeLocked">-</span></p>
+      <p><span>Creator Stake Locked:</span> <span class="isCreatorStakeLocked">-</span></p>
+      <p><span>Reward Claimed:</span> <span class="isRewardClaimed">-</span></p>
+      <p><span>Task Exists:</span> <span class="exists">-</span></p>
+    </div>
+
+    <div class="task-actions">
+      <button class="ActivateTask" id="activate">Activate Task</button>
+      <button class="DeleteTask">Delete Task</button>
+      <button class="OpenRegisteration">Open Registeration</button>
+      <button class="CloseRegisteration">Close Registeration</button>
+      <button class="CancelTask">Cancel Task By Me</button>
+
+      <button class="AcceptJoin">Accept Member</button>
+      <button class="ApproveTask">Approve Task</button>
+      <button class="RequestRevision">Request Revision</button>
+
+      <button class="submitTask">submit Task</button>
+      <button class="ResubmitTask">Re-submit Task</button>
+      <button class="Join">Join</button>
+      <button class="WithdrawJoin">Withdraw Join Request</button>
+    </div>
+
+
+    <div class="overlayInfo" id="OverlayInfo"></div>
+
+    <template id="acceptMember">
+  <div class="task-card">
+    <div class="card-header">
+      <h2><span class="title"></span></h2>
+    </div>
+
+    <div class="task-info">
+      <p><span>Member ID:</span> <span class="taskId">-</span></p>
+      <p><span>Point:</span> <span class="Points">-</span></p>
+    </div>
+
+    <div class="card-button">
+      <button class="Accept">Accept</button>
+      <button class="Reject">Reject</button>
+    </div>
+
+  </div>
+</template>
+
+    <template id="acceptTask">
+  <div class="task-card">
+    <div class="card-header">
+      <h2><span class="title"></span></h2>
+    </div>
+
+    <div class="task-info">
+      <p><span>Member ID:</span> <span class="taskId">-</span></p>
+      <p><span>Note:</span> <span class="Note">-</span></p>
+    </div>
+
+    <div class="card-button">
+      <button class="Accept">Accept</button>
+    </div>
+
+    <div class="request-revison">
+    <form class="Revision">
+    <input type="text" name="note" placeholder="Note Provided" required>
+    <input type="number" name="newDeadline" placeholder="New Deadline" required>
+    <button class="submit" id="submint">Request Revision</button>
+  </form>
+    </div>
+
+  </div>
+</template>
+
+
+    <template id="submitTask">
+  <div class="task-card">
+    <div class="card-header">
+      <h2><span class="title"></span></h2>
+    </div>
+
+    <div class="request-revison">
+    <form class="Revision">
+    <input type="text" name="note" placeholder="Note Provided" required>
+    <input type="text" name="gitURl" placeholder="Github URL" required>
+    <button class="submit" id="submint">Submit Task</button>
+  </form>
+    </div>
+
+  </div>
+</template>
+  </div>
+
+  <button id="reload">Reload</button>
+
+</div>
+
+
+
+
+
+
+
+    <div data-include="../global/footer.html"></div>
+
+    <script>
+document.querySelectorAll("[data-include]").forEach(async el => {
+    const file = el.getAttribute("data-include");
+    const res = await fetch(file);
+    el.innerHTML = await res.text();
+});
+</script>
+
+</body>
+</html>

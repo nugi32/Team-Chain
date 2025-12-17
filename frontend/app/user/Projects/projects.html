@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js"></script>
     <script type="module" src="../global/connectwallet.js " ></script>
     <script type="module" src="../global/sidebar.js"></script>
+    <script type="module" src="./projects.js"></script>
 </head>
 <body>
     <div data-include="../global/header.html"></div>
@@ -26,8 +27,6 @@
     <input type="text" id="searchInput" placeholder="Search Task...">
 
     <select id="filterSelect">
-      <option value="newest">Newest</option>
-      <option value="oldest">Oldest</option>
 
       <option value="stakeHigh">Highest Stake</option>
       <option value="stakeLow">Lowest Stake</option>
@@ -35,40 +34,37 @@
       <option value="deadlineSoon">Closest Deadline</option>
       <option value="deadlineLate">Farthest Deadline</option>
 
-      <option value="reputationHigh">Author Reputation ↑</option>
-      <option value="reputationLow">Author Reputation ↓</option>
+      <option value="reputationHigh">Point ↑</option>
+      <option value="reputationLow">Point ↓</option>
     </select>
   </div>
 
   <!-- TASK CARDS -->
-  <div id="taskContainer"></div>
+  <div id="activeList" class="ActiveTaskContainer"></div>
 
-<template id="taskCardTemplate">
+  <template id="taskCardTemplate">
   <div class="task-card">
     <div class="card-header">
-      <div class="indicator green"></div>
       <h2><span class="title"></span></h2>
     </div>
 
     <div class="task-info">
-      <p><span>Id:</span> <span class="taskId">-</span></p>
-      <p><span>reward:</span> <span class="reward">-</span> <span>ETH</span></p>
-      <p><span>creator:</span> <span class="CreatorAddress">-</span></p>
-      <p><span>deadline:</span> <span class="deadlineTime">-</span></p>
-      <p><span>maxRevision:</span> <span class="revison">-</span></p>
-      <p><span>memberRequiredtake:</span> <span class="memberStake">-</span> <span>ETH</span></p>
-      <p><span>CreatorReputaution:</span> <span class="creatorReputaution">-</span></p>
-      <p><span>githubURl:</span> <span class="TaskGithubURl">-</span></p>
+      <p><span>ID:</span> <span class="taskId">-</span></p>
+      <p><span>Creator:</span> <span class="creator">-</span></p>
+      <p><span>Deadline:</span> <span class="deadline">-</span><span> Hours</span></p>
+      <p><span>Stake:</span> <span class="stake">-</span><span> ETH</span></p>
+      <p><span>Point:</span> <span class="Points">-</span></p>
     </div>
 
-    <button class="joinBTN RequestJoinTask"></button>
+    <div class="card-button">
+      <button class="detailsBTN">See Deatils</button>
+    </div>
+
   </div>
 </template>
 
 
-</div>
 
-</div>
 
 
 

@@ -187,6 +187,7 @@ contract TrustlessTeamProtocol is
     event DeadlineTriggered(uint256 indexed taskId);
     event JoinrequestCancelled(uint256 indexed taskId, address indexed user);
     event TaskActive(uint256 indexed taskId);
+    event TaskDeleted(uint256 taskId);
 
     // Payments / system events
     event Withdrawal(address indexed user, uint256 amount);
@@ -541,25 +542,38 @@ contract TrustlessTeamProtocol is
         revert("no pending request");
     }
 
+    function deleteTask(uint256 taskId, address user) external nonReentrant onlyRegistered {
+        Task storage t = Tasks[taskId];
+
+        t.status = TaskStatus.Cancelled;
+        t.isCreatorStakeLocked = false;
+        t.exists = false;
+
+        withdrawable[user] += t.reward;
+        if (t.creatorStake > 0) {
+            withdrawable[user] += t.creatorStake;
+        }
+        emit TaskDeleted(taskId);
+    }
+
     /**
      * @notice Approves a join request and assigns member to task
      * @param taskId ID of the task
-     * @param _applicant Address of the applicant to approve
      * @dev Locks member stake, sets deadline, and moves task to InProgress status
      */
-    function approveJoinRequest(uint256 taskId, address _applicant) external taskExists(taskId) onlyTaskCreator(taskId) nonReentrant whenNotPaused {
+    function approveJoinRequest(uint256 taskId) external taskExists(taskId) onlyTaskCreator(taskId) nonReentrant whenNotPaused {
         JoinRequest[] storage requests = joinRequests[taskId];
         Task storage t = Tasks[taskId];
         bool found = false;
 
         // Find and approve the request
         for (uint256 i = 0; i < requests.length; ++i) {
-            if (requests[i].applicant == _applicant && requests[i].isPending) {
+            if (requests[i].isPending) {
                 requests[i].isPending = false;
                 requests[i].status = UserTask.Accepted;
                 
                 // Assign member and lock stakes
-                t.member = _applicant;
+                t.member = requests[i].applicant;
                 t.memberStake = requests[i].stakeAmount;
                 requests[i].stakeAmount = 0;
                 requests[i].hasWithdrawn = true;
@@ -574,7 +588,7 @@ contract TrustlessTeamProtocol is
         t.deadlineAt = block.timestamp + (uint256(t.deadlineHours) * 1 hours);
         t.status = TaskStatus.InProgres;
 
-        emit JoinApproved(taskId, _applicant);
+        emit JoinApproved(taskId, t.member);
     }
 
     /**
@@ -732,7 +746,7 @@ contract TrustlessTeamProtocol is
             if (s.status == SubmitStatus.Pending) {
                 revert alredyInPending();
             } else {
-                __approveTask(taskId);
+                __approveTask(taskId, 0);
                 return;
             }
         }
@@ -783,7 +797,7 @@ contract TrustlessTeamProtocol is
             if (s.status == SubmitStatus.Pending) {
                 revert alredyInPending();
             } else {
-                __approveTask(taskId);
+                __approveTask(taskId, 0);
                 return;
             }
         }
@@ -812,14 +826,14 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task to approve
      * @dev External wrapper for internal approval function
      */
-    function approveTask(uint256 taskId)
+    function approveTask(uint256 taskId, uint256 SubmitId)
         external
         taskExists(taskId)
         onlyTaskCreator(taskId)
         nonReentrant
         whenNotPaused
     {
-        __approveTask(taskId);
+        __approveTask(taskId, SubmitId);
     }
 
     // =============================================================
@@ -1035,9 +1049,9 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task to approve
      * @dev Distributes rewards, updates reputation, and completes task lifecycle
      */
-    function __approveTask(uint256 taskId) internal {
+    function __approveTask(uint256 taskId, uint256 SubmitId) internal {
         Task storage t = Tasks[taskId];
-        TaskSubmit storage s = TaskSubmits[taskId];
+        TaskSubmit storage s = TaskSubmits[SubmitId];
 
         // Validate task and submission state
         if (t.status != TaskStatus.InProgres) revert TaskNotOpen();
