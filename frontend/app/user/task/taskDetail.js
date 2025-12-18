@@ -117,7 +117,7 @@ function applyButtonRules(card, task, userAddress) {
   const member  = task[4];
 
   const isCreator = creator === userAddress;
-  const isMember  = member === userAddress;
+  const isMember  = creator !== userAddress;
 
   // ======================
   // RULES
@@ -148,7 +148,7 @@ function applyButtonRules(card, task, userAddress) {
   }
 
   // Member – sudah assigned
-  if (isMember && status === 3) {
+  if (isMember && status == 3) {
     show(btn.join);
     show(btn.WithdrawJoinReq);
   }
@@ -331,7 +331,7 @@ function onWalletConnected(address) {
     }
   });
 
-  // Button: OpenRegisteration (typo: seharusnya OpenRegistration)
+ 
   document.querySelector(".DeleteTask")?.addEventListener("click", async () => {
     try {
     const signer = await window.wallet.getSigner();
@@ -396,11 +396,11 @@ function onWalletConnected(address) {
     if (taskData[3] !== addr) {
       alert("Team Chain: You Is Not Owner");
       return;
-    }
-    if (taskData[1] !== 2) {
+    }/*
+    if (taskData[1] == 2) {
       alert("Team Chain: Cannot Open Registeration This Task !");
       return;
-    }
+    }*/
 
     const tx = await contract.openRegistration(id);
     const receipt = await tx.wait();
@@ -437,11 +437,11 @@ function onWalletConnected(address) {
     if (taskData[3] !== addr) {
       alert("Team Chain: You Is Not Owner");
       return;
-    }
-    if (taskData[1] !== 2) {
-      alert("Team Chain: Cannot Open Close This Task !");
+    }/*
+    if (taskData[1] !== 3) {
+      alert("Team Chain: Cannot Close This Task !");
       return;
-    }
+    }*/
 
     const tx = await contract.closeRegistration(id);
     const receipt = await tx.wait();
@@ -474,11 +474,11 @@ function onWalletConnected(address) {
     const addr = await signer.getAddress();
 
     const taskData = await contract.Tasks(id);
-
+/*
     if (taskData[1] !== 4) {
       alert("Team Chain: Cannot Cancel This Task !");
       return;
-    }
+    }*/
 
     const tx = await contract.cancelByMe(id, addr);
     const receipt = await tx.wait();
@@ -585,7 +585,7 @@ async function acceptMember(memberId) {
         const contract = await getContract(signer);
     const addr = await signer.getAddress();
 
-    const taskData = await contract.Tasks(id);
+    const taskData = await contract.Tasks(memberId);
 
     if (taskData[3] !== addr) {
       alert("Team Chain: You Is Not Owner");
@@ -618,12 +618,15 @@ async function rejectMember(memberId) {
     const addr = await signer.getAddress();
 
     const memberData = await contract.getJoinRequests(memberId);
+        const taskData = await contract.Tasks(memberId);
 
     if (taskData[3] !== addr) {
       alert("Team Chain: You Is Not Owner");
       return;
     }
-    const tx = await contract.approveJoinRequest(memberId, memberData[0]);
+
+    console.log(memberData[0].applicant)
+    const tx = await contract.rejectJoinRequest(memberId, memberData[0].applicant);
     const receipt = await tx.wait();
 
     console.log(receipt);
@@ -789,4 +792,329 @@ async function reSubmitTask(PullRequestURL,Note) {
       console.error(err);
     }
 }
+
+
+
+
+
+
+//template
+
+document.querySelector(".AcceptJoin")?.addEventListener("click", async () => {
+  try {
+    const signer = await window.wallet.getSigner();
+    if (!signer) return;
+
+    const contract = await getContract(signer);
+
+    // Ambil taskId dari URL (?id=)
+    const params = new URLSearchParams(window.location.search);
+    const taskId = Number(params.get("id"));
+    if (isNaN(taskId)) return;
+
+    const requests = await contract.getJoinRequests(taskId);
+    renderJoinRequests(requests, taskId);
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load join requests");
+  }
+});
+
+
+function renderJoinRequests(requests, taskId) {
+  const container = document.getElementById("OverlayInfo");
+  const template  = document.getElementById("acceptMember");
+
+  if (!container || !template) return;
+
+  container.innerHTML = "";
+
+  if (requests.length === 0) {
+    container.innerHTML = "<p>No join requests.</p>";
+    return;
+  }
+
+  requests.forEach((req, index) => {
+    if (!req.isPending) return;
+
+    const clone = template.content.cloneNode(true);
+
+    clone.querySelector(".title").textContent = "Join Request";
+    clone.querySelector(".taskId").textContent = req.applicant;
+    clone.querySelector(".Points").textContent =
+      ethers.formatEther(req.stakeAmount);
+
+    // ACCEPT
+    clone.querySelector(".Accept").onclick = async () => {
+      await acceptMember(taskId);
+    };
+
+    // REJECT
+    clone.querySelector(".Reject").onclick = async () => {
+      await rejectMember(taskId);
+    };
+
+    container.appendChild(clone);
+  });
+}
+
+
+
+//member 
+
+document.querySelector(".submitTask")?.addEventListener("click", () => {
+  const template = document.getElementById("submitTask");
+  const clone = template.content.cloneNode(true);
+
+  const container = document.getElementById("OverlayInfo");
+  container.innerHTML = "";
+  container.appendChild(clone);
+
+  const submitBtn = container.querySelector(".submit");
+
+  submitBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  try {
+    const signer = window.wallet?.getSigner();
+    if (!signer) {
+      alert("No signer available. Please connect wallet.");
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const taskId = Number(params.get("id"));
+    if (isNaN(taskId)) {
+      alert("Invalid task ID");
+      return;
+    }
+
+    const noteInput = container.querySelector('input[name="note"], textarea[name="note"]');
+    const gitInput = container.querySelector('input[name="gitURL"]');
+
+    if (!noteInput || !gitInput) {
+      alert("Form input not found");
+      return;
+    }
+
+    const note = noteInput.value;
+    const gitURL = gitInput.value;
+/*
+    const contract = await getContract(signer);
+
+    const status = await contract.getTaskSubmit(taskId);
+    const tx = await status.wait();
+    console.log(tx)
+
+    if (status[3] == 0n) {
+        const tx = await reSubmitTask(gitURL, note);
+        console.log("resubmit",tx)
+    } else {
+        const tx = await submitTask(gitURL, note);
+        console.log("submit",tx)
+    }*/
+const tx = await submitTask(gitURL, note);
+        console.log("submit",tx)
+    alert("Submit task success");
+  } catch (err) {
+    console.error(err);
+    alert("Transaction failed");
+  }
+});
+
+});
+
+/*
+async function getSubmitData(taskId) {
+  try {
+    const signer = window.wallet?.getSigner();
+    if (!signer) {
+      alert("No signer available. Please connect wallet.");
+      return;
+    }
+
+    const contract = await getContract(signer);
+
+    const data = await contract.TaskSubmits(taskId);
+    return data;
+
+  } catch (err) {
+    console.error(err);
+    alert("Transaction failed");
+  }
+}
+
+
+document.querySelector(".ApproveTask")?.addEventListener("click", async () => {
+  const params = new URLSearchParams(window.location.search);
+  const taskId = Number(params.get("id"));
+  if (isNaN(taskId)) {
+    alert("Invalid task ID");
+    return;
+  }
+
+  const signer = window.wallet?.getSigner();
+  if (!signer) {
+    alert("No signer available. Please connect wallet.");
+    return;
+  }
+
+  const template = document.getElementById("acceptTask");
+  const clone = template.content.cloneNode(true);
+
+  const container = document.getElementById("OverlayInfo");
+  container.innerHTML = "";
+  container.appendChild(clone);
+
+  // ===============================
+  // SET DATA
+  // ===============================
+  const data = await getSubmitData(taskId); // HARUS async & taskId-based
+  container.querySelector(".taskId").textContent = taskId;
+  container.querySelector(".Note").textContent = data.note;
+
+  // ===============================
+  // ACCEPT TASK
+  // ===============================
+  const acceptBtn = container.querySelector(".Accept");
+  acceptBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    try {
+      await acceptTask(taskId);
+      alert("Task accepted");
+    } catch (err) {
+      console.error(err);
+      alert("Accept failed");
+    }
+  });
+
+  // ===============================
+  // REQUEST REVISION
+  // ===============================
+  const form = container.querySelector("form.Revision");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    try {
+      const note = form.querySelector('input[name="note"]').value;
+      const newDeadline = form.querySelector('input[name="newDeadline"]').value;
+
+      await requestRevision(taskId, note, newDeadline);
+      alert("Revision requested");
+    } catch (err) {
+      console.error(err);
+      alert("Revision failed");
+    }
+  });
+});
+*/
+
+/*
+function getReadContract() {
+  const provider = window.wallet.provider; // BrowserProvider ethers v6
+   const ABI = loadABI(ARTIFACT_PATH);
+  return new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+}
+
+function getWriteContract(signer) {
+  const ABI = loadABI(ARTIFACT_PATH);
+  return new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+}*/
+
+
+async function getSubmitData(taskId) {
+  try {
+    const signer = await window.wallet.getSigner();
+    if (!signer) return;
+
+    const contract = await getContract(signer);
+    const data = await contract.TaskSubmits(taskId);
+
+    // return object yang aman
+    return {
+      note: data.note ?? data[2],
+      status: data.status ?? data[3],
+      deadline: data.deadline ?? data[5],
+    };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+document.querySelector(".ApproveTask")?.addEventListener("click", async () => {
+  const params = new URLSearchParams(window.location.search);
+  const taskId = Number(params.get("id"));
+  if (isNaN(taskId)) {
+    alert("Invalid task ID");
+    return;
+  }
+
+  const template = document.getElementById("acceptTask");
+  const clone = template.content.cloneNode(true);
+
+  const container = document.getElementById("OverlayInfo");
+  container.innerHTML = "";
+  container.appendChild(clone);
+
+  // ===============================
+  // SET DATA
+  // ===============================
+  const data = await getSubmitData(taskId);
+
+  if (!data) {
+    alert("Submit data not found");
+    return;
+  }
+
+  container.querySelector(".taskId").textContent = taskId;
+  container.querySelector(".Note").textContent = data.note;
+
+  // ===============================
+  // ACCEPT TASK (WRITE)
+  // ===============================
+  const acceptBtn = container.querySelector(".Accept");
+
+  acceptBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    try {
+
+      const tx = await acceptTask(taskId);
+      await tx.wait();
+
+      alert("Task accepted");
+    } catch (err) {
+      console.error(err);
+      alert("Accept failed");
+    }
+  });
+
+  // ===============================
+  // REQUEST REVISION (WRITE)
+  // ===============================
+  const form = container.querySelector("form.Revision");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    try {
+      const note = form.querySelector('input[name="note"]').value;
+      const newDeadline = form.querySelector('input[name="newDeadline"]').value;
+
+     
+
+      const tx = await requestRevision(taskId, note, newDeadline)
+      await tx.wait();
+
+      alert("Revision requested");
+    } catch (err) {
+      console.error(err);
+      alert("Revision failed");
+    }
+  });
+});
 

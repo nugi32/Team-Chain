@@ -127,9 +127,14 @@ async function searchOpenTask() {
 
       if (!task.exists) continue;
 
-      if (Number(task.status) === ActiveTask) {
-        TotalActiveTask++;
-      }
+      if (
+  Number(task.status) === ActiveTask ||
+  task[3] === address ||
+  task[4] === address
+) {
+  TotalActiveTask++;
+}
+
     }
 
     console.log("Total active tasks:", TotalActiveTask);
@@ -140,45 +145,6 @@ async function searchOpenTask() {
     alert("Team Chain: Failed to load task data.");
   }
 }
-
-async function SearchNotActivated() {
-  try {
-    const signer = await window.wallet.getSigner();
-    if (!signer) return;
-
-    const contract = await getContract(signer);
-    const address = await signer.getAddress();
-
-    const isRegistered = await contract.isRegistered(address);
-    if (!isRegistered) {
-      console.warn("User not registered");
-      return;
-    }
-
-    const NotActivated = 1;
-
-    const taskCount = Number(await contract.taskCounter());
-    TotalNotActivatedTask = 0;
-
-    for (let i = 0; i < taskCount; i++) {
-      const task = await contract.Tasks(i);
-
-      if (!task.exists) continue;
-
-      if (Number(task.status) === NotActivated) {
-        TotalNotActivatedTask++;
-      }
-    }
-
-    console.log("Total not activated tasks:", TotalNotActivatedTask);
-    return TotalNotActivatedTask;
-
-  } catch (err) {
-    console.error(err);
-    alert("Team Chain: Failed to load task data.");
-  }
-}
-
 
 
 

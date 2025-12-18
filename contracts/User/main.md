@@ -561,14 +561,14 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task
      * @dev Locks member stake, sets deadline, and moves task to InProgress status
      */
-    function approveJoinRequest(uint256 taskId, address _applicant) external taskExists(taskId) onlyTaskCreator(taskId) nonReentrant whenNotPaused {
+    function approveJoinRequest(uint256 taskId) external taskExists(taskId) onlyTaskCreator(taskId) nonReentrant whenNotPaused {
         JoinRequest[] storage requests = joinRequests[taskId];
         Task storage t = Tasks[taskId];
         bool found = false;
 
         // Find and approve the request
         for (uint256 i = 0; i < requests.length; ++i) {
-             if (requests[i].applicant == _applicant && requests[i].isPending) {
+            if (requests[i].isPending) {
                 requests[i].isPending = false;
                 requests[i].status = UserTask.Accepted;
                 
@@ -1197,6 +1197,39 @@ contract TrustlessTeamProtocol is
 
 
     // ============================================================= Only Owner Functions ============================================================
+
+    /**
+     * @notice Updates system wallet address
+     * @param _NewsystemWallet New system wallet address
+     * @dev Only callable by owner, affects fee withdrawals
+     */
+    function changeSystemwallet(address payable _NewsystemWallet) external onlyOwner whenNotPaused {
+        zero_Address(_NewsystemWallet);
+        systemWallet = _NewsystemWallet;
+        emit SystemWalletChanged(_NewsystemWallet);
+    }
+
+    /**
+     * @notice Updates access control contract address
+     * @param _newAccesControl New access control contract address
+     * @dev Only callable by owner, affects permission management
+     */
+    function changeAccessControl(address _newAccesControl) external onlyOwner whenNotPaused {
+        zero_Address(_newAccesControl);
+        accessControl = IAccessControl(_newAccesControl);
+        emit AccessControlChanged(_newAccesControl);
+    }
+
+    /**
+     * @notice Updates state variables contract address
+     * @param _newStateVar New state variables contract address
+     * @dev Only callable by owner, affects parameter retrieval
+     */
+    function changeStateVarAddress(address _newStateVar) external onlyOwner whenNotPaused {
+        zero_Address(_newStateVar);
+        stateVar = stateVariable(_newStateVar);
+        emit StateVarChanged(_newStateVar);
+    }
 
     /**
      * @notice Pauses contract functionality

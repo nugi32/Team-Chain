@@ -7,6 +7,15 @@ const ARTIFACT_PATH = "../artifact/TrustlessTeamProtocol.json";
 
 const provider = new ethers.JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/cka4F66cHyvFHccHvsdTpjUni9t3NDYR");
 
+
+
+// ==============================
+// GLOBAL STATE
+// ==============================
+let createdTasks = [];
+let joinedTasks = [];
+
+
 // ==============================
 // LOAD ABI
 // ==============================
@@ -59,7 +68,7 @@ function decodeErrorSelector(err) {
 
 
 
-async function decodeStatus(status) {
+function decodeStatus(status) {
   if (status == 0) {
     return "NonExistent";
   } else if (status == 1) {
@@ -83,139 +92,143 @@ async function decodeStatus(status) {
 
 
 
-async function searchCreatedTask() {
-  try {
-    const signer = await window.wallet.getSigner();
-    if (!signer) return;
+// ==============================
+// LOAD CREATED TASKS (DATA ONLY)
+// ==============================
+async function loadCreatedTasks() {
+  const signer = await window.wallet.getSigner();
+  if (!signer) return;
 
-    const contract = await getContract(signer);
-    const address = await signer.getAddress();
+  const contract = await getContract(signer);
+  const address = (await signer.getAddress()).toLowerCase();
 
-    const container = document.getElementById("activeList");
-    const template  = document.getElementById("taskCardTemplate");
-    if (!container || !template) return;
+  const taskCount = Number(await contract.taskCounter());
+  createdTasks = [];
 
-    container.innerHTML = "";
+  for (let i = 0; i < taskCount; i++) {
+    const task = await contract.Tasks(i);
 
-    const taskCount = Number(await contract.taskCounter());
+    if (!task.exists) continue;
+    if (task.creator.toLowerCase() !== address) continue;
 
-    for (let i = 0; i < taskCount; i++) {
-      const task = await contract.Tasks(i);
-
-const showStatus = [1, 2, 3, 4, 5];
-
-if (!task.exists) continue;
-if (task.creator !== address) continue;
-if (!showStatus.includes(Number(task.status))) continue;
-
-
-    
-
-      const clone = template.content.cloneNode(true);
-      const card  = clone.querySelector(".task-card");
-
-      const taskId = task[0].toString();
-
-      card.querySelector(".taskId").textContent = taskId;
-      card.querySelector(".status").textContent = await decodeStatus(Number(task[1]));
-      card.querySelector(".title").textContent  = task[5];
-
-      clone.querySelector(".detailsBTN").addEventListener("click", () => {
-        window.location.href = `taskDetail.html?id=${taskId}`;
-      });
-
-      container.appendChild(clone);
-    }
-
-  } catch (err) {
-    console.error(err);
-    alert("Team Chain: Failed to load task data.");
+    createdTasks.push({
+      id: task[0].toString(),
+      title: task[5],
+      status: task[1],
+      order: i
+    });
   }
+
+  renderCreatedTasks(createdTasks);
+}
+
+// ==============================
+// LOAD JOINED TASKS (DATA ONLY)
+// ==============================
+async function loadJoinedTasks() {
+  const signer = await window.wallet.getSigner();
+  if (!signer) return;
+
+  const contract = await getContract(signer);
+  const address = (await signer.getAddress()).toLowerCase();
+
+  const taskCount = Number(await contract.taskCounter());
+  joinedTasks = [];
+
+  for (let i = 0; i < taskCount; i++) {
+    const task = await contract.Tasks(i);
+
+    if (!task.exists) continue;
+    if (task.member.toLowerCase() !== address) continue;
+
+    joinedTasks.push({
+      id: task[0].toString(),
+      title: task[5],
+      status: Number(task.status),
+      order: i
+    });
+  }
+
+  renderJoinedTasks(joinedTasks);
+}
+
+// ==============================
+// RENDER CREATED
+// ==============================
+function renderCreatedTasks(tasks) {
+  const container = document.getElementById("activeList");
+  const template = document.getElementById("taskCardTemplate");
+
+  container.innerHTML = "";
+
+  tasks.forEach(t => {
+    const clone = template.content.cloneNode(true);
+    clone.querySelector(".taskId").textContent = t.id;
+    clone.querySelector(".title").textContent = t.title;
+    clone.querySelector(".status").textContent = decodeStatus(t.status);
+
+    clone.querySelector(".detailsBTN").onclick = () =>
+      (window.location.href = `taskDetail.html?id=${t.id}`);
+
+    container.appendChild(clone);
+  });
+}
+
+// ==============================
+// RENDER JOINED
+// ==============================
+function renderJoinedTasks(tasks) {
+  const container = document.getElementById("JoinedList");
+  const template = document.getElementById("JtaskCardTemplate");
+
+  container.innerHTML = "";
+
+  tasks.forEach(t => {
+    const clone = template.content.cloneNode(true);
+    clone.querySelector(".taskId").textContent = t.id;
+    clone.querySelector(".title").textContent = t.title;
+    clone.querySelector(".status").textContent = decodeStatus(t.status);
+
+    clone.querySelector(".JdetailsBTN").onclick = () =>
+      (window.location.href = `taskDetail.html?id=${t.id}`);
+
+    container.appendChild(clone);
+  });
 }
 
 
 
 
 
-async function searchJoinedTask() {
-  try {
-    const signer = await window.wallet.getSigner();
-    if (!signer) return;
+// ==============================
+// SEARCH + FILTER CREATED
+// ==============================
+document.getElementById("searchActive")?.addEventListener("input", () => {
+  const q = searchActive.value.toLowerCase();
+  renderCreatedTasks(createdTasks.filter(t => t.title.toLowerCase().includes(q)));
+});
 
-    const contract = await getContract(signer);
-    const address = await signer.getAddress();
+document.getElementById("filterActive")?.addEventListener("change", e => {
+  let list = [...createdTasks];
+  if (e.target.value === "newest") list.reverse();
+  if (e.target.value === "oldest") list.sort((a, b) => a.order - b.order);
+  renderCreatedTasks(list);
+});
 
-    const container = document.getElementById("JoinedList");
-    const template  = document.getElementById("JtaskCardTemplate");
-    if (!container || !template) return;
+// ==============================
+// SEARCH + FILTER JOINED
+// ==============================
+document.getElementById("searchInactive")?.addEventListener("input", () => {
+  const q = searchInactive.value.toLowerCase();
+  renderJoinedTasks(joinedTasks.filter(t => t.title.toLowerCase().includes(q)));
+});
 
-    container.innerHTML = "";
-
-    const taskCount = Number(await contract.taskCounter());
-
-    for (let i = 0; i < taskCount; i++) {
-      const task = await contract.Tasks(i);
-
-const showStatus = [1, 2, 3, 4, 5];
-
-if (!task.exists) continue;
-if (task.member !== address) continue;
-if (!showStatus.includes(Number(task.status))) continue;
-
-
-    
-
-      const clone = template.content.cloneNode(true);
-      const card  = clone.querySelector(".task-card");
-
-      const taskId = task[0].toString();
-
-      card.querySelector(".taskId").textContent = taskId;
-      card.querySelector(".status").textContent = await decodeStatus(Number(task[1]));
-      card.querySelector(".title").textContent  = task[5];
-
-      clone.querySelector(".JdetailsBTN").addEventListener("click", () => {
-        window.location.href = `taskDetail.html?id=${taskId}`;
-      });
-
-      container.appendChild(clone);
-    }
-
-  } catch (err) {
-    console.error(err);
-    alert("Team Chain: Failed to load task data.");
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+document.getElementById("filterInactive")?.addEventListener("change", e => {
+  let list = [...joinedTasks];
+  if (e.target.value === "newest") list.reverse();
+  if (e.target.value === "oldest") list.sort((a, b) => a.order - b.order);
+  renderJoinedTasks(list);
+});
 
 
 
@@ -257,8 +270,8 @@ async function waitSignerAndRun() {
     }
   }
 
-  await searchCreatedTask();
-  await searchJoinedTask();
+  await loadCreatedTasks();
+  await loadJoinedTasks();
 }
 
 
@@ -266,18 +279,6 @@ function onWalletConnected(address) {
   console.log("Wallet connected:", address);
   waitSignerAndRun();
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -298,12 +299,80 @@ document.getElementById("test")?.addEventListener("click", async () => {
     const contract = await getContract(signer);
     const data = await contract.Tasks(1);
     console.log(data);
-    searchCreatedTask();
-    searchJoinedTask();
+    loadCreatedTasks();
+    loadJoinedTasks();
   } catch(e) {
     console.error(e);
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -401,9 +470,15 @@ console.log("Reward In Wei Is:", rewardWei);
 
     const addr = await signer.getAddress();
     const contract = await getContract(signer);
+//perlu dibenerin
+    const status = contract.isRegistered(addr);
+
+    if (status == false) {
+      alert("Team Chain: Your Is Not Registered");
+      return;
+    }
 
     const balance = await provider.getBalance(addr);
-
     if (balance < rewardWei) {
       alert(`Team Chain: Insuficcinet balance\n Your balance: ${ethers.formatEther(balance)} ETH\n reward: ${ethers.formatEther(rewardWei)} ETH`);
       return;

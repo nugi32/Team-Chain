@@ -6,7 +6,7 @@ console.log("📦 State Variable loaded");
  * 2. CONTRACT CONFIGURATION
  ***************************************/
 const ARTIFACT_PATH = "./artifact/stateVariable.json";
-const CONTRACT_ADDRESS = "0x23914241f7Ff2296d94B7069d7C4e0b175a64755";
+const CONTRACT_ADDRESS = "0xa5B6C3e23284B1f6FF24974398B3A71371DB44c6";
 
 /***************************************
  * 3. ABI LOADER

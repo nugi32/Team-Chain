@@ -59,10 +59,8 @@
 
       <button class="AcceptJoin">Accept Member</button>
       <button class="ApproveTask">Approve Task</button>
-      <button class="RequestRevision">Request Revision</button>
 
       <button class="submitTask">submit Task</button>
-      <button class="ResubmitTask">Re-submit Task</button>
       <button class="Join">Join</button>
       <button class="WithdrawJoin">Withdraw Join Request</button>
     </div>
@@ -89,7 +87,8 @@
   </div>
 </template>
 
-    <template id="acceptTask">
+
+<template id="acceptTask">
   <div class="task-card">
     <div class="card-header">
       <h2><span class="title"></span></h2>
@@ -101,37 +100,36 @@
     </div>
 
     <div class="card-button">
-      <button class="Accept">Accept</button>
+      <button type="button" class="Accept">Accept</button>
     </div>
 
-    <div class="request-revison">
-    <form class="Revision">
-    <input type="text" name="note" placeholder="Note Provided" required>
-    <input type="number" name="newDeadline" placeholder="New Deadline" required>
-    <button class="submit" id="submint">Request Revision</button>
-  </form>
+    <div class="request-revision">
+      <form class="Revision">
+        <input type="text" name="note" placeholder="Revision Note" required>
+        <input type="number" name="newDeadline" placeholder="New Deadline" required>
+        <button type="submit" class="revision">Request Revision</button>
+      </form>
     </div>
-
   </div>
 </template>
 
 
-    <template id="submitTask">
+<template id="submitTask">
   <div class="task-card">
     <div class="card-header">
       <h2><span class="title"></span></h2>
     </div>
 
-    <div class="request-revison">
-    <form class="Revision">
-    <input type="text" name="note" placeholder="Note Provided" required>
-    <input type="text" name="gitURl" placeholder="Github URL" required>
-    <button class="submit" id="submint">Submit Task</button>
-  </form>
+    <div class="submit-task">
+      <form class="Revision">
+        <input type="text" name="note" placeholder="Note Provided" required>
+        <input type="text" name="gitURL" placeholder="Github URL" required>
+        <button type="submit" class="submit">Submit Task</button>
+      </form>
     </div>
-
   </div>
 </template>
+
   </div>
 
   <button id="reload">Reload</button>
