@@ -1,38 +1,47 @@
-/* ====================================
-   ROOT VARIABLES
-==================================== */
+/* =========================================================
+   ROOT VARIABLES (LIGHT MODE)
+   ========================================================= */
 :root {
-  --bg: #0f1724;
-  --card: #0b1220;
-  --muted: #96a0b3;
-  --accent: #7c5cff;
-  --glass: rgba(255, 255, 255, 0.03);
+  --bg: #F0F6FF;
+  --card: rgba(255,255,255,0.75);
+  --border: #DCE6F2;
+
+  --text-main: #1F2F45;
+  --text-body: #3A4A5E;
+  --muted: #6B7C93;
+
+  --accent: #4A90E2;
+  --accent-hover: #357ABD;
+
+  --glass: rgba(255,255,255,0.45);
 }
 
+/* =========================================================
+   GLOBAL BASE
+   ========================================================= */
 * { box-sizing: border-box; }
 
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-  background: #0b1120;
-  color: #e6eef8;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: var(--bg);
+  color: var(--text-body);
 }
 
-/* ====================================
-   FIXED TOP BAR (BLUR, LEFT-RIGHT)
-==================================== */
+body { padding-top: 80px; }
+
+/* =========================================================
+   TOPBAR (HEADER)
+   ========================================================= */
 .topbar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 200;
-  background: rgba(10, 15, 25, 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,112 +49,102 @@ html, body {
   margin-bottom: 0px;
 }
 
-/* Brand */
+
+/* Brand kiri */
 .topbar .brand {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: left;
   margin-left: 20px;
+  color: var(--text-main);
 }
 
+/* =========================================================
+   RIGHT AREA (WALLET + NAV TOGGLE)
+   ---------------------------------------------------------
+   Wallet sekarang berada SEBELUM tombol nav
+   ========================================================= */
+
+
+/* Wallet container */
 .wallet-container {
   display: flex;
   justify-content: right;
   align-items: center;
   position: relative;
-  gap: 12px;
-  padding: 6px 14px;
-  border-radius: 10px;
   margin-left: auto;
   margin-right: 20px;
+  gap: 10px;
+
+  padding: 0px 0px;
+  border-radius: 20px;
   cursor: pointer;
 
-  transition: .28s ease;
+  transition: transform .25s ease, box-shadow .25s ease;
 }
 
 .wallet-container:hover {
-  transform: translateY(-2px) scale(1.015);
-  box-shadow: 0 0 28px -6px rgba(73,168,255,.35);
-  border-radius: 500px;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(74,144,226,0.25);
 }
 
-
-
-.connectButton {
-  background: var(--accent);
-  border: none;
-  color: black;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-/* Mobile Toggle */
+/* Nav toggle (hamburger) */
 .nav-toggle {
   background: transparent;
   border: none;
   cursor: pointer;
+  color: var(--text-main);
   padding: 6px;
-  margin-right: 20px;
-  height: 10px;
-  display: flex;
-  color: white;
-  align-items: center;
-  transition: all 0.3s ease;
-}
-.nav-toggle:hover {
-    transform: translateY(-4px);
-    border-color: rgba(99, 173, 241, 0.4);
-    box-shadow: 0 6px 20px rgba(124, 185, 241, 0.25);
+  margin-right: 30px;
+  transition: transform .25s ease;
 }
 
-/* ====================================
-   SIDE NAV (RIGHT SLIDE)
-==================================== */
+.nav-toggle:hover {
+  transform: translateY(-3px);
+}
+
+/* =========================================================
+   SIDE NAV
+   ========================================================= */
 .side-nav {
   position: fixed;
   top: 0;
   right: 0;
   height: 100vh;
   width: clamp(220px, 30vw, 320px);
-  max-width: 220px;
+  padding: 24px;
 
-  background: linear-gradient(180deg, var(--card), #071022);
-  box-shadow: -20px 0 60px rgba(3, 7, 18, 0.7);
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(12px);
+  box-shadow: -20px 0 50px rgba(30,60,90,0.15);
 
   transform: translateX(110%);
-  transition: transform 360ms cubic-bezier(.2, .9, .25, 1);
-
-  z-index: 999; /* FIX — di atas topbar */
-  padding: 24px;
+  transition: transform 360ms cubic-bezier(.2,.9,.25,1);
+  z-index: 999;
 
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
-.side-nav.open {
-  transform: translateX(0);;
-}
+.side-nav.open { transform: translateX(0); }
 
 .side-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
-.side-header h2 { margin: 0; }
+.side-header h2 {
+  margin: 0;
+  color: var(--text-main);
+}
 
 .side-nav .close {
-  background: transparent;
+  background: none;
   border: none;
-  color: var(--muted);
   font-size: 18px;
+  color: var(--muted);
   cursor: pointer;
 }
 
+/* Nav links */
 .nav-list {
   list-style: none;
   padding: 12px 0;
@@ -156,12 +155,13 @@ html, body {
 }
 
 .nav-list a {
-  display: block;
-  padding: 10px;
+  padding: 12px 10px;
   border-radius: 8px;
+  gap: 6px;
+    display: flex;
   text-decoration: none;
-  color: inherit;
   font-weight: 600;
+  color: var(--text-body);
 }
 
 .nav-list a:hover {
@@ -170,21 +170,21 @@ html, body {
 
 .side-footer {
   margin-top: auto;
-  color: var(--muted);
   font-size: 0.8rem;
+  color: var(--muted);
 }
 
-/* ====================================
-   SCREEN OVERLAY (ketika nav open)
-==================================== */
+/* =========================================================
+   OVERLAY
+   ========================================================= */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 6, 12, 0.45);
+  background: rgba(20,40,70,0.45);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 220ms;
-  z-index: 990; /* FIX — di atas topbar */
+  transition: opacity .2s;
+  z-index: 990;
 }
 
 .overlay.visible {
@@ -192,80 +192,58 @@ html, body {
   pointer-events: auto;
 }
 
-/* ====================================
-   MAIN CONTENT SPACING (karena topbar fixed)
-==================================== */
-body {
-  padding-top: 80px;
-}
-
-/* ====================================
-   Background Hero Section
-==================================== */
+/* =========================================================
+   HERO BACKGROUND
+   ========================================================= */
 .background {
   position: relative;
-  width: 100%;
   min-height: 100dvh;
-  background: url("./components/street.png") center/cover no-repeat fixed;
+  background: url("./components/snow.gif") center/cover no-repeat fixed;
   padding: 50px 20px;
 }
 
-
-/* Overlay */
-.background::before{
+/* Overlay agar konten jelas */
+.background::before {
   content: "";
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.45);
-  pointer-events: none;
 }
 
-/* Ensure children above overlay */
 .background > * {
   position: relative;
   z-index: 2;
 }
 
-
-
-/* ========== Footer ========== */
+/* =========================================================
+   FOOTER (FIX VISIBILITY)
+   ---------------------------------------------------------
+   Footer diberi background solid terang
+   ========================================================= */
 .site-footer {
-  padding: 0px 0;
-  margin-top: 0px;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  display: flex;
-  justify-content: center;
+  background: #F0F6FF;
+  border-top: 1px solid var(--border);
+  padding: 40px 0;
 }
 
 .footer-content {
   max-width: 900px;
+  margin: auto;
   text-align: center;
   padding: 0 20px;
 }
 
 .site-footer h3 {
-  font-size: 20px;
+  color: var(--text-main);
   margin-bottom: 10px;
-  color: #ffffff;
 }
 
 .footer-desc {
-  color: #bcc3d1;
+  color: var(--text-body);
   font-size: 14px;
-  line-height: 1.4;
   margin-bottom: 20px;
 }
 
-.site-footer a {
-  color: #6ea7ff;
-  text-decoration: none;
-}
-
-.site-footer a:hover {
-  text-decoration: underline;
-}
-
-/* Quick Links */
 .footer-links {
   display: flex;
   justify-content: center;
@@ -274,36 +252,85 @@ body {
 }
 
 .footer-links a {
-  font-size: 14px;
-  color: #9fb4d1;
+  color: var(--accent);
+  text-decoration: none;
 }
 
 .footer-links a:hover {
-  color: #dbe7ff;
+  text-decoration: underline;
 }
 
-/* Social Icons */
 .footer-socials {
-  margin-bottom: 15px;
   display: flex;
   justify-content: center;
   gap: 14px;
+  margin-bottom: 15px;
   font-size: 20px;
 }
 
 .site-footer small {
-  color: #6f7a8c;
+  color: var(--muted);
   font-size: 13px;
 }
 
-/* ====================================
+/* =========================================================
+   Global elemnt
+   ========================================================= */
+
+.card {
+  position: relative;
+  min-height: 220px;
+  padding: 24px;
+
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.06);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.12);
+
+  color: #d6d8e2;
+  transition: .3s, transform .3s;
+}
+
+.card:hover {
+  background: rgba(255,255,255,0.10);
+  transform: translateY(-2px);
+}
+
+
+
+button {
+    background: linear-gradient(90deg, #e6f2ff, #cfe4ff);
+    color: #1e3a5f;
+    border: 1px solid rgba(120,170,220,0.45);
+    border-radius: 28px;
+    padding: 12px 34px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: .25s ease;
+    box-shadow: 0 4px 14px rgba(120,170,220,0.25);
+    margin: 10px;
+}
+
+
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(0,136,255,0.45);
+    background: linear-gradient(90deg, var(--accent-blue-dark), var(--accent-blue));
+}
+
+button:active {
+    transform: translateY(1px);
+}
+/* =========================================================
    RESPONSIVE
-==================================== */
+   ========================================================= */
 @media (max-width: 700px) {
-  .topbar { padding: 10px; }
-  .side-nav { 
+  .side-nav {
     width: 85vw;
     padding: 16px;
-    overflow-y: auto; 
-    }
+    overflow-y: auto;
+  }
 }

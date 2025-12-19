@@ -59,7 +59,6 @@
 <div id="overlay" class="overlay"></div>
 
 
-<!-- Frieren Gyat -->
     
 <div class="background">
 
@@ -68,20 +67,22 @@
         <p>Secure collaboration without a central authority</p>
     </div>
 
-    <div class="joinBTN">
-        <p>Not Registered Yet?</p>
-        <a class="join"  href="./Register/register.html">Register Now</a>
+    <div class="register">
+        <button id="register">Registe Now</button>
     </div>
 
-    <div class="intro">
+    <div class="card">
+      <div class="intro">
         <h2>Why Trustless?</h2>
         <p>
             The protocol ensures transparent and verifiable teamwork without depending
             on any central party. Collaboration is governed by code, not trust.
         </p>
+      </div>
     </div>
 
-    <div class="features">
+    <div class="card">
+      <div class="features">
         <h2>Core Features</h2>
         <ul>
             <li>Decentralized governance</li>
@@ -89,20 +90,18 @@
             <li>Transparent member actions</li>
             <li>Permissionless team formation</li>
         </ul>
+        </div>
     </div>
 
-        <div class="how-to">
+        <div class="card">
+          <div class="how-to">
         <h2>How to Join</h2>
         <ol>
             <li>Create your encrypted identity.</li>
             <li>Select a team you want to collaborate with.</li>
             <li>Get verified and join instantly.</li>
         </ol>
-    </div>
-
-    <div class="joinBTN">
-        <p>Ready to get started?</p>
-        <a class="join"  href="./Register/register.html">Register Now</a>
+        </div>
     </div>
 
 </div>
@@ -132,5 +131,12 @@
     <small>© 2025 Trustless Team Protocol — All Rights Reserved</small>
   </div>
 </footer>
+
+<script>
+  document.getElementById("register").addEventListener("click", function () {
+    window.location.href = "./Register/register.html";
+  });
+</script>
+
 </body>
 </html>

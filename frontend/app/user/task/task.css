@@ -1,34 +1,3 @@
-/* ========= ROOT VARIABLES ========= */
-:root {
-  --bg: #0f1724;
-  --card: #0b1220;
-  --muted: #96a0b3;
-  --accent: #7c5cff;
-  --accent2: #35d1ff;
-  --glass: rgba(255,255,255,0.03);
-  --text: #fff;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  font-family: Inter, sans-serif;
-  color: var(--text);
-}
-
-/* ========= PAGE CONTAINER ========= */
-.page {
-  max-width: 920px;
-  margin: auto;
-  padding: 60px 24px;
-}
-
-/* ========= TITLE ========= */
-.page-title {
-  font-size: 28px;
-  margin-bottom: 24px;
-}
 
 /* ========= SEARCH + FILTER BAR ========= */
 .projects-toolbar {
@@ -54,22 +23,9 @@ body {
 }
 
 /* ========= CARD ========= */
-.task-card {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 14px;
-  cursor: pointer;
-  position: relative;
-  transition: .25s;
-}
-
-.task-card:hover {
-  box-shadow: 0 0 22px rgba(124, 92, 255, .18);
-}
-
-.task-card h2 {
-  margin: 0;
-  font-size: 20px;
+.card {
+  width: 40%;
+  margin: 0 auto;
 }
 
 /* small info */
@@ -91,76 +47,41 @@ body {
   font-weight: 600;
 }
 
-/* ========= CREATE TASK ========= */
-.create-task {
-  margin-top: 60px;
+/* ========= task ========= */
+.taskShow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.register-form {
-  display: grid;
-  gap: 10px;
-  padding: 16px;
-  background: var(--card);
-  border-radius: 10px;
+.active h1 {
+  color: #fff;
 }
 
-.register-form input,
-.register-form button {
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  font-size: 14px;
+.Joined {
+    margin-top: 100px;
 }
 
-.register-form input {
-  background: var(--glass);
-  color: var(--text);
-}
-
-.register-form button {
-  background: var(--accent);
-  color: white;
-  cursor: pointer;
-  transition: .25s;
-}
-.register-form button:hover {
-  opacity: .85;
-}
-
-.active {
-    margin-top: -100px;
-}
-
-.inactive {
-    margin-top: 200px;
+.Joined h1 {
+  color: #fff;
 }
 
 /* ===== CREATE TASK WRAPPER ===== */
-.create-task {
-  padding: 20px;
-  margin-top: 40px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);/*
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.08);*/
-  border-radius: 16px;
-  width: 100%;
-  max-width: 780px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.create-task .page-title {
-  margin-bottom: 18px;
-  font-size: 24px;
-}
 
 /* FORM */
 .taskForm {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-bottom: 20px;
 }
+
+/* PLACEHOLDER COLOR */
+.taskForm input::placeholder {
+  color: #ffffff;
+  opacity: 1; /* penting agar tidak abu-abu di browser tertentu */
+}
+
 
 /* INPUT STYLE */
 .taskForm input,
@@ -174,13 +95,6 @@ body {
   color: #fff;
   outline: none;
   transition: .25s;
-}
-
-/* Focus glow */
-.taskForm input:focus,
-.taskForm select:focus {
-  border-color: #7c5cff;
-  background: rgba(255,255,255,0.14);
 }
 
 /* STAKE ROW */
@@ -202,28 +116,39 @@ body {
   background-color: #272727;       /* background saat dropdown dibuka */
   color: #fff;
 }
-
-
-/* BUTTON */
-.btn-submit {
-  margin-top: 6px;
-  padding: 12px;
-  background: #7c5cff;
-  border-radius: 12px;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  font-weight: 600;
-  transition: .25s;
+.JoinedTaskContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
 }
 
-.btn-submit:hover {
-  background: #6a46ff;
-  transform: translateY(-1px);
+.JoinedTaskContainer .card {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
 }
 
-/* === MOBILE ADAPTATION === */
-@media(max-width:720px){
+
+.ActiveTaskContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.ActiveTaskContainer .card {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .JoinedTaskContainer .card {
+    width: 100%;
+  }
   .RewardRow {
     flex-direction: column;
   }

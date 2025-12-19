@@ -13,23 +13,6 @@
   height: 50%;
 }
 
-/* CARD BASE */
-.card{
-  backdrop-filter: blur(10px);
-  background: rgba(255,255,255,0.06);
-  border-radius: 18px;
-  padding: 24px;
-  color: #d6d8e2;
-  transition: .3s;
-
-  /* wajib biar tombol bisa absolute */
-  position: relative;
-  min-height: 220px;
-}
-
-.card:hover{
-  background: rgba(255,255,255,0.10);
-}
 
 /* HEADER */
 .card-header{
@@ -52,9 +35,11 @@
 /* GAUGE WRAPPER */
 .gauge-box{
   position: relative;
-  margin: 8px auto 18px;
-  width: 180px;
-  height: 110px;
+  margin: 8px auto 8px;
+  width: 360px;
+  height: 220px;
+  margin-top: -30px;
+  
 }
 
 /* SVG GAUGE */
@@ -130,83 +115,18 @@
   font-weight: 600;
 }
 
-/* CTA button (default) */
-.btn-card {
-  display: inline-block;
-  padding: 10px 14px;
-  background: #7c5cff;
-  border-radius: 10px;
-  font-weight: 600;
-  text-decoration: none;
-  text-align: center;
-  color: #fff;
-  cursor: pointer;
-  transition: .25s;
+.userBTN button {
+  padding: 4px 8px;   /* perkecil ruang dalam */
+  font-size: 11px;    /* perkecil teks */
+  height: auto;       /* pastikan tidak terkunci */
+  margin: 5px;
+}
 
-  /* posisi */
+#ViewTask {
   position: absolute;
-  bottom: 16px;
-  left: 16px;
+  bottom: 0;
+  left: 0;
 }
-
-.btn-card:hover {
-  background: #6a46ff;
-}
-
-/* Tombol yang lagi active */
-.active-btn-card {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-
-  display: inline-block;
-  padding: 8px 12px;
-
-  background: #35d1ff;
-  border-radius: 8px;
-  font-weight: 600;
-  text-decoration: none;
-  text-align: center;
-  color: #000;
-  cursor: pointer;
-  transition: .25s;
-}
-
-/* --- MODAL --- */
-.modal{
-  position: fixed;
-  inset: 0;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(6px);
-  background: rgba(0,0,0,0.30);
-}
-
-.modal-body{
-  width: 360px;
-  background: rgba(25,25,35,0.75);
-  padding: 28px;
-  border-radius: 14px;
-  animation: slide .25s ease-out;
-  color: #fff;
-}
-
-.modal-body ul{
-  margin: 12px 0;
-  padding: 0 0 0 20px;
-}
-
-.close-btn{
-  width: 100%;
-  padding: 10px;
-  background: #ef4444;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
 @keyframes slide{
   0%{ opacity:0; transform: translateY(20px); }
   100%{ opacity:1; transform: translateY(0); }

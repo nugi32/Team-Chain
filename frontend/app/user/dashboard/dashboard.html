@@ -33,14 +33,16 @@
         <h2>My Profile</h2>
       </div>
       <div class="profile-info">
-        <button class="btn-caard" id="UnRegister">UnRegister</button>
         <p><span>Name:</span> <span id="name">-</span> </p>
         <p><span>GitHub:</span> <span id="github">-</span></p>
         <p><span>Age:</span> <span id="age">-</span></p>
         <p><span>Withdrawable:</span> <span id="withdrawable">-</span> <span>ETH</span></p>
       </div>
-      <button class="btn-card" id="withdrawToMe">Withdraw To This Address</button>
+      <div class="userBTN">
+      <button id="withdrawToMe">Withdraw To This Address</button>
+      <button id="UnRegister">UnRegister</button>
       <button id="reload">Reload Data</button>
+      </div>
     </div>
 
 
@@ -62,11 +64,6 @@
 
     <!-- ACTIVE TASK -->
     <div class="card link-card open-panel" id="activePanel">
-      <div class="card-header">
-        <div class="indicator blue"></div>
-        <h2>Active Tasks</h2>
-      <a href="../task/task.html" class="btn-card">View</a>
-      </div>
 
       <div class="gauge-box">
         <svg class="gauge-svg" viewBox="0 0 100 60">
@@ -83,8 +80,10 @@
         <div class="needle" id="needle-active"></div>
         <span class="g-value" id="activeValue">-</span>
       </div>
+        <div class="view-btn">
+        <button id="ViewTask">View</button>
+      </div>
     </div>
-
 
   </div>
 
@@ -92,6 +91,11 @@
 
 
     <div data-include="../global/footer.html"></div>
+    <script>
+  document.getElementById("ViewTask").addEventListener("click", function () {
+    window.location.href = "../task/task.html";
+  });
+</script>
 
     <script>
 function updateGauge(gaugeId, needleId, percent){
