@@ -1,5 +1,8 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import {CONTRACT_ADDRESS} from "../global/AddressConfig.js";
+import { withUI } from "../../global-Ux/loading-ui.js";
+
+
 
 console.log("📦 dashboard loaded");
 
@@ -29,10 +32,10 @@ let iface;
 })();
 
 
-let TotalActiveTask = 0;
-let TotalNotActivatedTask = 0;
 
-function renderUserDashboard(user, amount) {
+ async function renderUserDashboard(user, amount) {
+
+  const openTask = await searchOpenTask();
   const setText = (id, value) => {
     const el = document.getElementById(id);
     if (el) el.textContent = value ?? "-";
@@ -50,8 +53,7 @@ function renderUserDashboard(user, amount) {
   setText("failed", user.totalTasksFailed);
   setText("reputation", user.reputation);
 
-  setText("activeValue", typeof TotalActiveTask !== "undefined" ? TotalActiveTask : 0);
-  setText("NotActivated", typeof TotalNotActivatedTask !== "undefined" ? TotalNotActivatedTask : 0);
+  setText("activeValue", openTask); //kenapa ini keluar object promise
 }
 
 
@@ -92,7 +94,7 @@ async function loadData() {
     // ✅ ethers v6 way
     userWithdrawableAmount = ethers.formatEther(withdrawable);
 
-    renderUserDashboard(userData, userWithdrawableAmount);
+    await renderUserDashboard(userData, userWithdrawableAmount);
     console.log(userData, userWithdrawableAmount)
 
   } catch (err) {
@@ -120,7 +122,7 @@ async function searchOpenTask() {
     const ActiveTask = 2;
 
     const taskCount = Number(await contract.taskCounter());
-    TotalActiveTask = 0;
+    let TotalActiveTask = 0;
 
     for (let i = 0; i < taskCount; i++) {
       const task = await contract.Tasks(i);
@@ -152,7 +154,6 @@ document.getElementById("reload")?.addEventListener("click", async () => {
   try {
     loadData();
     searchOpenTask();
-    SearchNotActivated();
     console.log("tirggered");
   } catch(e) {
     console.error(e);
@@ -190,10 +191,8 @@ async function waitSignerAndRun() {
     }
   }
 
-  await SearchNotActivated();
   await loadData();
   await searchOpenTask();
-  await SearchNotActivated();
 }
 
 
@@ -202,81 +201,72 @@ function onWalletConnected(address) {
   waitSignerAndRun();
 }
 
-document.getElementById("withdrawToMe")?.addEventListener("click", async () => {
-  try {
+
+
+document.getElementById("withdrawToMe")?.addEventListener("click", () => {
+  withUI(async () => {
     const signer = await window.wallet.getSigner();
-      
-      if (!signer) {
-        alert("No signer available. Please connect wallet.");
-        return;
-      }
+    if (!signer) throw new Error("Wallet not connected");
 
-      const addr = await signer.getAddress();
+    const addr = await signer.getAddress();
+    const contract = await getContract(signer);
 
-      const contract = await getContract(signer);
-      const amount = await contract.getWithdrawableAmount(addr);
+    const amount = await contract.getWithdrawableAmount(addr);
+    if (amount <= 0n) throw new Error("Insufficient amount to withdraw");
 
-      if (amount <= 0) {
-        alert("Team Chain: Insuficient Amount To Withdraw");
-        return;
-      }
+    const tx = await contract.withdraw(addr);
+    const receipt = await tx.wait();
 
-      const tx = await contract.withdraw(addr);
-      const receipt = await tx.wait();
-
-      console.log("withdraw Success:", receipt);
-
-      for (const log of receipt.logs) {
+    // Event parsing tetap DI DALAM
+    for (const log of receipt.logs) {
       try {
         const parsed = iface.parseLog(log);
         if (parsed?.name === "Withdrawal") {
-          console.log("📌 EVENT Withdrawal:", signer.address);
-          alert(`✔ Withdrawal Success !\n TO: ${signer.address}\n Amount: ${formatEther(amount)} ETH `);
+          console.log("📌 Withdrawal:", addr);
         }
       } catch {}
     }
-  } catch(err) {
-    console.error(err);
-    alert("Team Chain: An Error Occured When Withdrawal !.")
-  }
+
+    return {
+      address: addr,
+      amount
+    };
+
+  }, {
+    loadingText: "Processing withdrawal...",
+    successMessage: "Withdrawal completed successfully"
+  });
 });
 
 
 
-document.getElementById("UnRegister")?.addEventListener("click", async () => {
-  try {
+document.getElementById("UnRegister")?.addEventListener("click", () => {
+  withUI(async () => {
     const signer = await window.wallet.getSigner();
-      
-      if (!signer) {
-        alert("No signer available. Please connect wallet.");
-        return;
-      }
+    if (!signer) throw new Error("Wallet not connected");
 
-      const addr = await signer.getAddress();
+    const addr = await signer.getAddress();
+    const contract = await getContract(signer);
 
-      const contract = await getContract(signer);
-      const status = await contract.isRegistered(addr);
+    const isRegistered = await contract.isRegistered(addr);
+    if (!isRegistered) throw new Error("User is not registered");
 
-      if (status == true) {
-        const UnRegister = await contract.Unregister(addr);
-        const receipt = await UnRegister.wait();
-        console.log("Unregister Success:", receipt);
-        alert(`✔ Team Chain: User Unregistered Success: ${addr}`);
-      } else if (status == false) {
-        alert(`✔ Team Chain: User Is Not Registered.`);
-      }
+    const tx = await contract.Unregister(addr);
+    const receipt = await tx.wait();
 
-      for (const log of receipt.logs) {
+    for (const log of receipt.logs) {
       try {
         const parsed = iface.parseLog(log);
         if (parsed?.name === "UserUnregistered") {
-          console.log("📌 EVENT User Unregistered:", addr);
+          console.log("📌 User Unregistered:", addr);
         }
       } catch {}
     }
-  } catch(err) {
-    console.error(err);
-    console.log("Team Chain: An Error Occured When UnRegister !."); //selalu ketrigger walau success
-  }
+
+  }, {
+    loadingText: "Unregistering user...",
+    successMessage: "User unregistered successfully"
+  });
 });
+
 
