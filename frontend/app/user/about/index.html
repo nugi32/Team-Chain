@@ -5,28 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../global/global.css" />
     <link rel="stylesheet" href="./about.css" />
+          <script type="module" src="../global/router.js"></script>
     <title>Team Chain</title>
 </head>
 <body>
-  <header class="topbar">
-    
-    <!-- Brand -->
-    <div class="brand">
-      <h1>Team Chain</h1>
-    </div>
+  
+<div class="background">
+  <style>
+    button {
+  padding: 0;
+  margin: 10px;
+}
+#back {
+  font-size: 58px;
+  cursor: pointer;
 
-    <div class="back">
+  height: 44px;           /* lebih tinggi dari font */
+  width: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;         /* penting */
+}
+
+  </style>
+
+      <div class="back">
       <button id="back">⬅</button>
     </div>
-  </header>
-
-
-
-
-
-
-
-<div class="background">
     <div class="card">
   <section class="about-container">
     <h1>About Us</h1>
@@ -72,7 +80,31 @@
 
 
 
+  <!-- Footer section - This is OUTSIDE div.background -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <h3>Contact Our Team</h3>
+      <p class="footer-desc">
+        Have questions, feedback, or need support? Reach us anytime at
+        <a href="mailto:support@trustlessteam.pro">support@trustlessteam.pro</a>
+      </p>
 
+      <div class="footer-links">
+        <a href="#docs">Documentation</a>
+        <a href="#governance">Governance</a>
+        <a href="#community">Community</a>
+        <a href="#status">System Status</a>
+      </div>
+
+      <div class="footer-socials">
+        <a href="#" aria-label="Twitter">🐦</a>
+        <a href="#" aria-label="GitHub">💻</a>
+        <a href="#" aria-label="Discord">💬</a>
+      </div>
+
+      <small>© 2025 Trustless Team Protocol — All Rights Reserved</small>
+    </div>
+  </footer>
 
 
 

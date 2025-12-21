@@ -3,21 +3,176 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <link rel="stylesheet" href="../global/global.css" />
-  <link rel="stylesheet" href="./task.css" />
-  <link rel="stylesheet" href="./taskDetail.css" />
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js"></script>
-  <script type="module" src="../global/connectwallet.js "></script>
+  <!-- JavaScript modules -->
   <script type="module" src="../global/sidebar.js"></script>
-  <script type="module" src="./taskDetail.js"></script>
+  <script type="module" src="../global/router.js"></script>
+  <script type="module" src="../global/connectwallet.js"></script>
+  
+  <!-- UI scripts -->
+  <script src="../../global-Ux/loading-ui.js"></script>
+  <script src="../../global-Ux/ui-core.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
-  <div data-include="../global/header.html"></div>
+  <!-- Header section -->
+  <header class="topbar">
+    <!-- Brand logo and name -->
+    <div class="brand">
+      <h1>Team chain</h1>
+    </div>
+
+    <!-- Wallet connection container -->
+    <div class="wallet-container">
+      <w3m-button></w3m-button>
+    </div>
+
+    <!-- Mobile navigation toggle button -->
+    <button
+      id="navToggle"
+      class="nav-toggle"
+      aria-expanded="false"
+      aria-controls="sideNav"
+      aria-label="Open navigation"
+    >
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M3 6h18M3 12h18M3 18h18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Side navigation menu -->
+  <nav id="sideNav" class="side-nav" aria-hidden="true">
+    <div class="side-header">
+      <h2>Menu</h2>
+      <button id="navClose" class="close" aria-label="Close navigation">✕</button>
+    </div>
+
+    <!-- Navigation list -->
+    <ul class="nav-list">
+      <li>
+        <a href="/user/dashboard" onclick="go('/user/dashboard'); return false;">
+          Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="/user/projects" onclick="go('/user/projects'); return false;">
+          Projects
+        </a>
+      </li>
+      <li>
+        <a href="/user/task" onclick="go('/user/task'); return false;">
+          Tasks
+        </a>
+      </li>
+      <li>
+        <a href="/user/about" onclick="go('/user/about'); return false;">
+          About Us
+        </a>
+      </li>
+    </ul>
+
+    <!-- Footer section of side navigation -->
+    <div class="side-footer">
+      <small>Version 0.1 · Trustless Team Protocol</small>
+    </div>
+  </nav>
+
+  <!-- Overlay for mobile navigation -->
+  <div id="overlay" class="overlay"></div>
 
   <div class="background">
+    <style>
+      
+ button {
+  padding: 4px 8px;   /* perkecil ruang dalam */
+  font-size: 11px;    /* perkecil teks */
+  height: auto;       /* pastikan tidak terkunci */
+  margin: 5px;
+}
+
+/* ================= TEMPLATE CARD ================= */
+.task-card {
+  width: 40%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px auto;
+}
+
+/* Header template lebih kecil */
+.task-card .card-header h2 {
+  font-size: 16px;
+}
+
+/* Info lebih ringkas */
+.task-card .task-info p {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Button template */
+.task-card .card-button {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
+.task-card button {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+.overlayInfo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.task-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+.task-card input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  outline: none;
+  transition: border 0.2s ease, background 0.2s ease;
+}
+
+.task-card input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.task-card input:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.task-card .request-revision {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+    </style>
     <div class="card">
 
       <div class="card-header">
@@ -130,8 +285,30 @@
 
     </div>
   </div>
+  <footer class="site-footer">
+    <div class="footer-content">
+      <h3>Contact Our Team</h3>
+      <p class="footer-desc">
+        Have questions, feedback, or need support? Reach us anytime at
+        <a href="mailto:support@trustlessteam.pro">support@trustlessteam.pro</a>
+      </p>
 
-  <div data-include="../global/footer.html"></div>
+      <div class="footer-links">
+        <a href="#docs">Documentation</a>
+        <a href="#governance">Governance</a>
+        <a href="#community">Community</a>
+        <a href="#status">System Status</a>
+      </div>
+
+      <div class="footer-socials">
+        <a href="#" aria-label="Twitter">🐦</a>
+        <a href="#" aria-label="GitHub">💻</a>
+        <a href="#" aria-label="Discord">💬</a>
+      </div>
+
+      <small>© 2025 Trustless Team Protocol — All Rights Reserved</small>
+    </div>
+  </footer>
 
   <script>
     document.querySelectorAll("[data-include]").forEach(async el => {

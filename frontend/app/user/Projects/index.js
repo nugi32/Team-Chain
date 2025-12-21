@@ -1,43 +1,117 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
 
-console.log("📦 register loaded");
-
-const ARTIFACT_PATH = "../artifact/TrustlessTeamProtocol.json";
-
-const provider = new ethers.JsonRpcProvider(
-  "https://eth-sepolia.g.alchemy.com/v2/cka4F66cHyvFHccHvsdTpjUni9t3NDYR"
-);
+const ARTIFACT_PATH = "/user/artifact/TrustlessTeamProtocol.json";
 
 // ==============================
-// GLOBAL STATE
+// STATE
 // ==============================
+let provider;
 let allTasks = [];
+let walletWatcher = null;
+let lastAddress = null;
+
+// DOM refs
+let searchInput;
+let filterSelect;
 
 // ==============================
-// LOAD ABI
+// LIFECYCLE
+// ==============================
+export function init() {
+  console.log("📦 register init");
+
+  provider = new ethers.JsonRpcProvider(
+    "https://eth-sepolia.g.alchemy.com/v2/cka4F66cHyvFHccHvsdTpjUni9t3NDYR"
+  );
+
+  bindUI();
+  watchWallet();
+}
+
+export function destroy() {
+  console.log("📦 register destroy");
+
+  if (walletWatcher) {
+    clearInterval(walletWatcher);
+    walletWatcher = null;
+  }
+
+  if (searchInput) {
+    searchInput.removeEventListener("input", applySearchAndFilter);
+  }
+
+  if (filterSelect) {
+    filterSelect.removeEventListener("change", applySearchAndFilter);
+  }
+
+  allTasks = [];
+  lastAddress = null;
+}
+
+// ==============================
+// UI
+// ==============================
+function bindUI() {
+  searchInput = document.getElementById("searchInput");
+  filterSelect = document.getElementById("filterSelect");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", applySearchAndFilter);
+  }
+
+  if (filterSelect) {
+    filterSelect.addEventListener("change", applySearchAndFilter);
+  }
+}
+
+// ==============================
+// WALLET
+// ==============================
+function watchWallet() {
+  walletWatcher = setInterval(async () => {
+    const addr = window.wallet?.currentAddress;
+
+    if (addr && addr !== lastAddress) {
+      lastAddress = addr;
+      await waitSignerAndLoad();
+    }
+  }, 300);
+}
+
+async function waitSignerAndLoad() {
+  let signer = null;
+
+  while (!signer) {
+    signer = await window.wallet.getSigner();
+    if (!signer) await delay(300);
+  }
+
+  await loadData(signer);
+}
+
+function delay(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+// ==============================
+// CONTRACT
 // ==============================
 async function loadABI(path) {
   const res = await fetch(path);
   return res.json();
 }
 
-// ==============================
-// CONTRACT
-// ==============================
 async function getContract(signer) {
   const artifact = await loadABI(ARTIFACT_PATH);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 
 // ==============================
-// LOAD DATA FROM CONTRACT
+// LOAD DATA
 // ==============================
-async function loadData() {
+async function loadData(signer) {
   try {
-    const signer = await window.wallet.getSigner();
-    if (!signer) return;
-
     const contract = await getContract(signer);
 
     const taskCount = Number(await contract.taskCounter());
@@ -70,7 +144,7 @@ async function loadData() {
 }
 
 // ==============================
-// RENDER TASKS
+// RENDER
 // ==============================
 function renderTasks(tasks) {
   const container = document.getElementById("activeList");
@@ -89,26 +163,21 @@ function renderTasks(tasks) {
     clone.querySelector(".deadline").textContent = task.deadline;
     clone.querySelector(".stake").textContent = task.stake;
 
-    clone.querySelector(".detailsBTN").addEventListener("click", () => {
-      window.location.href = `../task/taskDetail.html?id=${task.id}`;
-    });
+    clone.querySelector(".detailsBTN")
+      .addEventListener("click", () => {
+        go(`/task?id=${task.id}`);
+      });
 
     container.appendChild(clone);
   });
 }
 
 // ==============================
-// SEARCH + FILTER
+// FILTER
 // ==============================
-const searchInput = document.getElementById("searchInput");
-const filterSelect = document.getElementById("filterSelect");
-
-if (searchInput && filterSelect) {
-  searchInput.addEventListener("input", applySearchAndFilter);
-  filterSelect.addEventListener("change", applySearchAndFilter);
-}
-
 function applySearchAndFilter() {
+  if (!searchInput || !filterSelect) return;
+
   const keyword = searchInput.value.toLowerCase();
   const filter = filterSelect.value;
 
@@ -121,45 +190,16 @@ function applySearchAndFilter() {
     case "stakeHigh":
       result.sort((a, b) => b.stake - a.stake);
       break;
-
     case "stakeLow":
       result.sort((a, b) => a.stake - b.stake);
       break;
-
     case "deadlineSoon":
       result.sort((a, b) => a.deadline - b.deadline);
       break;
-
     case "deadlineLate":
       result.sort((a, b) => b.deadline - a.deadline);
       break;
   }
 
   renderTasks(result);
-}
-
-// ==============================
-// WALLET WATCHER
-// ==============================
-let lastAddress = null;
-
-const walletWatcher = setInterval(() => {
-  const addr = window.wallet?.currentAddress;
-
-  if (addr && addr !== lastAddress) {
-    lastAddress = addr;
-    waitSignerAndRun();
-    clearInterval(walletWatcher);
-  }
-}, 300);
-
-async function waitSignerAndRun() {
-  let signer = null;
-
-  while (!signer) {
-    signer = await window.wallet.getSigner();
-    if (!signer) await new Promise(r => setTimeout(r, 300));
-  }
-
-  await loadData();
 }
