@@ -8,8 +8,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "http-server": "^14.1.1",
-    "typescript": "^5.1.6"
+    "http-server": "^14.1.1"
   },
   "dependencies": {
     "@reown/walletkit": "^1.4.1",
