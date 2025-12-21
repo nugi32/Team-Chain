@@ -10,7 +10,7 @@ import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
 // MODULE STATE
 // ==============================
 
-const ARTIFACT_PATH = "../artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "/app/artifact/TrustlessTeamProtocol.json";
 
 let iface = null;
 let formHandler = null;
