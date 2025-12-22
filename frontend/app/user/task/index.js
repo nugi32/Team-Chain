@@ -1,338 +1,237 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
-import { isRegistered } from "../global/helper.js";
-import { _getMinDeadline, _getMaxRevisionTime, _getMaxReward } from "../global/stateVarHelper.js";
+import { _getMinDeadline, _getMaxRevisionTime, _getMaxReward, isRegistered } from "../global/helper.js";
 import { withUI } from "../../global-Ux/loading-ui.js";
 
 // ==============================
 // MODULE STATE
 // ==============================
 
-// Persistent module state (re-initialized per page instance)
 let provider = null;
 let iface = null;
 let walletWatcherInterval = null;
-let lastAddress = null;
 
-// Task data arrays
+let pageActive = false;
+let lastLoadedAddress = null;
+
+// Task data
 let createdTasks = [];
 let joinedTasks = [];
 
-// Event listener references for cleanup
+// Event listeners
 let eventListeners = [];
 
-// Configuration
 const ARTIFACT_PATH = "../../artifact/TrustlessTeamProtocol.json";
 
 // ==============================
-// INITIALIZATION / DESTRUCTION
+// INIT / DESTROY
 // ==============================
 
-/**
- * Initialize the projects page
- * Called by SPA router when this page becomes active
- */
 export async function init() {
     console.log("📦 task page initializing");
-    
-    // Initialize provider (Ethereum connection)
+    pageActive = true;
+
     provider = new ethers.JsonRpcProvider(
         "https://eth-sepolia.g.alchemy.com/v2/cka4F66cHyvFHccHvsdTpjUni9t3NDYR"
     );
-    
-    // Load contract interface for event parsing
+
     const artifact = await loadABI(ARTIFACT_PATH);
     iface = new ethers.Interface(artifact.abi);
-    
-    // Set up all UI event listeners
+
     setupEventListeners();
-    
-    // Start monitoring for wallet connections
     setupWalletWatcher();
-    
-    // Load initial data if wallet is already connected
-    if (window.wallet?.currentAddress) {
-        await waitSignerAndRun();
-    }
+
+    // Page masuk → coba load (kalau wallet sudah connect)
+    await tryLoadTasks();
 }
 
-/**
- * Clean up all resources when leaving the page
- * Called by SPA router before page removal
- */
 export function destroy() {
     console.log("🧹 projects page cleaning up");
-    
-    // Stop wallet monitoring
+    pageActive = false;
+
     if (walletWatcherInterval) {
         clearInterval(walletWatcherInterval);
         walletWatcherInterval = null;
     }
-    
-    // Remove all event listeners
+
     eventListeners.forEach(({ element, event, handler }) => {
         element?.removeEventListener(event, handler);
     });
     eventListeners = [];
-    
-    // Clear state
-    lastAddress = null;
+
+    lastLoadedAddress = null;
     createdTasks = [];
     joinedTasks = [];
-    
-    console.log("✅ projects page cleanup complete");
+}
+
+// ==============================
+// WALLET GATE LOADER (KUNCI)
+// ==============================
+
+async function tryLoadTasks() {
+    if (!pageActive) return;
+
+    const signer = await window.wallet?.getSigner();
+    if (!signer) return;
+
+    const address = (await signer.getAddress()).toLowerCase();
+
+    // 🔒 GATE: address sama → STOP
+    if (address === lastLoadedAddress) return;
+    lastLoadedAddress = address;
+
+    console.log("🔄 Loading tasks for", address);
+
+    await loadCreatedTasks();
+    await loadJoinedTasks();
+}
+
+// ==============================
+// WALLET WATCHER
+// ==============================
+
+function setupWalletWatcher() {
+    walletWatcherInterval = setInterval(async () => {
+        const addr = window.wallet?.currentAddress;
+        if (!addr) return;
+
+        if (addr.toLowerCase() !== lastLoadedAddress) {
+            await tryLoadTasks();
+        }
+    }, 300);
 }
 
 // ==============================
 // EVENT LISTENER MANAGEMENT
 // ==============================
 
-/**
- * Helper to add tracked event listeners for proper cleanup
- */
 function addEventListener(element, event, handler) {
     if (!element) return;
     element.addEventListener(event, handler);
     eventListeners.push({ element, event, handler });
 }
 
-/**
- * Set up all page event listeners
- * Called during initialization
- */
 function setupEventListeners() {
-    // Search and filter for created tasks
     const searchActive = document.getElementById("searchActive");
     const filterActive = document.getElementById("filterActive");
-    
+
     if (searchActive) {
         addEventListener(searchActive, "input", () => {
-            const query = searchActive.value.toLowerCase();
-            const filtered = createdTasks.filter(t => 
-                t.title.toLowerCase().includes(query)
-            );
-            renderCreatedTasks(filtered);
+            const q = searchActive.value.toLowerCase();
+            renderCreatedTasks(createdTasks.filter(t => t.title.toLowerCase().includes(q)));
         });
     }
-    
+
     if (filterActive) {
-        addEventListener(filterActive, "change", (e) => {
-            let sorted = [...createdTasks];
-            if (e.target.value === "newest") {
-                sorted.reverse();
-            } else if (e.target.value === "oldest") {
-                sorted.sort((a, b) => a.order - b.order);
-            }
-            renderCreatedTasks(sorted);
+        addEventListener(filterActive, "change", e => {
+            let list = [...createdTasks];
+            if (e.target.value === "newest") list.reverse();
+            else list.sort((a, b) => a.order - b.order);
+            renderCreatedTasks(list);
         });
     }
-    
-    // Search and filter for joined tasks
+
     const searchInactive = document.getElementById("searchInactive");
     const filterInactive = document.getElementById("filterInactive");
-    
+
     if (searchInactive) {
         addEventListener(searchInactive, "input", () => {
-            const query = searchInactive.value.toLowerCase();
-            const filtered = joinedTasks.filter(t => 
-                t.title.toLowerCase().includes(query)
-            );
-            renderJoinedTasks(filtered);
+            const q = searchInactive.value.toLowerCase();
+            renderJoinedTasks(joinedTasks.filter(t => t.title.toLowerCase().includes(q)));
         });
     }
-    
+
     if (filterInactive) {
-        addEventListener(filterInactive, "change", (e) => {
-            let sorted = [...joinedTasks];
-            if (e.target.value === "newest") {
-                sorted.reverse();
-            } else if (e.target.value === "oldest") {
-                sorted.sort((a, b) => a.order - b.order);
-            }
-            renderJoinedTasks(sorted);
+        addEventListener(filterInactive, "change", e => {
+            let list = [...joinedTasks];
+            if (e.target.value === "newest") list.reverse();
+            else list.sort((a, b) => a.order - b.order);
+            renderJoinedTasks(list);
         });
     }
-    
-    // Test button (for debugging)
-    const testBtn = document.getElementById("test");
-    if (testBtn) {
-        addEventListener(testBtn, "click", async () => {
-            try {
-                const signer = await window.wallet.getSigner();
-                if (!signer) {
-                    alert("No signer available. Please connect wallet.");
-                    return;
-                }
-                const contract = await getContract(signer);
-                const data = await contract.Tasks(1);
-                console.log(data);
-                await loadCreatedTasks();
-                await loadJoinedTasks();
-            } catch (e) {
-                console.error(e);
-            }
-        });
-    }
-    
-    // Task creation form
+
     const taskForm = document.querySelector(".taskForm");
     if (taskForm) {
         addEventListener(taskForm, "submit", handleTaskFormSubmit);
     }
 }
 
-
-
 // ==============================
-// CONTRACT INTERACTION
+// CONTRACT HELPERS
 // ==============================
 
-/**
- * Load contract ABI from JSON file
- */
 async function loadABI(path) {
     const res = await fetch(path);
     return res.json();
 }
 
-/**
- * Get contract instance with signer
- */
 async function getContract(signer) {
     const artifact = await loadABI(ARTIFACT_PATH);
     return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 
 // ==============================
-// WALLET CONNECTION MANAGEMENT
+// DATA LOADERS
 // ==============================
 
-/**
- * Set up interval to watch for wallet connection changes
- */
-function setupWalletWatcher() {
-    walletWatcherInterval = setInterval(() => {
-        const addr = window.wallet?.currentAddress;
-        if (addr && addr !== lastAddress) {
-            lastAddress = addr;
-            onWalletConnected(addr);
-            clearInterval(walletWatcherInterval);
-        }
-    }, 300);
-}
-
-/**
- * Handle wallet connection event
- */
-function onWalletConnected(address) {
-    console.log("Wallet connected:", address);
-    waitSignerAndRun();
-}
-
-/**
- * Wait for signer to be available and load data
- */
-async function waitSignerAndRun() {
-    let signer = null;
-    
-    // Poll until signer is available
-    while (!signer) {
-        signer = await window.wallet.getSigner();
-        if (!signer) {
-            await new Promise(resolve => setTimeout(resolve, 300));
-        }
-    }
-    
-    // Load both task lists
-    await loadCreatedTasks();
-    await loadJoinedTasks();
-}
-
-// ==============================
-// TASK DATA LOADING
-// ==============================
-
-/**
- * Load tasks created by the current user
- */
 async function loadCreatedTasks() {
-    try {
-        const signer = await window.wallet.getSigner();
-        if (!signer) return;
+    const signer = await window.wallet.getSigner();
+    if (!signer) return;
 
-        const contract = await getContract(signer);
-        const address = (await signer.getAddress()).toLowerCase();
+    const contract = await getContract(signer);
+    const address = (await signer.getAddress()).toLowerCase();
+    const taskCount = Number(await contract.taskCounter());
 
-        const taskCount = Number(await contract.taskCounter());
-        createdTasks = [];
+    createdTasks = [];
 
-        for (let i = 0; i < taskCount; i++) {
-            const task = await contract.Tasks(i);
+    for (let i = 0; i < taskCount; i++) {
+        const task = await contract.Tasks(i);
+        if (!task.exists) continue;
+        if (task.creator.toLowerCase() !== address) continue;
 
-            if (!task.exists) continue;
-            if (task.creator.toLowerCase() !== address) continue;
-
-            createdTasks.push({
-                id: task[0].toString(),
-                title: task[5],
-                status: task[1],
-                order: i
-            });
-        }
-
-        renderCreatedTasks(createdTasks);
-
-    } catch (error) {
-        console.error("Failed to load created tasks:", error);
-        alert("Team Chain: Failed to load created tasks.");
+        createdTasks.push({
+            id: task[0].toString(),
+            title: task[5],
+            status: task[1],
+            order: i
+        });
     }
+
+    renderCreatedTasks(createdTasks);
 }
 
-/**
- * Load tasks the current user has joined
- */
 async function loadJoinedTasks() {
-    try {
-        const signer = await window.wallet.getSigner();
-        if (!signer) return;
+    const signer = await window.wallet.getSigner();
+    if (!signer) return;
 
-        const contract = await getContract(signer);
-        const address = (await signer.getAddress()).toLowerCase();
+    const contract = await getContract(signer);
+    const address = (await signer.getAddress()).toLowerCase();
+    const taskCount = Number(await contract.taskCounter());
 
-        const taskCount = Number(await contract.taskCounter());
-        joinedTasks = [];
+    joinedTasks = [];
 
-        for (let i = 0; i < taskCount; i++) {
-            const task = await contract.Tasks(i);
+    for (let i = 0; i < taskCount; i++) {
+        const task = await contract.Tasks(i);
+        if (!task.exists) continue;
+        if (task.member.toLowerCase() !== address) continue;
 
-            if (!task.exists) continue;
-            if (task.member.toLowerCase() !== address) continue;
-
-            joinedTasks.push({
-                id: task[0].toString(),
-                title: task[5],
-                status: Number(task.status),
-                order: i
-            });
-        }
-
-        renderJoinedTasks(joinedTasks);
-
-    } catch (error) {
-        console.error("Failed to load joined tasks:", error);
-        alert("Team Chain: Failed to load joined tasks.");
+        joinedTasks.push({
+            id: task[0].toString(),
+            title: task[5],
+            status: Number(task.status),
+            order: i
+        });
     }
+
+    renderJoinedTasks(joinedTasks);
 }
 
 // ==============================
 // UI RENDERING
 // ==============================
 
-/**
- * Decode task status number to human-readable string
- */
 function decodeStatus(status) {
-    const statusMap = {
+    return {
         0: "NonExistent",
         1: "Created",
         2: "Active",
@@ -340,69 +239,48 @@ function decodeStatus(status) {
         4: "InProgress",
         5: "Completed",
         6: "Cancelled"
-    };
-    return statusMap[status] || "Undefined";
+    }[status] || "Undefined";
 }
 
-/**
- * Render created tasks to the UI
- */
 function renderCreatedTasks(tasks) {
-    const container = document.getElementById("activeList");
-    const template = document.getElementById("taskCardTemplate");
+    const c = document.getElementById("activeList");
+    const t = document.getElementById("taskCardTemplate");
+    if (!c || !t) return;
 
-    if (!container || !template) return;
-    
-    container.innerHTML = "";
-
+    c.innerHTML = "";
     tasks.forEach(task => {
-        const clone = template.content.cloneNode(true);
-        
-        clone.querySelector(".taskId").textContent = task.id;
-        clone.querySelector(".title").textContent = task.title;
-        clone.querySelector(".status").textContent = decodeStatus(task.status);
-
-        const detailsBtn = clone.querySelector(".detailsBTN");
-        if (detailsBtn) {
-            // Use addEventListener for proper cleanup in SPA context
-            detailsBtn.addEventListener("click", () => {
-                window.location.href = `taskDetail.html?id=${task.id}`;
-            });
-        }
-
-        container.appendChild(clone);
+        const n = t.content.cloneNode(true);
+        n.querySelector(".taskId").textContent = task.id;
+        n.querySelector(".title").textContent = task.title;
+        n.querySelector(".status").textContent = decodeStatus(task.status);
+        n.querySelector(".detailsBTN")?.addEventListener("click", () => {
+            go(`/../user/taskDetail?id=${task.id}`);
+        });
+        c.appendChild(n);
     });
 }
 
-/**
- * Render joined tasks to the UI
- */
 function renderJoinedTasks(tasks) {
-    const container = document.getElementById("JoinedList");
-    const template = document.getElementById("JtaskCardTemplate");
+    const c = document.getElementById("JoinedList");
+    const t = document.getElementById("JtaskCardTemplate");
+    if (!c || !t) return;
 
-    if (!container || !template) return;
-    
-    container.innerHTML = "";
-
+    c.innerHTML = "";
     tasks.forEach(task => {
-        const clone = template.content.cloneNode(true);
-        
-        clone.querySelector(".taskId").textContent = task.id;
-        clone.querySelector(".title").textContent = task.title;
-        clone.querySelector(".status").textContent = decodeStatus(task.status);
-
-        const detailsBtn = clone.querySelector(".JdetailsBTN");
-        if (detailsBtn) {
-            // Use addEventListener for proper cleanup in SPA context
-            detailsBtn.addEventListener("click", () => {
-                window.location.href = `taskDetail.html?id=${task.id}`;
-            });
-        }
-
-        container.appendChild(clone);
+        const n = t.content.cloneNode(true);
+        n.querySelector(".taskId").textContent = task.id;
+        n.querySelector(".title").textContent = task.title;
+        n.querySelector(".status").textContent = decodeStatus(task.status);
+        n.querySelector(".detailsBTN")?.addEventListener("click", () => {
+            go(`/../user/taskDetail?id=${task.id}`);
+        });
+        c.appendChild(n);
     });
 }
+
+
+
+
 
 
 
@@ -511,17 +389,21 @@ async function handleTaskFormSubmit(e) {
     const addr = await signer.getAddress();
     const status =  await isRegistered(contract, addr);
     const maxReward = await _getMaxReward(signer);
+    const minDeadline = await _getMinDeadline(signer);
+    const MaxRevision = await _getMaxRevisionTime(signer);
 
-    if (deadlineHours > (await _getMinDeadline(signer))) {
-        throw new Error("Deadline is too short.");
+    if (deadlineHours < minDeadline) {
+        console.log(minDeadline)
+        throw new Error(`Deadline is too short, minimum allowed is: ${minDeadline}.`);
     }
 
-    if (maxRevision > ( await _getMaxRevisionTime(signer))) {
-        throw new Error("Too much revision.");
+    if (maxRevision > MaxRevision) {
+        console.log("rev",MaxRevision)
+        throw new Error(`too much revision, maximum allowed is: ${MaxRevision}.`);
     }
 
-    if (rewardInput > maxReward) {
-        throw new Error(`Reward is too big, maximum allowed is: ${ethers.formatEther(maxReward)} ETH`);
+    if (rewardWei > maxReward) {
+        throw new Error(`Reward is too big, maximum allowed is: ${ethers.formatEther(maxReward)} ETH.`);
     }
 
     if (!status) {
@@ -533,6 +415,13 @@ async function handleTaskFormSubmit(e) {
     if (balance < rewardWei) {
       throw new Error(`Insufficient balance\nYour balance: ${ethers.formatEther(balance)} ETH.  \nReward: ${ethers.formatEther(rewardWei)} ETH`);
     }
+
+    console.log(title)
+    console.log(githubUrl)
+    console.log(deadlineHours)
+    console.log(maxRevision)
+    console.log(addr)
+    console.log(rewardWei)
 
     // Create task transaction
     const tx = await contract.createTask(

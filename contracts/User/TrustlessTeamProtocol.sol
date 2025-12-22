@@ -382,12 +382,6 @@ contract TrustlessTeamProtocol is
         taskCounter++;
         uint256 taskId = taskCounter;
 
-        // Validate input parameters
-        if (bytes(Title).length == 0) revert InvalidTitle();
-        if (___getMinRevisionTimeInHour() > DeadlineHours) revert InvalidDeadline();
-        if (___getMaxRevision() < MaximumRevision) revert TooManyRevisions();
-        if (msg.value == 0 || msg.value > ___getMaxReward()) revert InvalidRewardAmount();
-
         // Create new task
         Tasks[taskId] = Task({
             taskId: taskId,
@@ -440,7 +434,6 @@ contract TrustlessTeamProtocol is
         
         // Validate task state and stake amount
         if (t.status != TaskStatus.Created) revert TaskNotOpen();
-        if (msg.value == 0 || msg.value > ___getMaxStake()) revert InvalidStakeAmount();
         if (msg.value != __getCreatorStake(t.deadlineHours, t.maxRevision, t.reward, t.creator)) revert StakeMismatch();
 
         // Calculate and deduct protocol fee

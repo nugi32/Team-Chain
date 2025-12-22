@@ -1,6 +1,6 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
-import { isRegistered } from "../global/helper.js"
+import { isRegistered } from "../global/helper.js";
 import { withUI } from "../../global-Ux/loading-ui.js";
 
 // ==============================
@@ -16,15 +16,21 @@ const ARTIFACT_PATH = "../../artifact/TrustlessTeamProtocol.json";
 // ==============================
 // INIT / DESTROY
 // ==============================
-export function init() {
+export async function init() {
   if (initialized) return;
   initialized = true;
 
   console.log("📦 dashboard init");
 
-  setupInterface();
+  await setupInterface();
   setupButtons();
   watchWallet();
+
+  // 🔑 WALLET SUDAH CONNECT SEBELUM PAGE MASUK
+  if (window.wallet?.currentAddress) {
+    lastAddress = window.wallet.currentAddress;
+    await loadData();
+  }
 }
 
 export function destroy() {
@@ -50,7 +56,6 @@ async function setupInterface() {
 
 function setupButtons() {
   document.getElementById("reload")?.addEventListener("click", loadData);
-
   document.getElementById("withdrawToMe")?.addEventListener("click", withdraw);
   document.getElementById("UnRegister")?.addEventListener("click", unregister);
   document.getElementById("ViewTask")?.addEventListener("click", viewtask);
@@ -59,12 +64,12 @@ function setupButtons() {
 function watchWallet() {
   walletWatcher = setInterval(async () => {
     const addr = window.wallet?.currentAddress;
-    if (!addr || addr === lastAddress) return;
+    if (!addr) return;
 
-    lastAddress = addr;
-    console.log("Wallet connected:", addr);
-
-    await loadData();
+    if (addr.toLowerCase() !== lastAddress) {
+      lastAddress = addr;
+      await loadData();
+    }
   }, 300);
 }
 
@@ -83,9 +88,7 @@ async function getContract(signer) {
 
 async function loadData() {
   try {
-    if (!window.wallet) return;
-
-    const signer = await window.wallet.getSigner();
+    const signer = await window.wallet?.getSigner();
     if (!signer) return;
 
     const contract = await getContract(signer);
@@ -120,6 +123,9 @@ async function loadData() {
   }
 }
 
+// ==============================
+// UI
+// ==============================
 async function renderUserDashboard(user, amount) {
   const openTask = await searchOpenTask();
 
@@ -190,10 +196,11 @@ async function withdraw() {
       "Your funds have been withdrawn."
     );
 
-    return true; // 🔑 WAJIB
+    // refresh dashboard
+    await loadData();
+    return true;
   });
 }
-
 
 async function unregister() {
   return withUI(async () => {
@@ -218,10 +225,10 @@ async function unregister() {
       "Your account has been successfully unregistered."
     );
 
-    return true; // 🔑 WAJIB
+    return true;
   });
 }
 
-async function viewtask() {
-  go("/user/task")
+function viewtask() {
+  go("/user/task");
 }
