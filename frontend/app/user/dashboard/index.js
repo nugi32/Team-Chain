@@ -1,5 +1,6 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
+import { isRegistered } from "../global/helper.js"
 import { withUI } from "../../global-Ux/loading-ui.js";
 
 // ==============================
@@ -10,7 +11,7 @@ let walletWatcher = null;
 let lastAddress = null;
 let initialized = false;
 
-const ARTIFACT_PATH = "/user/artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "../../artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // INIT / DESTROY
@@ -52,6 +53,7 @@ function setupButtons() {
 
   document.getElementById("withdrawToMe")?.addEventListener("click", withdraw);
   document.getElementById("UnRegister")?.addEventListener("click", unregister);
+  document.getElementById("ViewTask")?.addEventListener("click", viewtask);
 }
 
 function watchWallet() {
@@ -89,10 +91,15 @@ async function loadData() {
     const contract = await getContract(signer);
     const address = await signer.getAddress();
 
-    if (!(await contract.isRegistered(address))) return;
+    const { isRegistered: registered } =
+      await isRegistered(contract, address);
 
-    const user = await contract.getMyData(address);
-    const withdrawable = await contract.getWithdrawableAmount(address);
+    if (!registered) {
+      throw new Error("User is not registered");
+    }
+
+    const user = await contract.Users(address);
+    const withdrawable = await contract.withdrawable(address);
 
     const userData = {
       totalTasksCreated: Number(user.totalTasksCreated),
@@ -165,26 +172,56 @@ async function searchOpenTask() {
 async function withdraw() {
   return withUI(async () => {
     const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
+
     const addr = await signer.getAddress();
     const contract = await getContract(signer);
 
-    const amount = await contract.getWithdrawableAmount(addr);
-    if (amount <= 0n) throw new Error("Insufficient amount");
+    const amount = await contract.withdrawable(addr);
+    if (amount <= 0n) {
+      throw new Error("Insufficient withdrawable amount");
+    }
 
     const tx = await contract.withdraw(addr);
     await tx.wait();
+
+    Notify.success(
+      "Withdrawal Successful",
+      "Your funds have been withdrawn."
+    );
+
+    return true; // 🔑 WAJIB
   });
 }
+
 
 async function unregister() {
   return withUI(async () => {
     const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
+
     const addr = await signer.getAddress();
     const contract = await getContract(signer);
 
-    if (!(await contract.isRegistered(addr))) return;
+    const { isRegistered: registered } =
+      await isRegistered(contract, addr);
+
+    if (!registered) {
+      throw new Error("User is not registered");
+    }
 
     const tx = await contract.Unregister(addr);
     await tx.wait();
+
+    Notify.success(
+      "Unregistered",
+      "Your account has been successfully unregistered."
+    );
+
+    return true; // 🔑 WAJIB
   });
+}
+
+async function viewtask() {
+  go("/user/task")
 }

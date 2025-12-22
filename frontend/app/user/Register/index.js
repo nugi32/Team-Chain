@@ -5,12 +5,14 @@
 // External dependencies
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
+import { isRegistered } from "../global/helper.js";
+import { withUI } from "../../global-Ux/loading-ui.js";
 
 // ==============================
 // MODULE STATE
 // ==============================
 
-const ARTIFACT_PATH = "/app/artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "../../artifact/TrustlessTeamProtocol.json";
 
 let iface = null;
 let formHandler = null;
@@ -38,71 +40,30 @@ async function loadInterface() {
   return iface;
 }
 
-// ==============================
-// ERROR HANDLING
-// ==============================
-
-const errorMessages = {
-  NotOwner: "Team Chain: User already registered.",
-  ZeroAddress:
-    "Team Chain: Invalid address — the zero address (0x000...0) is not allowed.",
-};
-
-const selectorMap = {
-  "0x3797687a": "NotOwner",
-  "0x30cd7471": "NotOwner",
-  "0x1b4ce173": "ZeroAddress",
-};
-
-function decodeErrorSelector(err) {
-  const data =
-    err?.data ||
-    err?.error?.data ||
-    err?.info?.error?.data ||
-    err?.cause?.data ||
-    null;
-
-  if (!data || data.length < 10) return null;
-
-  return selectorMap[data.slice(0, 10)] ?? null;
-}
-
-// ==============================
-// FORM HANDLERS
-// ==============================
 
 async function handleRegisterSubmit(e) {
-  e.preventDefault();
+  e.preventDefault(); // ⬅ pindahkan ke luar
 
-  try {
+  return withUI(async () => {
     const signer = await window.wallet?.getSigner();
     if (!signer) {
-      alert("Please connect wallet first.");
-      return;
+      throw new Error("Wallet not connected");
     }
 
     const form = e.target;
-
     const name = form.name.value.trim();
     const age = form.age.value.trim();
     const githubURL = form.github.value.trim();
 
-    // Validate GitHub URL
-    let username;
-    try {
-      const url = new URL(githubURL);
+    // --- GitHub URL validation (biarkan seperti punya Anda) ---
+    const url = new URL(githubURL);
+    if (url.hostname !== "github.com") {
+      throw new Error("Invalid GitHub profile URL");
+    }
 
-      if (url.hostname !== "github.com") {
-        throw new Error();
-      }
-
-      const parts = url.pathname.split("/").filter(Boolean);
-      if (!parts.length) throw new Error();
-
-      username = parts[0];
-    } catch {
-      alert("❌ Team Chain: Invalid GitHub URL.");
-      return;
+    const parts = url.pathname.split("/").filter(Boolean);
+    if (parts.length !== 1) {
+      throw new Error("Invalid GitHub profile URL");
     }
 
     const addr = await signer.getAddress();
@@ -112,52 +73,35 @@ async function handleRegisterSubmit(e) {
     const tx = await contract.Register(name, age, githubURL, addr);
     const receipt = await tx.wait();
 
-    for (const log of receipt.logs) {
-      try {
-        const parsed = iface.parseLog(log);
-        if (parsed?.name === "UserRegistered") {
-          alert("✔ Team Chain: Registration successful!");
-        }
-      } catch {}
-    }
-  } catch (err) {
-    const errorName =
-      decodeErrorSelector(err) ||
-      err?.shortMessage?.replace("execution reverted: ", "") ||
-      err?.reason ||
-      null;
+    // ✅ Cukup anggap sukses jika tx mined
+    Notify.success(
+      "Registration Successful",
+      "Your account has been registered."
+    );
 
-    if (errorName && errorMessages[errorName]) {
-      alert(errorMessages[errorName]);
-      return;
-    }
-
-    alert("Team Chain: Failed to register.");
-  }
+    return true; // 🔑 WAJIB ADA
+  });
 }
 
 async function handleCheckRegistration() {
-  try {
-    const signer = await window.wallet?.getSigner();
-    if (!signer) {
-      alert("Please connect wallet first.");
-      return;
-    }
+  return withUI(async () => {
+    const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
 
     const addr = await signer.getAddress();
     const contract = await getContract(signer);
 
-    const status = await contract.isRegistered(addr);
+    const result = await isRegistered(contract, addr);
+    const { isRegistered: registered, message } = result;
 
-    alert(
-      status
-        ? "Team Chain: Your address IS registered."
-        : "Team Chain: Your address is NOT registered."
-    );
-  } catch (err) {
-    console.error(err);
-    alert("Team Chain: Failed to check registration status.");
-  }
+    if (registered) {
+      Notify.success("Registration Status", message);
+    } else {
+      Notify.error(message);
+    }
+
+    return registered;
+  });
 }
 
 // ==============================

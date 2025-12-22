@@ -52,22 +52,18 @@ function copyJob(src, dest, label = null) {
 
 // contoh: state variable
 const SRC_STATE_VAR = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'system', 'StateVariable.sol');
-const DEST_STATE_VAR = path.join(__dirname, '..', 'app', 'owner', 'artifact');
+const DEST_STATE_VAR = path.join(__dirname, '..', 'app', 'artifact');
 
 // contoh: access control
 const SRC_ACCESS = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'system', 'AccesControl.sol');
-const DEST_ACCESS = path.join(__dirname, '..', 'app', 'owner', 'artifact');
+const DEST_ACCESS = path.join(__dirname, '..', 'app', 'artifact');
 
 // contoh: WALLET
 const SRC_WALLET = path.join(__dirname,'..', '..', 'artifacts', 'contracts', 'system', 'Wallet.sol');
-const DEST_WALLET = path.join(__dirname, '..', 'app', 'owner', 'artifact');
-
-// contoh: main contract
-const SRC_MAIN = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'User', 'TrustlessTeamProtocol.sol');
-const DEST_MAIN = path.join(__dirname, '..', 'app', 'owner', 'artifact');
+const DEST_WALLET = path.join(__dirname, '..', 'app', 'artifact');
 
 const SRC_USR = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'User', 'TrustlessTeamProtocol.sol');
-const DEST_USR = path.join(__dirname, '..', 'app', 'user', 'artifact');
+const DEST_USR = path.join(__dirname, '..', 'app', 'artifact');
 
 
 
@@ -80,7 +76,6 @@ console.log("\n📦=== START COPY CONTRACTS ===");
 copyJob(SRC_STATE_VAR, DEST_STATE_VAR, "STATE VAR");
 copyJob(SRC_ACCESS, DEST_ACCESS, "ACCESS CONTROL");
 copyJob(SRC_WALLET, DEST_WALLET, "EMPLOYEE MODULE");
-copyJob(SRC_MAIN, DEST_MAIN, "EMPLOYEE MODULE");
 copyJob(SRC_USR, DEST_USR, "Team-Chain MODULE");
 
 console.log("\n🎉 ALL TASK FINISHED!");

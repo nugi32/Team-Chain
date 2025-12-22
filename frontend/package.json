@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc -p . && node ./scripts/copy-contracts.js",
+    "build": "node ./scripts/copy-contracts.js",
     "start": "http-server ./app/ -c-1 -a 0.0.0.0 --port 8080 --cors"
   },
   "devDependencies": {

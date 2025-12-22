@@ -4,7 +4,7 @@ node_modules
 # Hardhat files
 /cache
 /artifacts
-/app/user/artifact
+/app/artifact
 /app/owner/artifact
 /app/address
 /app/owner/connectors/config.js

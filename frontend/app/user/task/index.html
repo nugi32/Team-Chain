@@ -9,6 +9,7 @@
   <script type="module" src="../global/sidebar.js"></script>
   <script type="module" src="../global/router.js"></script>
   <script type="module" src="../global/connectwallet.js"></script>
+  <script type="module" src="./index.js"></script>
   
   <!-- UI scripts -->
   <script src="../../global-Ux/loading-ui.js"></script>
@@ -332,7 +333,6 @@
     </div>
 
     <!-- ================= CREATE ================= -->
-    <!-- creatte task tambahkan buat up pict juga -->
     <div class="card">
       <h1 class="page-title">Create Task</h1>
 
@@ -379,12 +379,5 @@
       <small>© 2025 Trustless Team Protocol — All Rights Reserved</small>
     </div>
   </footer>
-  <script>
-    document.querySelectorAll("[data-include]").forEach(async el => {
-      const file = el.getAttribute("data-include");
-      const res = await fetch(file);
-      el.innerHTML = await res.text();
-    });
-  </script>
 </body>
 </html>

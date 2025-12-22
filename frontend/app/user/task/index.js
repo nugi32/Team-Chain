@@ -1,5 +1,8 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
+import { isRegistered } from "../global/helper.js";
+import { _getMinDeadline, _getMaxRevisionTime, _getMaxReward } from "../global/stateVarHelper.js";
+import { withUI } from "../../global-Ux/loading-ui.js";
 
 // ==============================
 // MODULE STATE
@@ -19,7 +22,7 @@ let joinedTasks = [];
 let eventListeners = [];
 
 // Configuration
-const ARTIFACT_PATH = "../artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "../../artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // INITIALIZATION / DESTRUCTION
@@ -30,7 +33,7 @@ const ARTIFACT_PATH = "../artifact/TrustlessTeamProtocol.json";
  * Called by SPA router when this page becomes active
  */
 export async function init() {
-    console.log("📦 projects page initializing");
+    console.log("📦 task page initializing");
     
     // Initialize provider (Ethereum connection)
     provider = new ethers.JsonRpcProvider(
@@ -177,6 +180,8 @@ function setupEventListeners() {
         addEventListener(taskForm, "submit", handleTaskFormSubmit);
     }
 }
+
+
 
 // ==============================
 // CONTRACT INTERACTION
@@ -399,6 +404,15 @@ function renderJoinedTasks(tasks) {
     });
 }
 
+
+
+
+
+
+
+
+
+
 // ==============================
 // TASK CREATION
 // ==============================
@@ -450,141 +464,115 @@ function validateGithubIssueUrl(githubUrl) {
  * Handle task creation form submission
  */
 async function handleTaskFormSubmit(e) {
-    e.preventDefault();
+  e.preventDefault();
+  return withUI(async () => {
+    const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
 
-    try {
-        const signer = await window.wallet.getSigner();
-        if (!signer) {
-            alert("No signer available. Please connect wallet.");
-            return;
-        }
+    // Get form values
+    const title = e.target.title.value.trim();
+    const githubUrl = e.target.github.value.trim();
+    const deadlineHours = Number(e.target.deadlineHours.value);
+    const maxRevision = Number(e.target.maxRevision.value);
+    const rewardInput = e.target.reward.value.trim();
 
-        // Get form values
-        const title = e.target.title.value.trim();
-        const githubUrl = e.target.github.value.trim();
-        const deadlineHours = Number(e.target.deadlineHours.value);
-        const maxRevision = Number(e.target.maxRevision.value);
-        const rewardInput = e.target.reward.value.trim();
-
-        // Validate GitHub URL
-        if (!validateGithubIssueUrl(githubUrl)) {
-            alert("Team Chain: Invalid GitHub Issue URL.");
-            return;
-        }
-
-        // Validate numeric inputs
-        if (isNaN(deadlineHours) || deadlineHours <= 0) {
-            alert("Team Chain: Deadline must be a positive number.");
-            return;
-        }
-
-        if (isNaN(maxRevision) || maxRevision < 0) {
-            alert("Team Chain: Max revision must be a non-negative number.");
-            return;
-        }
-
-        // Convert reward to Wei
-        const rewardUnit = document.getElementById("rewardUnit")?.value || "eth";
-        let rewardWei;
-
-        if (isNaN(rewardInput) || Number(rewardInput) <= 0) {
-            alert("Team Chain: Invalid reward amount.");
-            return;
-        }
-
-        if (rewardUnit === "eth") {
-            // ETH → Wei
-            rewardWei = ethers.parseEther(rewardInput);
-        } else {
-            // Wei (ensure it's an integer)
-            rewardWei = BigInt(rewardInput);
-        }
-
-        // Check user registration status
-        const contract = await getContract(signer);
-        const addr = await signer.getAddress();
-        const isRegistered = await contract.isRegistered(addr);
-
-        if (!isRegistered) {
-            alert("Team Chain: You are not registered.");
-            return;
-        }
-
-        // Check user balance
-        const balance = await provider.getBalance(addr);
-        if (balance < rewardWei) {
-            alert(`Team Chain: Insufficient balance\nYour balance: ${ethers.formatEther(balance)} ETH\nReward: ${ethers.formatEther(rewardWei)} ETH`);
-            return;
-        }
-
-        // Create task transaction
-        const tx = await contract.createTask(
-            title,
-            githubUrl,
-            deadlineHours,
-            maxRevision,
-            addr,
-            { value: rewardWei }
-        );
-
-        const receipt = await tx.wait();
-
-        // Parse events
-        for (const log of receipt.logs) {
-            try {
-                const parsed = iface.parseLog(log);
-                if (parsed?.name === "TaskCreated") {
-                    console.log("📌 EVENT Task Created!");
-                    alert(`✔ Team Chain: Task Created Successfully!`);
-                    
-                    // Refresh task lists
-                    await loadCreatedTasks();
-                    await loadJoinedTasks();
-                    
-                    // Clear form
-                    e.target.reset();
-                }
-            } catch (error) {
-                console.error("Error parsing log:", error);
-            }
-        }
-
-    } catch (err) {
-        console.error("Task creation error:", err);
-        alert("Team Chain: An error occurred while creating the task.");
-    }
-}
-
-// ==============================
-// ERROR HANDLING (PLACEHOLDER)
-// ==============================
-
-/**
- * Decode error selector from transaction error
- * Note: selectorMap needs to be defined based on contract errors
- */
-function decodeErrorSelector(err) {
-    console.log("RAW ERROR:", err);
-
-    const data =
-        err?.data ||
-        err?.error?.data ||
-        err?.info?.error?.data ||
-        err?.cause?.data ||
-        null;
-
-    if (!data || data.length < 10) {
-        console.log("No selector found");
-        return null;
+    // Validate GitHub URL
+    if (!validateGithubIssueUrl(githubUrl)) {
+      throw new Error("Invalid GitHub Issue URL.");
     }
 
-    const selector = data.slice(0, 10);
-    console.log("Selector:", selector);
+    // Validate numeric inputs
+    if (isNaN(deadlineHours) || deadlineHours <= 0) {
+      throw new Error("Deadline must be a positive number.");
+    }
 
-    // This needs to be populated with actual contract error selectors
-    const selectorMap = {};
-    const errorName = selectorMap[selector] || null;
-    console.log("Decoded errorName:", errorName);
+    if (isNaN(maxRevision) || maxRevision < 0) {
+      throw new Error("Max revision must be a non-negative number.");
+    }
 
-    return errorName;
+    // Convert reward to Wei
+    const rewardUnit = document.getElementById("rewardUnit")?.value || "eth";
+    let rewardWei;
+
+    if (isNaN(rewardInput) || Number(rewardInput) <= 0) {
+      throw new Error("Invalid reward amount.");
+    }
+
+    if (rewardUnit === "eth") {
+      // ETH → Wei
+      rewardWei = ethers.parseEther(rewardInput);
+    } else {
+      // Wei (ensure it's an integer)
+      rewardWei = BigInt(rewardInput);
+    }
+
+    // Check user registration status
+    const contract = await getContract(signer);
+    const addr = await signer.getAddress();
+    const status =  await isRegistered(contract, addr);
+    const maxReward = await _getMaxReward(signer);
+
+    if (deadlineHours > (await _getMinDeadline(signer))) {
+        throw new Error("Deadline is too short.");
+    }
+
+    if (maxRevision > ( await _getMaxRevisionTime(signer))) {
+        throw new Error("Too much revision.");
+    }
+
+    if (rewardInput > maxReward) {
+        throw new Error(`Reward is too big, maximum allowed is: ${ethers.formatEther(maxReward)} ETH`);
+    }
+
+    if (!status) {
+      throw new Error("You are not registered.");
+    }
+
+    // Check user balance
+    const balance = await provider.getBalance(addr);
+    if (balance < rewardWei) {
+      throw new Error(`Insufficient balance\nYour balance: ${ethers.formatEther(balance)} ETH.  \nReward: ${ethers.formatEther(rewardWei)} ETH`);
+    }
+
+    // Create task transaction
+    const tx = await contract.createTask(
+      title,
+      githubUrl,
+      deadlineHours,
+      maxRevision,
+      addr,
+      { value: rewardWei }
+    );
+
+    const receipt = await tx.wait();
+
+    // Parse events
+    let taskCreated = false;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "TaskCreated") {
+          taskCreated = true;
+          console.log("📌 EVENT Task Created!");
+          Notify.success("Task Created", "Task created successfully!");
+          
+          // Refresh task lists
+          await loadCreatedTasks();
+          await loadJoinedTasks();
+          
+          // Clear form
+          e.target.reset();
+          break;
+        }
+      } catch (error) {
+        console.error("Error parsing log:", error);
+      }
+    }
+
+    if (!taskCreated) {
+      throw new Error("Task creation failed - no TaskCreated event found");
+    }
+
+    return taskCreated;
+  });
 }

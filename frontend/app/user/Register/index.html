@@ -16,6 +16,77 @@
 </head>
 <body>
 
+    <!-- Header section -->
+  <header class="topbar">
+    <!-- Brand logo and name -->
+    <div class="brand">
+      <h1>Team chain</h1>
+    </div>
+
+    <!-- Wallet connection container -->
+    <div class="wallet-container">
+      <w3m-button></w3m-button>
+    </div>
+
+    <!-- Mobile navigation toggle button -->
+    <button
+      id="navToggle"
+      class="nav-toggle"
+      aria-expanded="false"
+      aria-controls="sideNav"
+      aria-label="Open navigation"
+    >
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M3 6h18M3 12h18M3 18h18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Side navigation menu -->
+  <nav id="sideNav" class="side-nav" aria-hidden="true">
+    <div class="side-header">
+      <h2>Menu</h2>
+      <button id="navClose" class="close" aria-label="Close navigation">✕</button>
+    </div>
+
+    <!-- Navigation list -->
+    <ul class="nav-list">
+      <li>
+        <a href="/user/dashboard" onclick="go('/user/dashboard'); return false;">
+          Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="/user/projects" onclick="go('/user/projects'); return false;">
+          Projects
+        </a>
+      </li>
+      <li>
+        <a href="/user/task" onclick="go('/user/task'); return false;">
+          Tasks
+        </a>
+      </li>
+      <li>
+        <a href="/user/about" onclick="go('/user/about'); return false;">
+          About Us
+        </a>
+      </li>
+    </ul>
+
+    <!-- Footer section of side navigation -->
+    <div class="side-footer">
+      <small>Version 0.1 · Trustless Team Protocol</small>
+    </div>
+  </nav>
+
+  <!-- Overlay for mobile navigation -->
+  <div id="overlay" class="overlay"></div>
+
 <!-- Main content container -->
 <div class="background">
     <!-- Inline CSS styles - This is inside div.background -->
