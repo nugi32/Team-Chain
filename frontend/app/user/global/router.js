@@ -12,12 +12,17 @@ let currentPageModule = null;
 // ==========================
 // HELPERS
 // ==========================
-function normalizePath(path) {
-  if (!path.endsWith('.html')) {
-    if (!path.endsWith('/')) path += '/';
-    path += 'index.html';
+function normalizePath(rawPath) {
+  // pisahkan path & query string
+  const [path, query] = rawPath.split('?');
+
+  let normalized = path;
+  if (!normalized.endsWith('.html')) {
+    if (!normalized.endsWith('/')) normalized += '/';
+    normalized += 'index.html';
   }
-  return path;
+
+  return query ? `${normalized}?${query}` : normalized;
 }
 
 function getBaseDir(path) {
@@ -118,9 +123,9 @@ window.addEventListener('popstate', e => {
   }
 });
 
-
 window.addEventListener("DOMContentLoaded", () => {
-  const path = location.pathname;
+  // gabungkan pathname + query string
+  const path = location.pathname + location.search;
 
   // default route
   loadPage(path === "/" ? "/home" : path, true);

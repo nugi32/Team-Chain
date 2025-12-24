@@ -5,44 +5,29 @@ console.log("📦 owner wallet loaded");
 // -----------------------------------------------------
 // WEB3MODAL + WAGMI CONFIG
 // -----------------------------------------------------
-import {
-  createWeb3Modal,
-  defaultWagmiConfig
-} from "https://esm.sh/@web3modal/wagmi";
-
-import { sepolia } from "https://esm.sh/wagmi/chains";
-
-const projectId = "52a9a44c36c9cf0288d553c34e8a662d";
-
-const metadata = {
-  name: "My Wallet UI",
-  description: "Wallet Connect",
-  url: window.location.origin,
-  icons: ["https://avatars.githubusercontent.com/u/37784886"]
-};
+import { createConfig, configureChains } from "https://esm.sh/@wagmi/core@2.12.5";
+import { injected, walletConnect } from "https://esm.sh/wagmi/connectors";
+import { sepolia } from "https://esm.sh/viem@2.19.6/chains";
+import { publicClient } from "https://esm.sh/@wagmi/core@2.12.5";
 
 const chains = [sepolia];
 
-export const wagmiConfig = defaultWagmiConfig({
-  projectId,
-  metadata,
-  chains
-});
+const { publicClient: pc } = configureChains(chains, []);
 
-createWeb3Modal({
-  wagmiConfig,
-  projectId,
-  themeMode: "light",
-  chains,
-  defaultChain: sepolia
+const wagmiConfig = createConfig({
+  connectors: [
+    injected({ chains }),
+    walletConnect({ chains, projectId: "52a9a44c36c9cf0288d553c34e8a662d" }),
+  ],
+  publicClient: pc,
 });
 
 
-
+/*
 // -----------------------------------------------------
 // WATCH ACCOUNT + GET SIGNER
 // -----------------------------------------------------
-import { watchAccount, getWalletClient } from "https://esm.sh/wagmi/actions";
+import { watchAccount, getWalletClient } from "https://esm.sh/@wagmi/core@latest/actions";
 
 // Simpan di global window untuk akses dari file lain
 window.wallet = {
@@ -102,4 +87,4 @@ export async function getWalletSigner() {
 
 export async function getWalletAddress() {
   return await window.wallet.getAddress();
-}
+}*/

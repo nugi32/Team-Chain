@@ -32,12 +32,15 @@ async function getContract(signer) {
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 
-async function loadInterface() {
-  if (iface) return iface;
+async function antiDuplicateGitProfile(contract, url) {
+  const normalizedUrl = url.trim().toLowerCase();
 
-  const artifact = await loadABI(ARTIFACT_PATH);
-  iface = new ethers.Interface(artifact.abi);
-  return iface;
+  const gitHash = ethers.keccak256(
+    ethers.toUtf8Bytes(normalizedUrl)
+  );
+
+  const isUsed = await contract.usedGitURL(gitHash);
+  return isUsed; // boolean
 }
 
 
@@ -67,8 +70,20 @@ async function handleRegisterSubmit(e) {
     }
 
     const addr = await signer.getAddress();
-    const contract = await getContract(signer);
-    const iface = await loadInterface();
+    const contract = await getContract(signer);/*
+    const isDuplicate = await antiDuplicateGitProfile(contract, githubURL);
+
+    if (isDuplicate) {
+      throw new Error('This github profile has been registered');
+    }*/
+
+    const result = await isRegistered(contract, addr);
+    const { isRegistered: registered, message } = result;
+
+
+    if (registered) {
+      Notify.success(message);
+    }
 
     const tx = await contract.Register(name, age, githubURL, addr);
     const receipt = await tx.wait();

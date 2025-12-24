@@ -13,9 +13,15 @@
   },
   "dependencies": {
     "@reown/walletkit": "^1.4.1",
+    "@tanstack/react-query": "^5.90.12",
+    "@wagmi/chains": "^1.8.0",
+    "@wagmi/core": "^3.0.1",
     "@walletconnect/core": "^2.23.0",
     "@walletconnect/utils": "^2.23.0",
+    "@web3modal/wagmi": "^5.1.11",
     "ethers": "^6.7.0",
+    "viem": "^2.43.3",
+    "wagmi": "^3.1.2",
     "web3modal": "^1.9.12"
   }
 }

@@ -1,4 +1,5 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+import { withUI } from "../../global-Ux/loading-ui";
 
 console.log("📦 Access Control loaded");
 
@@ -10,8 +11,8 @@ async function loadABI(path) {
   return res.json();
 }
 
-const ARTIFACT_PATH = "./artifact/AccessControl.json";
-const CONTRACT_ADDRESS = "0xF5215fFf0bBD334B8C73813a69839AF4a3De8989";
+const ARTIFACT_PATH = "../../artifact/AccessControl.json";
+const CONTRACT_ADDRESS = "0xB1672E3Ccc5157b2980fCD496F73Ff29bFb378ca";
 
 // ==============================
 // 3. CONTRACT INSTANCE
@@ -314,3 +315,204 @@ document.getElementById("HasRole").addEventListener("click", async () => {
     alert("An error occurred while checking address roles.");
   }
 });
+
+
+/*
+// =====================================================
+// 8. ASSIGN EMPLOYEE FORM HANDLER
+// =====================================================
+document.querySelector(".assign-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  return withUI(async () => {
+    const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
+
+    const employeeAddr = e.target.assignEmployee.value.trim();
+
+    // Validate address format
+    if (!ethers.isAddress(employeeAddr)) {
+      throw new Error("⚠ Invalid Address");
+    }
+
+    const contract = await getContract(signer);
+    const tx = await contract.assignNewEmployee(employeeAddr);
+    const receipt = await tx.wait();
+
+    // Decode EmployeeAssigned event
+    const iface = new ethers.Interface([
+      "event EmployeeAssigned(address indexed employee)"
+    ]);
+
+    let employeeAssigned = false;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "EmployeeAssigned") {
+          employeeAssigned = true;
+          console.log("📌 EVENT EmployeeAssigned:", parsed.args.employee);
+          
+          // Clear form
+          e.target.reset();
+          
+          Notify.success("Employee Assigned", `Employee assigned: ${parsed.args.employee}`);
+          break;
+        }
+      } catch {}
+    }
+
+    if (!employeeAssigned) {
+      throw new Error("Employee assignment failed - no EmployeeAssigned event found");
+    }
+
+    return employeeAssigned;
+  });
+});
+
+// =====================================================
+// 9. REMOVE EMPLOYEE FORM HANDLER
+// =====================================================
+document.querySelector(".remove-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  return withUI(async () => {
+    const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
+
+    const employeeAddr = e.target.removeEmployee.value.trim();
+
+    if (!ethers.isAddress(employeeAddr)) {
+      throw new Error("⚠ Invalid Address");
+    }
+
+    const contract = await getContract(signer);
+    const tx = await contract.removeEmployee(employeeAddr);
+    const receipt = await tx.wait();
+
+    // Decode EmployeeRemoved event
+    const iface = new ethers.Interface([
+      "event EmployeeRemoved(address indexed employee)"
+    ]);
+
+    let employeeRemoved = false;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "EmployeeRemoved") {
+          employeeRemoved = true;
+          console.log("📌 EVENT EmployeeRemoved:", parsed.args.employee);
+          
+          // Clear form
+          e.target.reset();
+          
+          Notify.success("Employee Removed", `Employee removed: ${parsed.args.employee}`);
+          break;
+        }
+      } catch {}
+    }
+
+    if (!employeeRemoved) {
+      throw new Error("Employee removal failed - no EmployeeRemoved event found");
+    }
+
+    return employeeRemoved;
+  });
+});
+
+// =====================================================
+// 10. CHANGE OWNER FORM HANDLER
+// =====================================================
+document.querySelector(".change-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  return withUI(async () => {
+    const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
+
+    const newOwnerAddr = e.target.changeOwner.value.trim();
+
+    if (!ethers.isAddress(newOwnerAddr)) {
+      throw new Error("⚠ Invalid Address");
+    }
+
+    const contract = await getContract(signer);
+    const tx = await contract.changeOwner(newOwnerAddr);
+    const receipt = await tx.wait();
+
+    // Decode OwnerChanged event
+    const iface = new ethers.Interface([
+      "event OwnerChanged(address indexed oldOwner, address indexed newOwner)"
+    ]);
+
+    let ownerChanged = false;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "OwnerChanged") {
+          ownerChanged = true;
+          console.log("📌 EVENT OwnerChanged:", parsed.args.oldOwner, "→", parsed.args.newOwner);
+          
+          // Clear form
+          e.target.reset();
+          
+          Notify.success("Owner Changed", `Owner changed: ${parsed.args.oldOwner} → ${parsed.args.newOwner}`);
+          break;
+        }
+      } catch {}
+    }
+
+    if (!ownerChanged) {
+      throw new Error("Owner change failed - no OwnerChanged event found");
+    }
+
+    return ownerChanged;
+  });
+});
+
+// =====================================================
+// 11. BUTTON: GET EMPLOYEE COUNT
+// =====================================================
+document.getElementById("btnEmployeeCount").addEventListener("click", async () => {
+  return withUI(async () => {
+    const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
+
+    const contract = await getContract(signer);
+    const employeeCount = await contract.employeeCount();
+    
+    Notify.success("Employee Count", `Employee Count: ${employeeCount}`);
+    return employeeCount;
+  });
+});
+
+// =====================================================
+// 12. BUTTON: GET OWNER ADDRESS
+// =====================================================
+document.getElementById("owner").addEventListener("click", async () => {
+  return withUI(async () => {
+    const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
+
+    const contract = await getContract(signer);
+    const ownerAddress = await contract.owner();
+    
+    Notify.success("Owner Address", `Owner Address: ${ownerAddress}`);
+    return ownerAddress;
+  });
+});
+
+// =====================================================
+// 13. BUTTON: CHECK ROLE OF SIGNER
+// =====================================================
+document.getElementById("HasRole").addEventListener("click", async () => {
+  return withUI(async () => {
+    const signer = await window.wallet.getSigner();
+    if (!signer) throw new Error("Wallet not connected");
+
+    const contract = await getContract(signer);
+    const msg_sender = await signer.getAddress();
+    const hasRole = await contract.hasRole(msg_sender);
+    
+    const roleText = hasRole ? "Has Role" : "No Role";
+    Notify.success("Role Check", `Roles: ${roleText}`);
+    return hasRole;
+  });
+});
+*/

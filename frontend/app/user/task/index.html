@@ -12,9 +12,9 @@
   <script type="module" src="./index.js"></script>
   
   <!-- UI scripts -->
-  <script src="../../global-Ux/loading-ui.js"></script>
-  <script src="../../global-Ux/ui-core.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="module" src="../../global-Ux/loading-ui.js"></script>
+  <script type="module" src="../../global-Ux/ui-core.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -331,6 +331,32 @@
         </template>
       </div>
     </div>
+
+<!-- ================= pending ================= -->
+    <div class="taskShow">
+      <div class="active">
+        <h1>Join Requested</h1>
+
+        <div id="JoinRequestList" class="joinRequestList"></div>
+
+        <template id="RtaskCardTemplate">
+          <div class="card">
+            <div class="card-header">
+              <h2><span class="title"></span></h2>
+            </div>
+
+            <div class="task-info">
+              <p><span>Task ID:</span> <span class="taskId">-</span></p>
+              <p><span>Status:</span> <span class="status">-</span></p>
+              <p><span>Point:</span> <span class="Points">-</span></p>
+            </div>
+
+            <div class="card-button">
+              <button class="detailsBTN">See Deatils</button>
+            </div>
+          </div>
+        </template>
+      </div>
 
     <!-- ================= CREATE ================= -->
     <div class="card">

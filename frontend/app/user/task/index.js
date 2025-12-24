@@ -1,6 +1,6 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
-import { _getMinDeadline, _getMaxRevisionTime, _getMaxReward, isRegistered } from "../global/helper.js";
+import { _getMinDeadline, _getMaxRevisionTime, _getMaxReward, isRegistered, _calculatePoint } from "../global/helper.js";
 import { withUI } from "../../global-Ux/loading-ui.js";
 
 // ==============================
@@ -84,6 +84,7 @@ async function tryLoadTasks() {
 
     await loadCreatedTasks();
     await loadJoinedTasks();
+    await loadMyPendingJoinRequests();
 }
 
 // ==============================
@@ -175,56 +176,143 @@ async function getContract(signer) {
 // ==============================
 
 async function loadCreatedTasks() {
-    const signer = await window.wallet.getSigner();
-    if (!signer) return;
+  const signer = await window.wallet.getSigner();
+  if (!signer) return;
 
-    const contract = await getContract(signer);
-    const address = (await signer.getAddress()).toLowerCase();
-    const taskCount = Number(await contract.taskCounter());
+  const contract = await getContract(signer);
+  const address = (await signer.getAddress()).toLowerCase();
+  const taskCount = Number(await contract.taskCounter());
 
-    createdTasks = [];
+  createdTasks = [];
 
-    for (let i = 0; i < taskCount; i++) {
-        const task = await contract.Tasks(i);
-        if (!task.exists) continue;
-        if (task.creator.toLowerCase() !== address) continue;
+  for (let i = 0; i < taskCount; i++) {
+    const task = await contract.Tasks(i);
+    if (!task.exists) continue;
+    if (task.creator.toLowerCase() !== address) continue;
 
-        createdTasks.push({
-            id: task[0].toString(),
-            title: task[5],
-            status: task[1],
-            order: i
-        });
-    }
+    // ambil reputasi creator
+    const user = await contract.Users(task.creator);
 
-    renderCreatedTasks(createdTasks);
+    // hitung point task ini
+    const taskPoint = await _calculatePoint({
+      rewardWei: Number(task[8]),
+      creatorReputation: Number(user.reputation),
+      actualHours: Number(task[12]),   // pastikan index benar
+      revisionCount: Number(task[13])
+    });
+
+    // simpan point ke task
+    createdTasks.push({
+      id: task[0].toString(),
+      title: task[5],
+      status: task[1],
+      order: i,
+      point: taskPoint // ⬅️ INI KUNCINYA
+    });
+  }
+
+  renderCreatedTasks(createdTasks);
 }
+
 
 async function loadJoinedTasks() {
+  const signer = await window.wallet.getSigner();
+  if (!signer) return;
+
+  const contract = await getContract(signer);
+  const address = (await signer.getAddress()).toLowerCase();
+  const taskCount = Number(await contract.taskCounter());
+
+  joinedTasks = [];
+
+  for (let i = 0; i < taskCount; i++) {
+    const task = await contract.Tasks(i);
+    if (!task.exists) continue;
+    if (task.member.toLowerCase() !== address) continue;
+
+    const user = await contract.Users(task.creator);
+
+    const point = await _calculatePoint({
+      rewardWei: Number(task[8]),
+      creatorReputation: Number(user.reputation),
+      actualHours: Number(task[12]),   // pastikan index benar
+      revisionCount: Number(task[13])
+    });
+
+    joinedTasks.push({
+      id: task[0].toString(),
+      title: task[5],
+      status: Number(task.status),
+      order: i,
+      point // ⬅️ point nempel ke task
+    });
+  }
+
+  renderJoinedTasks(joinedTasks);
+}
+
+async function loadMyPendingJoinRequests() {
+  try {
     const signer = await window.wallet.getSigner();
-    if (!signer) return;
+    if (!signer) throw new Error('Wallet not connected');
 
     const contract = await getContract(signer);
-    const address = (await signer.getAddress()).toLowerCase();
+    const myAddress = (await signer.getAddress()).toLowerCase();
+
     const taskCount = Number(await contract.taskCounter());
+    const OPEN_REG_STATUS = 3;
 
-    joinedTasks = [];
+    const results = [];
 
-    for (let i = 0; i < taskCount; i++) {
-        const task = await contract.Tasks(i);
-        if (!task.exists) continue;
-        if (task.member.toLowerCase() !== address) continue;
+    for (let taskId = 0; taskId < taskCount; taskId++) {
+      const task = await contract.Tasks(taskId);
+      if (!task.exists) continue;
+      if (Number(task.status) !== OPEN_REG_STATUS) continue;
 
-        joinedTasks.push({
-            id: task[0].toString(),
-            title: task[5],
-            status: Number(task.status),
-            order: i
+      const joinReqCount = Number(
+        await contract.getJoinRequestCount(taskId)
+      );
+
+      const user = await contract.Users(task.creator);
+
+      const point = await _calculatePoint({
+        rewardWei: Number(task[8]),
+        creatorReputation: Number(user.reputation),
+        actualHours: Number(task[12]),
+        revisionCount: Number(task[13])
+      });
+
+      for (let i = 0; i < joinReqCount; i++) {
+        const req = await contract.joinRequests(taskId, i);
+
+        if (req.applicant.toLowerCase() !== myAddress) continue;
+        if (!req.isPending) continue;
+
+        results.push({
+          id: taskId,
+          title: task[5],
+          taskStatus: Number(task.status),
+          requestStatus: Number(req.status),
+          requestIndex: i,
+          stakeAmount: req.stakeAmount,
+          isPending: req.isPending,
+          hasWithdrawn: req.hasWithdrawn,
+          point // ⬅️ point nempel ke request
         });
+      }
     }
 
-    renderJoinedTasks(joinedTasks);
+    renderJoinedRequestTasks(results);
+    return results;
+
+  } catch (error) {
+    console.error('loadMyPendingJoinRequests error:', error);
+    return [];
+  }
 }
+
+
+
 
 // ==============================
 // UI RENDERING
@@ -253,6 +341,7 @@ function renderCreatedTasks(tasks) {
         n.querySelector(".taskId").textContent = task.id;
         n.querySelector(".title").textContent = task.title;
         n.querySelector(".status").textContent = decodeStatus(task.status);
+        n.querySelector(".Points").textContent = task.point;
         n.querySelector(".detailsBTN")?.addEventListener("click", () => {
             go(`/../user/taskDetail?id=${task.id}`);
         });
@@ -271,9 +360,32 @@ function renderJoinedTasks(tasks) {
         n.querySelector(".taskId").textContent = task.id;
         n.querySelector(".title").textContent = task.title;
         n.querySelector(".status").textContent = decodeStatus(task.status);
+        n.querySelector(".Points").textContent = task.point;
         n.querySelector(".detailsBTN")?.addEventListener("click", () => {
             go(`/../user/taskDetail?id=${task.id}`);
         });
+        c.appendChild(n);
+    });
+}
+
+
+function renderJoinedRequestTasks(result) {
+    const c = document.getElementById("JoinRequestList");
+    const t = document.getElementById("RtaskCardTemplate");
+    if (!c || !t) return;
+
+    c.innerHTML = "";
+
+    result.forEach(req => {
+        const n = t.content.cloneNode(true);
+        n.querySelector(".taskId").textContent = req.id;
+        n.querySelector(".title").textContent = req.title;
+        n.querySelector(".status").textContent = decodeStatus(req.taskStatus);
+        n.querySelector(".Points").textContent = req.point;
+        n.querySelector(".detailsBTN")?.addEventListener("click", () => {
+            go(`/../user/taskDetail?id=${req.id}`);
+        });
+
         c.appendChild(n);
     });
 }
@@ -338,6 +450,22 @@ function validateGithubIssueUrl(githubUrl) {
     }
 }
 
+async function antiDuplicateGitPRurl(contract, gitURL) {
+    try {
+        const length = await contract.taskCounter();
+        for (let i = 0; i < length; i++) {
+            const task = await contract.Tasks(i);
+            if (task.githubURL === gitURL) {
+                return false;
+            } else if (task.githubURL !== gitURL) {
+                return true;
+            }
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+
 /**
  * Handle task creation form submission
  */
@@ -391,6 +519,12 @@ async function handleTaskFormSubmit(e) {
     const maxReward = await _getMaxReward(signer);
     const minDeadline = await _getMinDeadline(signer);
     const MaxRevision = await _getMaxRevisionTime(signer);
+    /*
+    const gitDuplicate = await antiDuplicateGitPRurl(contract, githubUrl);
+
+    if (gitDuplicate) {
+        throw new Error('This github issue has been used')
+    }*/
 
     if (deadlineHours < minDeadline) {
         console.log(minDeadline)
@@ -415,13 +549,6 @@ async function handleTaskFormSubmit(e) {
     if (balance < rewardWei) {
       throw new Error(`Insufficient balance\nYour balance: ${ethers.formatEther(balance)} ETH.  \nReward: ${ethers.formatEther(rewardWei)} ETH`);
     }
-
-    console.log(title)
-    console.log(githubUrl)
-    console.log(deadlineHours)
-    console.log(maxRevision)
-    console.log(addr)
-    console.log(rewardWei)
 
     // Create task transaction
     const tx = await contract.createTask(
@@ -448,6 +575,7 @@ async function handleTaskFormSubmit(e) {
           // Refresh task lists
           await loadCreatedTasks();
           await loadJoinedTasks();
+          await loadMyPendingJoinRequests();
           
           // Clear form
           e.target.reset();

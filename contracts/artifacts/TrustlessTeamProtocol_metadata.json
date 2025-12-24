@@ -1,0 +1,2197 @@
+{
+	"compiler": {
+		"version": "0.8.30+commit.73712a01"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "target",
+						"type": "address"
+					}
+				],
+				"name": "AddressEmptyCode",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "AlreadyRequestedJoin",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "AlredyClaimed",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "AlredyRegistered",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "CancelOnlyWhenMemberAssigned",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "DeadlineNotExceeded",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "implementation",
+						"type": "address"
+					}
+				],
+				"name": "ERC1967InvalidImplementation",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ERC1967NonPayable",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "EnforcedPause",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ExpectedPause",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "FailedCall",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InsufficientStake",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InvalidDeadline",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InvalidInitialization",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InvalidMemberStakePercentReward",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InvalidReason",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InvalidRewardAmount",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InvalidStakeAmount",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "InvalidTitle",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "NoSubmision",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "NotCounterparty",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "NotInitializing",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "NotRegistered",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "NotTaskCreator",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "NotTaskMember",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ReentrancyGuardReentrantCall",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "RewardOverflow",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "StakeHitLimit",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "StakeMismatch",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "StakeOverflow",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "TaskDoesNotExist",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "TaskNotOpen",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "TaskNotSubmittedYet",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "TooManyRevisions",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "UUPSUnauthorizedCallContext",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "slot",
+						"type": "bytes32"
+					}
+				],
+				"name": "UUPSUnsupportedProxiableUUID",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ValueMismatch",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "alredyInPending",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "submissionAlreadyPending",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "DeadlineTriggered",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint64",
+						"name": "version",
+						"type": "uint64"
+					}
+				],
+				"name": "Initialized",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "applicant",
+						"type": "address"
+					}
+				],
+				"name": "JoinApproved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "applicant",
+						"type": "address"
+					}
+				],
+				"name": "JoinRejected",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "applicant",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "stakeAmount",
+						"type": "uint256"
+					}
+				],
+				"name": "JoinRequested",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "JoinrequestCancelled",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "Paused",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "RegistrationClosed",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "RegistrationOpened",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint8",
+						"name": "revisionCount",
+						"type": "uint8"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "newDeadline",
+						"type": "uint256"
+					}
+				],
+				"name": "RevisionRequested",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "TaskActive",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "TaskApproved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "initiator",
+						"type": "address"
+					}
+				],
+				"name": "TaskCancelledByMe",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "creator",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "reward",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "creatorStake",
+						"type": "uint256"
+					}
+				],
+				"name": "TaskCreated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "TaskDeleted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "member",
+						"type": "address"
+					}
+				],
+				"name": "TaskReSubmitted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "member",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "githubURL",
+						"type": "string"
+					}
+				],
+				"name": "TaskSubmitted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "Unpaused",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "implementation",
+						"type": "address"
+					}
+				],
+				"name": "Upgraded",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint128",
+						"name": "age",
+						"type": "uint128"
+					}
+				],
+				"name": "UserRegistered",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint128",
+						"name": "age",
+						"type": "uint128"
+					}
+				],
+				"name": "UserUnregistered",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "Withdrawal",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "info",
+						"type": "string"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newAddress",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					}
+				],
+				"name": "systemChanged",
+				"type": "event"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "fallback"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "Name",
+						"type": "string"
+					},
+					{
+						"internalType": "uint128",
+						"name": "Age",
+						"type": "uint128"
+					},
+					{
+						"internalType": "string",
+						"name": "githubURL",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "Register",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "TaskSubmits",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "githubURL",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "note",
+						"type": "string"
+					},
+					{
+						"internalType": "enum TrustlessTeamProtocol.SubmitStatus",
+						"name": "status",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
+						"name": "revisionTime",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "newDeadline",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "Tasks",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum TrustlessTeamProtocol.TaskStatus",
+						"name": "status",
+						"type": "uint8"
+					},
+					{
+						"internalType": "enum TrustlessTeamProtocol.TaskValue",
+						"name": "value",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "creator",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "member",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "githubURL",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "reward",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint32",
+						"name": "deadlineHours",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "deadlineAt",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "createdAt",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "creatorStake",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "memberStake",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "maxRevision",
+						"type": "uint8"
+					},
+					{
+						"internalType": "bool",
+						"name": "isMemberStakeLocked",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "isCreatorStakeLocked",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "isRewardClaimed",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "exists",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "UPGRADE_INTERFACE_VERSION",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "Unregister",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "Users",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "totalTasksCreated",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalTasksCompleted",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalTasksFailed",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint128",
+						"name": "reputation",
+						"type": "uint128"
+					},
+					{
+						"internalType": "uint128",
+						"name": "age",
+						"type": "uint128"
+					},
+					{
+						"internalType": "bool",
+						"name": "isRegistered",
+						"type": "bool"
+					},
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "GitProfile",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "DeadlineHours",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint8",
+						"name": "MaximumRevision",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "rewardWei",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "Caller",
+						"type": "address"
+					}
+				],
+				"name": "__getCreatorStake",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "accessControl",
+				"outputs": [
+					{
+						"internalType": "contract IAccessControl",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "activateTask",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "applicant",
+						"type": "address"
+					}
+				],
+				"name": "approveJoinRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "approveTask",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "cancelByMe",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_newAccesControl",
+						"type": "address"
+					}
+				],
+				"name": "changeAccessControl",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_newStateVar",
+						"type": "address"
+					}
+				],
+				"name": "changeStateVarAddress",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address payable",
+						"name": "_NewsystemWallet",
+						"type": "address"
+					}
+				],
+				"name": "changeSystemwallet",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "closeRegistration",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "Title",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "GithubURL",
+						"type": "string"
+					},
+					{
+						"internalType": "uint32",
+						"name": "DeadlineHours",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint8",
+						"name": "MaximumRevision",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "createTask",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "deleteTask",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "feeCollected",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "getCreatorStake",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "getJoinRequestCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "getMemberRequiredStake",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_accessControl",
+						"type": "address"
+					},
+					{
+						"internalType": "address payable",
+						"name": "_systemWallet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_stateVar",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_initialmemberStakePercentReward",
+						"type": "uint256"
+					}
+				],
+				"name": "initialize",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "joinRequests",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "applicant",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stakeAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum TrustlessTeamProtocol.UserTask",
+						"name": "status",
+						"type": "uint8"
+					},
+					{
+						"internalType": "bool",
+						"name": "isPending",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "hasWithdrawn",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "memberStakePercentReward",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "openRegistration",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "caller",
+						"type": "address"
+					}
+				],
+				"name": "pause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "paused",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "proxiableUUID",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "Note",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "GithubFixedURL",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "reSubmitTask",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "_applicant",
+						"type": "address"
+					}
+				],
+				"name": "rejectJoinRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "requestJoinTask",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "Note",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "additionalDeadlineHours",
+						"type": "uint256"
+					}
+				],
+				"name": "requestRevision",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "PullRequestURL",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "Note",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "requestSubmitTask",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "NewmemberStakePercentReward",
+						"type": "uint256"
+					}
+				],
+				"name": "setMemberStakePercentageFromStake",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "stateVar",
+				"outputs": [
+					{
+						"internalType": "contract stateVariable",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "systemWallet",
+				"outputs": [
+					{
+						"internalType": "address payable",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "taskCounter",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					}
+				],
+				"name": "triggerDeadline",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "caller",
+						"type": "address"
+					}
+				],
+				"name": "unpause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newImplementation",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"name": "upgradeToAndCall",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"name": "usedGitURL",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "withdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "taskId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "withdrawJoinRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "withdrawToSystemWallet",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "withdrawable",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "receive"
+			}
+		],
+		"devdoc": {
+			"author": "nugi",
+			"details": "Upgradeable contract (UUPS). Uses AccesControl for owner/employee/user roles. Key design points:  - Pull payments: users call withdraw() to claim funds.  - Creator provides reward (in ETH), plus creatorStake and fee in msg.value when creating task.  - Member stakes when requesting to join (stake is returned/used depending on outcome).  - Deadlines are handled via timestamp `deadlineAt`.  - Reputation points and counters are tracked per-user.  - Fee (protocol share) stored in `feeCollected` and withdrawn manually by employees.",
+			"errors": {
+				"AddressEmptyCode(address)": [
+					{
+						"details": "There's no code at `target` (it is not a contract)."
+					}
+				],
+				"ERC1967InvalidImplementation(address)": [
+					{
+						"details": "The `implementation` of the proxy is invalid."
+					}
+				],
+				"ERC1967NonPayable()": [
+					{
+						"details": "An upgrade function sees `msg.value > 0` that may be lost."
+					}
+				],
+				"EnforcedPause()": [
+					{
+						"details": "The operation failed because the contract is paused."
+					}
+				],
+				"ExpectedPause()": [
+					{
+						"details": "The operation failed because the contract is not paused."
+					}
+				],
+				"FailedCall()": [
+					{
+						"details": "A call to an address target failed. The target may have reverted."
+					}
+				],
+				"InvalidInitialization()": [
+					{
+						"details": "The contract is already initialized."
+					}
+				],
+				"NotInitializing()": [
+					{
+						"details": "The contract is not initializing."
+					}
+				],
+				"ReentrancyGuardReentrantCall()": [
+					{
+						"details": "Unauthorized reentrant call."
+					}
+				],
+				"UUPSUnauthorizedCallContext()": [
+					{
+						"details": "The call is from an unauthorized context."
+					}
+				],
+				"UUPSUnsupportedProxiableUUID(bytes32)": [
+					{
+						"details": "The storage `slot` is unsupported as a UUID."
+					}
+				]
+			},
+			"events": {
+				"Initialized(uint64)": {
+					"details": "Triggered when the contract has been initialized or reinitialized."
+				},
+				"Paused(address)": {
+					"details": "Emitted when the pause is triggered by `account`."
+				},
+				"Unpaused(address)": {
+					"details": "Emitted when the pause is lifted by `account`."
+				},
+				"Upgraded(address)": {
+					"details": "Emitted when the implementation is upgraded."
+				}
+			},
+			"kind": "dev",
+			"methods": {
+				"Register(string,uint128,string,address)": {
+					"details": "Creates a new user profile with initial reputation and counters",
+					"params": {
+						"Age": "User's age (must be between 18-100)",
+						"Name": "User's display name"
+					}
+				},
+				"Unregister(address)": {
+					"details": "Removes user from protocol and clears their data",
+					"returns": {
+						"_0": "confirmation Confirmation message"
+					}
+				},
+				"__getCreatorStake(uint32,uint8,uint256,address)": {
+					"details": "Stake amount varies based on project value categorization",
+					"params": {
+						"Caller": "Task creator address",
+						"DeadlineHours": "Task deadline in hours",
+						"MaximumRevision": "Maximum allowed revisions",
+						"rewardWei": "Task reward in wei"
+					},
+					"returns": {
+						"_0": "Required creator stake amount in wei"
+					}
+				},
+				"activateTask(uint256)": {
+					"details": "Moves task to Active status, requires calculated creator stake in msg.value",
+					"params": {
+						"taskId": "ID of the task to activate"
+					}
+				},
+				"approveJoinRequest(uint256,address)": {
+					"details": "Locks member stake, sets deadline, and moves task to InProgress status",
+					"params": {
+						"taskId": "ID of the task"
+					}
+				},
+				"approveTask(uint256)": {
+					"details": "External wrapper for internal approval function",
+					"params": {
+						"taskId": "ID of the task to approve"
+					}
+				},
+				"cancelByMe(uint256,address)": {
+					"details": "Applies penalties based on who initiates cancellation and updates reputation",
+					"params": {
+						"taskId": "ID of the task to cancel"
+					}
+				},
+				"changeAccessControl(address)": {
+					"details": "Only callable by owner, affects permission management",
+					"params": {
+						"_newAccesControl": "New access control contract address"
+					}
+				},
+				"changeStateVarAddress(address)": {
+					"details": "Only callable by owner, affects parameter retrieval",
+					"params": {
+						"_newStateVar": "New state variables contract address"
+					}
+				},
+				"changeSystemwallet(address)": {
+					"details": "Only callable by owner, affects fee withdrawals",
+					"params": {
+						"_NewsystemWallet": "New system wallet address"
+					}
+				},
+				"closeRegistration(uint256)": {
+					"details": "Returns task to Active status, preventing new join requests",
+					"params": {
+						"taskId": "ID of the task to close registration for"
+					}
+				},
+				"createTask(string,string,uint32,uint8,address)": {
+					"details": "Creates task in Created status, requires reward amount in msg.value",
+					"params": {
+						"DeadlineHours": "Deadline duration in hours",
+						"GithubURL": "Reference GitHub URL for the task",
+						"MaximumRevision": "Maximum number of allowed revisions",
+						"Title": "Task title/description"
+					}
+				},
+				"getCreatorStake(uint256)": {
+					"params": {
+						"taskId": "ID of the task"
+					},
+					"returns": {
+						"_0": "Required creator stake amount in wei"
+					}
+				},
+				"getJoinRequestCount(uint256)": {
+					"returns": {
+						"_0": "Length of arr"
+					}
+				},
+				"getMemberRequiredStake(uint256)": {
+					"params": {
+						"taskId": "ID of the task"
+					},
+					"returns": {
+						"_0": "Required member stake amount in wei"
+					}
+				},
+				"initialize(address,address,address,uint256)": {
+					"details": "Initializes parent contracts and sets up protocol configuration",
+					"params": {
+						"_accessControl": "Address of the access control contract",
+						"_initialmemberStakePercentReward": "Initial percentage for member stake calculation",
+						"_stateVar": "Address of the state variables contract",
+						"_systemWallet": "Address for protocol fee withdrawals"
+					}
+				},
+				"openRegistration(uint256)": {
+					"details": "Changes task status to OpenRegistration allowing join requests",
+					"params": {
+						"taskId": "ID of the task to open for registration"
+					}
+				},
+				"pause(address)": {
+					"details": "Only callable by employees, prevents most state-changing functions"
+				},
+				"paused()": {
+					"details": "Returns true if the contract is paused, and false otherwise."
+				},
+				"proxiableUUID()": {
+					"details": "Implementation of the ERC-1822 {proxiableUUID} function. This returns the storage slot used by the implementation. It is used to validate the implementation's compatibility when performing an upgrade. IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this function revert if invoked through a proxy. This is guaranteed by the `notDelegated` modifier."
+				},
+				"reSubmitTask(uint256,string,string,address)": {
+					"details": "Updates submission and returns it to Pending status",
+					"params": {
+						"GithubFixedURL": "Updated GitHub URL",
+						"Note": "Updated submission notes",
+						"taskId": "ID of the task"
+					}
+				},
+				"rejectJoinRequest(uint256,address)": {
+					"details": "Returns stake to applicant's withdrawable balance",
+					"params": {
+						"_applicant": "Address of the applicant to reject",
+						"taskId": "ID of the task"
+					}
+				},
+				"requestJoinTask(uint256,address)": {
+					"details": "Requires exact member stake amount in msg.value, creates pending join request",
+					"params": {
+						"taskId": "ID of the task to join"
+					}
+				},
+				"requestRevision(uint256,string,uint256)": {
+					"details": "Extends deadline and applies reputation penalties to both parties",
+					"params": {
+						"Note": "Revision instructions/feedback",
+						"additionalDeadlineHours": "Additional hours for revised deadline",
+						"taskId": "ID of the task"
+					}
+				},
+				"requestSubmitTask(uint256,string,string,address)": {
+					"details": "Creates submission record in Pending status for creator review",
+					"params": {
+						"Note": "Description/notes about the submission",
+						"PullRequestURL": "GitHub URL of the submission",
+						"taskId": "ID of the task"
+					}
+				},
+				"setMemberStakePercentageFromStake(uint256)": {
+					"details": "Only callable by employees, affects stake calculation for new join requests",
+					"params": {
+						"NewmemberStakePercentReward": "New percentage value (0-100)"
+					}
+				},
+				"triggerDeadline(uint256)": {
+					"details": "Can be called by anyone, distributes stakes with penalties",
+					"params": {
+						"taskId": "ID of the task to trigger deadline for"
+					}
+				},
+				"unpause(address)": {
+					"details": "Only callable by employees, restores normal operation"
+				},
+				"upgradeToAndCall(address,bytes)": {
+					"custom:oz-upgrades-unsafe-allow-reachable": "delegatecall",
+					"details": "Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call encoded in `data`. Calls {_authorizeUpgrade}. Emits an {Upgraded} event."
+				},
+				"withdraw(address)": {
+					"details": "Implements pull payment pattern, transfers available ETH to caller"
+				},
+				"withdrawJoinRequest(uint256,address)": {
+					"details": "Returns stake to user's withdrawable balance",
+					"params": {
+						"taskId": "ID of the task to withdraw join request from"
+					}
+				},
+				"withdrawToSystemWallet()": {
+					"details": "Only callable by employees, transfers collected fees to systemWallet"
+				}
+			},
+			"stateVariables": {
+				"TaskSubmits": {
+					"details": "Task ID to submission mapping"
+				},
+				"Tasks": {
+					"details": "Task ID to Task mapping"
+				},
+				"Users": {
+					"details": "User address to User profile mapping"
+				},
+				"___gap": {
+					"details": "Storage gap for future upgrades"
+				},
+				"feeCollected": {
+					"details": "Accumulated protocol fees"
+				},
+				"joinRequests": {
+					"details": "Task ID to join requests array mapping"
+				},
+				"memberStakePercentReward": {
+					"details": "Percentage of reward required as member stake"
+				},
+				"systemWallet": {
+					"details": "Protocol fee recipient address"
+				},
+				"taskCounter": {
+					"details": "Sequential task counter"
+				},
+				"withdrawable": {
+					"details": "User address to withdrawable balance mapping"
+				}
+			},
+			"title": "TrustlessTeamProtocol v2 (Patched, documented)",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"Register(string,uint128,string,address)": {
+					"notice": "Registers a new user in the protocol"
+				},
+				"Unregister(address)": {
+					"notice": "Unregisters a user and deletes their profile data"
+				},
+				"__getCreatorStake(uint32,uint8,uint256,address)": {
+					"notice": "Calculates required creator stake based on task value category"
+				},
+				"accessControl()": {
+					"notice": "Reference to the central EmployeeAssignment contract."
+				},
+				"activateTask(uint256)": {
+					"notice": "Activates a task by providing creator stake"
+				},
+				"approveJoinRequest(uint256,address)": {
+					"notice": "Approves a join request and assigns member to task"
+				},
+				"approveTask(uint256)": {
+					"notice": "Approves task completion and distributes rewards"
+				},
+				"cancelByMe(uint256,address)": {
+					"notice": "Cancels a task by either party with penalty distribution"
+				},
+				"changeAccessControl(address)": {
+					"notice": "Updates access control contract address"
+				},
+				"changeStateVarAddress(address)": {
+					"notice": "Updates state variables contract address"
+				},
+				"changeSystemwallet(address)": {
+					"notice": "Updates system wallet address"
+				},
+				"closeRegistration(uint256)": {
+					"notice": "Closes task registration"
+				},
+				"createTask(string,string,uint32,uint8,address)": {
+					"notice": "Creates a new task with initial parameters"
+				},
+				"getCreatorStake(uint256)": {
+					"notice": "Calculates required creator stake for a taskF"
+				},
+				"getJoinRequestCount(uint256)": {
+					"notice": "Checks joint request count"
+				},
+				"getMemberRequiredStake(uint256)": {
+					"notice": "Calculates required member stake for a task"
+				},
+				"initialize(address,address,address,uint256)": {
+					"notice": "Initializes the contract with required addresses and parameters"
+				},
+				"openRegistration(uint256)": {
+					"notice": "Opens task for member registration"
+				},
+				"pause(address)": {
+					"notice": "Pauses contract functionality"
+				},
+				"reSubmitTask(uint256,string,string,address)": {
+					"notice": "Resubmits task after revision request"
+				},
+				"rejectJoinRequest(uint256,address)": {
+					"notice": "Rejects a join request and returns stake to applicant"
+				},
+				"requestJoinTask(uint256,address)": {
+					"notice": "Requests to join a task by providing required stake"
+				},
+				"requestRevision(uint256,string,uint256)": {
+					"notice": "Requests revision for a submission"
+				},
+				"requestSubmitTask(uint256,string,string,address)": {
+					"notice": "Submits task completion by member"
+				},
+				"setMemberStakePercentageFromStake(uint256)": {
+					"notice": "Sets the member stake percentage relative to task reward"
+				},
+				"triggerDeadline(uint256)": {
+					"notice": "Triggers deadline consequences for expired tasks"
+				},
+				"unpause(address)": {
+					"notice": "Unpauses contract functionality"
+				},
+				"withdraw(address)": {
+					"notice": "Withdraws available balance to caller"
+				},
+				"withdrawJoinRequest(uint256,address)": {
+					"notice": "Withdraws a pending join request and returns stake"
+				},
+				"withdrawToSystemWallet()": {
+					"notice": "Withdraws accumulated protocol fees to system wallet"
+				}
+			},
+			"notice": "Protocol to create tasks, allow registration/joining, staking and pull-pay reward flows with reputation.",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"User/TrustlessTeamProtocol.sol": "TrustlessTeamProtocol"
+		},
+		"evmVersion": "prague",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": [],
+		"viaIR": true
+	},
+	"sources": {
+		"@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol": {
+			"keccak256": "0xdb4d24ee2c087c391d587cd17adfe5b3f9d93b3110b1388c2ab6c7c0ad1dcd05",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://ab7b6d5b9e2b88176312967fe0f0e78f3d9a1422fa5e4b64e2440c35869b5d08",
+				"dweb:/ipfs/QmXKYWWyzcLg1B2k7Sb1qkEXgLCYfXecR9wYW5obRzWP1Q"
+			]
+		},
+		"@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol": {
+			"keccak256": "0x574a7451e42724f7de29e2855c392a8a5020acd695169466a18459467d719d63",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://5bc189f63b639ee173dd7b6fecc39baf7113bf161776aea22b34c57fdd1872ec",
+				"dweb:/ipfs/QmZAf2VtjDLRULqjJkde6LNsxAg12tUqpPqgUQQZbAjgtZ"
+			]
+		},
+		"@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol": {
+			"keccak256": "0xdbef5f0c787055227243a7318ef74c8a5a1108ca3a07f2b3a00ef67769e1e397",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://08e39f23d5b4692f9a40803e53a8156b72b4c1f9902a88cd65ba964db103dab9",
+				"dweb:/ipfs/QmPKn6EYDgpga7KtpkA8wV2yJCYGMtc9K4LkJfhKX2RVSV"
+			]
+		},
+		"@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol": {
+			"keccak256": "0xa6bf6b7efe0e6625a9dcd30c5ddf52c4c24fe8372f37c7de9dbf5034746768d5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8c353ee3705bbf6fadb84c0fb10ef1b736e8ca3ca1867814349d1487ed207beb",
+				"dweb:/ipfs/QmcugaPssrzGGE8q4YZKm2ZhnD3kCijjcgdWWg76nWt3FY"
+			]
+		},
+		"@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol": {
+			"keccak256": "0x361126a17677994081cd9cb69c3f50cffff6e920d25cb7e428acdb1ae41d1866",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://19ae787a7dd001269cd60a394b1a5261b78925a0fc3a6f927beb2986a9aa56cf",
+				"dweb:/ipfs/QmYLfXiuKmcRgTDBEDXMMjXU8t6JxsspUmjxYzqWS55oEv"
+			]
+		},
+		"@openzeppelin/contracts/interfaces/IERC1967.sol": {
+			"keccak256": "0xbf2aefe54b76d7f7bcd4f6da1080b7b1662611937d870b880db584d09cea56b5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://f5e7e2f12e0feec75296e57f51f82fdaa8bd1551f4b8cc6560442c0bf60f818c",
+				"dweb:/ipfs/QmcW9wDMaQ8RbQibMarfp17a3bABzY5KraWe2YDwuUrUoz"
+			]
+		},
+		"@openzeppelin/contracts/interfaces/draft-IERC1822.sol": {
+			"keccak256": "0x82f757819bf2429a0d4db141b99a4bbe5039e4ef86dfb94e2e6d40577ed5b28b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://37c30ed931e19fb71fdb806bb504cfdb9913b7127545001b64d4487783374422",
+				"dweb:/ipfs/QmUBHpv4hm3ZmwJ4GH8BeVzK4mv41Q6vBbWXxn8HExPXza"
+			]
+		},
+		"@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol": {
+			"keccak256": "0xa1ad192cd45317c788618bef5cb1fb3ca4ce8b230f6433ac68cc1d850fb81618",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://b43447bb85a53679d269a403c693b9d88d6c74177dfb35eddca63abaf7cf110a",
+				"dweb:/ipfs/QmXSDmpd4bNZj1PDgegr6C4w1jDaWHXCconC3rYiw9TSkQ"
+			]
+		},
+		"@openzeppelin/contracts/proxy/beacon/IBeacon.sol": {
+			"keccak256": "0x20462ddb2665e9521372c76b001d0ce196e59dbbd989de9af5576cad0bd5628b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://f417fd12aeec8fbfaceaa30e3a08a0724c0bc39de363e2acf6773c897abbaf6d",
+				"dweb:/ipfs/QmU4Hko6sApdweVM92CsiuLKkCk8HfyBeutF89PCTz5Tye"
+			]
+		},
+		"@openzeppelin/contracts/utils/Address.sol": {
+			"keccak256": "0x6d0ae6e206645341fd122d278c2cb643dea260c190531f2f3f6a0426e77b00c0",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://032d1201d839435be2c85b72e33206b3ea980c569d6ebf7fa57d811ab580a82f",
+				"dweb:/ipfs/QmeqQjAtMvdZT2tG7zm39itcRJkuwu8AEReK6WRnLJ18DD"
+			]
+		},
+		"@openzeppelin/contracts/utils/Context.sol": {
+			"keccak256": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6a708e8a5bdb1011c2c381c9a5cfd8a9a956d7d0a9dc1bd8bcdaf52f76ef2f12",
+				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
+			]
+		},
+		"@openzeppelin/contracts/utils/Errors.sol": {
+			"keccak256": "0x6afa713bfd42cf0f7656efa91201007ac465e42049d7de1d50753a373648c123",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://ba1d02f4847670a1b83dec9f7d37f0b0418d6043447b69f3a29a5f9efc547fcf",
+				"dweb:/ipfs/QmQ7iH2keLNUKgq2xSWcRmuBE5eZ3F5whYAkAGzCNNoEWB"
+			]
+		},
+		"@openzeppelin/contracts/utils/Pausable.sol": {
+			"keccak256": "0xdb484371dfbb848cb6f5d70464e9ac9b2900e4164ead76bbce4fef0b44bcc68f",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://f9d6f6f6600a2bec622f699081b58350873b5e63ce05464d17d674a290bb8a7c",
+				"dweb:/ipfs/QmQKVzSQY1PM3Bid4QhgVVZyx6B4Jx7XgaQzLKHj38vJz8"
+			]
+		},
+		"@openzeppelin/contracts/utils/StorageSlot.sol": {
+			"keccak256": "0xcf74f855663ce2ae00ed8352666b7935f6cddea2932fdf2c3ecd30a9b1cd0e97",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://9f660b1f351b757dfe01438e59888f31f33ded3afcf5cb5b0d9bf9aa6f320a8b",
+				"dweb:/ipfs/QmarDJ5hZEgBtCmmrVzEZWjub9769eD686jmzb2XpSU1cM"
+			]
+		},
+		"Pipe/AccesControlPipes.sol": {
+			"keccak256": "0xb094680ff44006b81cf82f1c0f384fafd61c33bcb19860a3272a4e80f66ebc9e",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://b93d9a92fd27cd21c076452e27e6ea93627dd7f1900a3a9d50127b325fdfac09",
+				"dweb:/ipfs/QmQ9BbEE65fYDkYDbyeR4uyPffTrHEpETGCaoDKfFnbeJV"
+			]
+		},
+		"Pipe/StateVarPipes.sol": {
+			"keccak256": "0x3c38b6214feaa3d5c32e859591f4b29e6dd3604bfa4afcb7260e320139ce4a92",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://f8b9e4159d055642d33203a327eec1a1d8a3daf154d8982d4a7204fae1fc1ac5",
+				"dweb:/ipfs/QmSfQmfLCdQetfwZap8pgTFkFDrLYj3cfDkCY4FCPZW6jm"
+			]
+		},
+		"User/TrustlessTeamProtocol.sol": {
+			"keccak256": "0xc3fe80ce7a4f1b56e04feee9a106f899ef5979eb44c6967962be1c5a01c5005a",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://96e40aa0b202ce2f020c2b6e67cce6df9f510e9815b596837610321e114bcf3b",
+				"dweb:/ipfs/QmNaXfERh2CNyX5zc2cGJWFJcjuemm7dWaBPRw1tfgwHne"
+			]
+		},
+		"system/StateVariable.sol": {
+			"keccak256": "0x2525dd781eeae709dd907e3fe582ded1a38ac0b710dec10d9e6ff4f85eba91e1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://7ace3fbef4758a122ed16b50ee867ddfd46430931b3511588c4ce12c30399c8d",
+				"dweb:/ipfs/QmcFJarMRrbBsHKYomBTBJbqvJ1PxRcC6ynx6B7pLaaCxT"
+			]
+		}
+	},
+	"version": 1
+}

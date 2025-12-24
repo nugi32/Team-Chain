@@ -12,9 +12,9 @@
   <script type="module" src="./index.js"></script>
   
   <!-- UI scripts -->
-  <script src="../../global-Ux/loading-ui.js"></script>
-  <script src="../../global-Ux/ui-core.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="module" src="../../global-Ux/loading-ui.js"></script>
+  <script type="module" src="../../global-Ux/ui-core.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -198,29 +198,58 @@
           <span>GitHub URL:</span>
           <a href="#" target="_blank" class="githubURL">-</a>
         </p>
-      </div>
-
-      <div class="stake-status">
+        <p><span>Max Revisions:</span> <span class="maxRevision">-</span></p>
+        
+        <div class="stake-status">
         <p><span>Member Stake Locked:</span> <span class="isMemberStakeLocked">-</span></p>
         <p><span>Creator Stake Locked:</span> <span class="isCreatorStakeLocked">-</span></p>
         <p><span>Reward Claimed:</span> <span class="isRewardClaimed">-</span></p>
         <p><span>Task Exists:</span> <span class="exists">-</span></p>
       </div>
 
-      <div class="taskBTN">
+        <div class="taskBTN">
         <button class="ActivateTask" id="activate">Activate Task</button>
         <button class="DeleteTask">Delete Task</button>
         <button class="OpenRegisteration">Open Registeration</button>
         <button class="CloseRegisteration">Close Registeration</button>
         <button class="CancelTask">Cancel Task By Me</button>
 
-        <button class="AcceptJoin">Accept Member</button>
         <button class="ApproveTask">Approve Task</button>
 
-        <button class="submitTask">submit Task</button>
         <button class="Join">Join</button>
         <button class="WithdrawJoin">Withdraw Join Request</button>
         <button id="reload">Refresh</button>
+      </div>
+
+            <div class="JoinRequestOverlay" id="joinRequestOverlay"><div>
+
+      <template id="JoinRequest">
+        <div class="task-card">
+          <div class="card-header">
+            <h2><span>Join Request</span></h2>
+          </div>
+          <div class="task-info">
+        <p><span>ID:</span> <span class="taskId">-</span></p>
+        <p><span>Status:</span> <span class="status">-</span></p>
+        <p><span>Is Pending:</span> <span class="pending">-</span></p>
+        <p><span>Stake Amount:</span> <span class="stakeAmount">-</span> <span>ETH</span></p>
+          </div>
+        </div>
+      </template>
+
+           <template id="SubmitStatus">
+        <div class="task-card">
+          <div class="card-header">
+            <h2><span>Join Request</span></h2>
+          </div>
+          <div class="task-info">
+        <p><span>ID:</span> <span class="taskId">-</span></p>
+        <p><span>Status:</span> <span class="status">-</span></p>
+        <p><span>Note:</span> <span class="note">-</span></p>
+        <p><span>Github URL:</span> <span class="gitURL">-</span></p>
+          </div>
+        </div>
+      </template>
       </div>
 
       <div class="overlayInfo" id="OverlayInfo"></div>
@@ -232,7 +261,7 @@
           </div>
 
           <div class="task-info">
-            <p><span>Member ID:</span> <span class="taskId">-</span></p>
+            <p><span>ID:</span> <span class="taskId">-</span></p>
             <p><span>Point:</span> <span class="Points">-</span></p>
           </div>
 
@@ -286,6 +315,7 @@
 
     </div>
   </div>
+  <!----
   <footer class="site-footer">
     <div class="footer-content">
       <h3>Contact Our Team</h3>
@@ -309,7 +339,7 @@
 
       <small>© 2025 Trustless Team Protocol — All Rights Reserved</small>
     </div>
-  </footer>
+  </footer>-->
 
   <script>
     document.querySelectorAll("[data-include]").forEach(async el => {

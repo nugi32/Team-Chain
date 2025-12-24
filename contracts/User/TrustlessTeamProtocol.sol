@@ -136,6 +136,7 @@ contract TrustlessTeamProtocol is
 
     /// @dev User address to User profile mapping
     mapping(address => User) public Users;
+    mapping(bytes32 => bool) public usedGitURL;
 
     /// @dev Task ID to submission mapping
     mapping(uint256 => TaskSubmit) public TaskSubmits;
@@ -324,10 +325,11 @@ contract TrustlessTeamProtocol is
         onlyUser
         callerZeroAddr
     {
-        User storage u = Users[user];
+        User storage u = Users[user]; 
         
         // Validate registration
         if (u.isRegistered) revert AlredyRegistered();
+        bytes32 gitHash = keccak256(abi.encodePacked(githubURL));
 
         // Initialize user profile
         u.reputation = 0;
@@ -337,6 +339,7 @@ contract TrustlessTeamProtocol is
         u.name = Name;
         u.age = Age;
         u.GitProfile = githubURL;
+        usedGitURL[gitHash] = true;
 
         emit UserRegistered(user, Name, Age);
     }
@@ -354,6 +357,8 @@ contract TrustlessTeamProtocol is
         returns (string memory)
     {
         User memory u = Users[user];
+        bytes32 gitHash = keccak256(abi.encodePacked(u.GitProfile));
+        usedGitURL[gitHash] = false;
         emit UserUnregistered(user, u.name, u.age);
         delete Users[user];
         return "Unregister Successfully";
@@ -539,14 +544,14 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task
      * @dev Locks member stake, sets deadline, and moves task to InProgress status
      */
-    function approveJoinRequest(uint256 taskId) external taskExists(taskId) onlyTaskCreator(taskId) nonReentrant whenNotPaused {
+    function approveJoinRequest(uint256 taskId, address applicant) external taskExists(taskId) onlyTaskCreator(taskId) nonReentrant whenNotPaused {
         JoinRequest[] storage requests = joinRequests[taskId];
         Task storage t = Tasks[taskId];
         bool found = false;
 
         // Find and approve the request
         for (uint256 i = 0; i < requests.length; ++i) {
-            if (requests[i].isPending) {
+            if (requests[i].applicant == applicant && requests[i].isPending) {
                 requests[i].isPending = false;
                 requests[i].status = UserTask.Accepted;
                 
@@ -722,7 +727,7 @@ contract TrustlessTeamProtocol is
             if (s.status == SubmitStatus.Pending) {
                 revert alredyInPending();
             } else {
-                __approveTask(taskId, 0);
+                __approveTask(taskId);
                 return;
             }
         }
@@ -753,7 +758,7 @@ contract TrustlessTeamProtocol is
         TaskSubmit storage s = TaskSubmits[taskId];
 
         // Validate state and input
-        if (t.member == address(0)) revert CancelOnlyWhenMemberAssigned();
+        //if (t.member == address(0)) revert CancelOnlyWhenMemberAssigned();
         if (___getMinRevisionTimeInHour() < additionalDeadlineHours) revert InvalidDeadline();
         if (s.status != SubmitStatus.Pending) revert TaskNotOpen();
 
@@ -771,7 +776,7 @@ contract TrustlessTeamProtocol is
             if (s.status == SubmitStatus.Pending) {
                 revert alredyInPending();
             } else {
-                __approveTask(taskId, 0);
+                __approveTask(taskId);
                 return;
             }
         }
@@ -800,14 +805,14 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task to approve
      * @dev External wrapper for internal approval function
      */
-    function approveTask(uint256 taskId, uint256 SubmitId)
+    function approveTask(uint256 taskId)
         external
         taskExists(taskId)
         onlyTaskCreator(taskId)
         nonReentrant
         whenNotPaused
     {
-        __approveTask(taskId, SubmitId);
+        __approveTask(taskId);
     }
 
     // =============================================================
@@ -1022,9 +1027,9 @@ contract TrustlessTeamProtocol is
      * @param taskId ID of the task to approve
      * @dev Distributes rewards, updates reputation, and completes task lifecycle
      */
-    function __approveTask(uint256 taskId, uint256 SubmitId) internal {
+    function __approveTask(uint256 taskId) internal {
         Task storage t = Tasks[taskId];
-        TaskSubmit storage s = TaskSubmits[SubmitId];
+        TaskSubmit storage s = TaskSubmits[taskId];
 
         // Validate task and submission state
         if (t.status != TaskStatus.InProgres) revert TaskNotOpen();
@@ -1079,12 +1084,13 @@ contract TrustlessTeamProtocol is
     // =============================================================
 
     /**
-     * @notice Checks if caller is registered
-     * @return Registration status of caller
+     * @notice Checks joint request count
+     * @return Length of arr
      */
-    function isRegistered(address user) external view returns (bool) {
-        return Users[user].isRegistered;
+    function getJoinRequestCount(uint256 taskId) external view returns (uint256) {
+        return joinRequests[taskId].length;
     }
+
 
     /**
      * @notice Calculates required creator stake for a taskF

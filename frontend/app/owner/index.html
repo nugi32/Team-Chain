@@ -4,16 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./main.css" />
+  <link rel="stylesheet" href="../user/global/global.css" />
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js"></script>
-
-  <script type="module" src="./connectors/ownerWallet.js"></script>
-
+    <script type="module" src="../u"></script>
     <script type="module" src="./connectors/AccessControl-connector.js"></script>
     <script type="module" src="./connectors/systemWallet-conectors.js"></script>
     <script type="module" src="./connectors/StateVar-connector.js"></script>
     <script type="module" src="./connectors/MainContract-connector.js"></script>
     <script type="module" src="./connectors/ContractUtils.js"></script>
+
+  <script src="../global-Ux/loading-ui.js"></script>
+  <script src="../global-Ux/ui-core.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -25,7 +27,7 @@
       <h1>Team chain</h1>
     </div>
 
-    <h1 id="center">For Owner & Employee</h1>
+    <h1>For Owner & Employee</h1>
 
     <div class="wallet-container">
       <!--
@@ -38,7 +40,7 @@
   <div class="background">
 
     <!-- ============ STATE VARIABLES ============ -->
-    <div class="StateVariable cards">
+    <div class="StateVariable card">
       <h2>State Variable Section</h2>
 
       <div class="ComponentWeightPercentages">
@@ -66,7 +68,7 @@
       </div>
 
       <!-- ============ REPUTATION POINTS ============ -->
-      <div class="ReputationPoints cards">
+      <div class="ReputationPoints">
         <h3>Reputation Points</h3>
         <form class="reputationPoints">
           <input type="number" name="CancelByMeRP" placeholder="CancelByMe RP" required>
@@ -80,7 +82,7 @@
       </div>
 
       <!-- ============ ADDITIONAL STATE VARIABLES ============ -->
-      <div class="AditionalStateVar cards">
+      <div class="AditionalStateVar">
         <h3>Additional State Variables</h3>
         <form class="aditionalStateVar">
           <input type="number" name="maxStakeInEther" placeholder="Max Stake (Ether)" required>
@@ -94,7 +96,7 @@
       </div>
 
       <!-- ============ STAKE CATEGORIES ============ -->
-      <div class="StakeCategorys cards">
+      <div class="AditionalStateVar">
         <h3>Stake Categories</h3>
         <form class="stakeCategorys">
           <input type="number" name="low" placeholder="Low" required>
@@ -111,7 +113,7 @@
     </div>
 
     <!-- ============ ACCESS CONTROL ============ -->
-    <div class="cards">
+    <div class="card">
       <h2>Access Control</h2>
 
       <div class="AssignEmployee">
@@ -155,7 +157,7 @@
     </div>
 
     <!-- ============ SYSTEM WALLET ============ -->
-    <div class="SystemWallet-cards">
+    <div class="card">
       <h2>System Wallet</h2>
 
       <div class="transfer">
@@ -174,7 +176,7 @@
     </div>
 
     <!-- ============ MAIN CONTRACT ============ -->
-    <div class="cards">
+    <div class="card">
       <h1>Main Contract</h1>
 
       <div class="Return-Info">
@@ -215,13 +217,13 @@
           <form class="changeStateVar">
           <input type="text" name="changeStateVariableAddress" placeholder="New State Variable Address" required>
           <button type="submit">Change</button>
-          </form>>
+          </form>
         </div>
 
     </div>
   </div>
 
-      <div class="cards">
+      <div class="card">
         <h2>for SystemWallet, StateVar, Main contract</h2>
           <div class="changeAccessControl">
           <h3>Change Access Control Address</h3>

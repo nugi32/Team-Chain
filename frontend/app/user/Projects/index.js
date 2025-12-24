@@ -1,7 +1,8 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
+import { _calculatePoint } from "../global/helper.js";
 
-const ARTIFACT_PATH = "/user/artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "../../artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // STATE
@@ -120,18 +121,30 @@ async function loadData(signer) {
     for (let i = 0; i < taskCount; i++) {
       const task = await contract.Tasks(i);
 
-      const showStatus = [1, 3];
+      const showStatus = [3];
       if (!task.exists) continue;
       if (!showStatus.includes(Number(task.status))) continue;
 
       const stake = await contract.getMemberRequiredStake(task[0]);
 
+      // ambil reputasi creator
+      const user = await contract.Users(task.creator);
+
+      // hitung point task
+      const point = await _calculatePoint({
+        rewardWei: Number(task[8]),
+        creatorReputation: Number(user.reputation),
+        actualHours: Number(task[12]),     // pastikan index benar
+        revisionCount: Number(task[13])
+      });
+
       allTasks.push({
         id: task[0].toString(),
-        creator: task[3].toLowerCase(),
+        creator: task.creator.toLowerCase(),
         title: task[5],
         deadline: Number(task[8]),
-        stake: Number(ethers.formatEther(stake))
+        stake: Number(ethers.formatEther(stake)),
+        point // ⬅️ POINT SIAP DIRENDER
       });
     }
 
@@ -142,6 +155,7 @@ async function loadData(signer) {
     alert("Team Chain: Failed to load task data.");
   }
 }
+
 
 // ==============================
 // RENDER
@@ -162,10 +176,11 @@ function renderTasks(tasks) {
     clone.querySelector(".title").textContent = task.title;
     clone.querySelector(".deadline").textContent = task.deadline;
     clone.querySelector(".stake").textContent = task.stake;
+    clone.querySelector(".Points").textContent = task.point;
 
     clone.querySelector(".detailsBTN")
       .addEventListener("click", () => {
-        go(`/task?id=${task.id}`);
+     go(`/../user/taskDetail?id=${task.id}`);
       });
 
     container.appendChild(clone);
