@@ -244,7 +244,7 @@ const svArgs = [
     __dirname,
     "..",
     "frontend",
-    "app",
+    "global",
     "address",
     "addresses.json"
   );

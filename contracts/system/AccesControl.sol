@@ -21,7 +21,7 @@ contract AccessControl is UUPSUpgradeable {
     uint public employeeCount;
     
     /// @notice Mapping to track employee roles (address => role => hasRole)
-    mapping(address => bool) internal employees;
+    mapping(address => bool) public employees;
     
     // ================================
     // Events

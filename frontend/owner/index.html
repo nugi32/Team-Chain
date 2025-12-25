@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./main.css" />
+  <link rel="stylesheet" href="../user/global/global.css" />
+
+    <script type="module" src="../global/connectwallet.js"></script>
+
+  <script src="../global-Ux/loading-ui.js"></script>
+  <script src="../global-Ux/ui-core.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+
+
+  <!-- ================= HEADER ================= -->
+  <header class="topbar"> 
+    <div class="brand">
+      <h1>Team chain</h1>
+    </div>
+
+    <h1>For Owner & Employee</h1>
+
+    <div class="wallet-container">
+      <!--
+      <button id="connectBtn">Connect Wallet</button>
+      <span id="account">Not connected</span>-->
+        <w3m-button></w3m-button>
+    </div>
+  </header>
+  <!-- ================= CONTENT WRAPPER ================= -->
+  <div class="background">
+    <style>
+      /* ============ LAYOUT CONTAINER ============ */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.topbar h1 {
+  margin: 0 auto;
+}
+
+footer {
+  margin-bottom: -325px;
+}
+/* ============ CARD SIZE REDUCTION ============ */
+.card {
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 15px;
+    border-left: 3px solid #4a6bff;
+    width: 50%;
+    margin: 0 auto;
+    margin-bottom: 30px;
+}
+
+.card h1, .card h2, .card h3 {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+}
+
+.card h1 {
+    font-size: 1.4rem;
+}
+
+.card h2 {
+    font-size: 1.2rem;
+}
+
+.card h3 {
+    font-size: 1rem;
+}
+
+/* ============ FORM SIZE REDUCTION ============ */
+form {
+    gap: 10px;
+}
+
+input[type="text"],
+input[type="number"] {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+/* ============ BUTTON SIZE REDUCTION ============ */
+button, button[type="submit"] {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+/* ============ SECTION MARGIN REDUCTION ============ */
+.ComponentWeightPercentages,
+.StakeAmounts,
+.ReputationPoints,
+.AditionalStateVar,
+.StakeCategorys,
+.AssignEmployee,
+.RemoveEmployee,
+.changeOwner,
+.employee-count,
+.has-role,
+.owner-check,
+.transfer,
+.seeBalance,
+.Return-Info,
+.MemberStakeFromReward,
+.WithdrawFeeToSystemWallet,
+.changeSystemWallet,
+.changeStateVar,
+.changeAccessControl,
+.pause-unpause {
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+}
+
+/* ============ SPECIAL SECTIONS ============ */
+.admins, .owner {
+    padding: 15px;
+    margin-bottom: 18px;
+}
+
+/* ============ FORM LAYOUT ============ */
+.WeightPercentages,
+.stakeAmounts,
+.reputationPoints,
+.aditionalStateVar,
+.stakeCategorys {
+    gap: 10px;
+}
+
+/* ============ BUTTON GROUP ============ */
+.pause-unpause {
+    gap: 8px;
+}
+
+/* ============ RESPONSIVE ADJUSTMENTS ============ */
+@media (max-width: 768px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .card {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 10px;
+    }
+    
+    input[type="text"],
+    input[type="number"] {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+    
+    button, button[type="submit"] {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ============ VISUAL ENHANCEMENTS ============ */
+.StakeCategorys.cards {
+    background-color: rgba(240, 247, 255, 0.9);
+}
+
+/* Remove hover effects to save space */
+.card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+button:hover, button[type="submit"]:hover {
+    transform: none;
+    box-shadow: none;
+}
+    </style>
+ <button id="back">⬅</button>
+    <!-- ============ STATE VARIABLES ============ -->
+    <div class="StateVariable card">
+      <h2>State Variable Section</h2>
+
+      <div class="ComponentWeightPercentages">
+        <h3>Component Weight Percentages</h3>
+        <form id="weightPercentagesForm" class="WeightPercentages">
+          <input type="number" name="rewardScore" placeholder="Reward Score %" required>
+          <input type="number" name="reputationScore" placeholder="Reputation Score %" required>
+          <input type="number" name="deadlineScore" placeholder="Deadline Score %" required>
+          <input type="number" name="revisionScore" placeholder="Revision Score %" required>
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <div class="StakeAmounts">
+        <h3>Stake Amounts</h3>
+        <form id="stakeAmountsForm" class="stakeAmounts">
+          <input type="number" name="low" placeholder="Low Stake Amount">
+          <input type="number" name="midLow" placeholder="Mid Low Stake Amount">
+          <input type="number" name="mid" placeholder="Mid Stake Amount">
+          <input type="number" name="midHigh" placeholder="Mid High Stake Amount">
+          <input type="number" name="high" placeholder="High Stake Amount">
+          <input type="number" name="ultraHigh" placeholder="Ultra High Stake Amount">
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <!-- ============ REPUTATION POINTS ============ -->
+      <div class="ReputationPoints">
+        <h3>Reputation Points</h3>
+        <form id="reputationPointsForm" class="reputationPoints">
+          <input type="number" name="CancelByMeRP" placeholder="CancelByMe RP" required>
+          <input type="number" name="revisionRP" placeholder="Revision RP" required>
+          <input type="number" name="taskAcceptCreatorRP" placeholder="Task Accept Creator RP" required>
+          <input type="number" name="taskAcceptMemberRP" placeholder="Task Accept Member RP" required>
+          <input type="number" name="deadlineHitCreatorRP" placeholder="Deadline Hit Creator RP" required>
+          <input type="number" name="deadlineHitMemberRP" placeholder="Deadline Hit Member RP" required>
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <!-- ============ ADDITIONAL STATE VARIABLES ============ -->
+      <div class="AditionalStateVar">
+        <h3>Additional State Variables</h3>
+        <form id="additionalStateVarForm" class="aditionalStateVar">
+          <input type="number" name="maxStakeInEther" placeholder="Max Stake (Ether)" required>
+          <input type="number" name="maxRewardInEther" placeholder="Max Reward (Ether)" required>
+          <input type="number" name="minRevisionTimeInHour" placeholder="Min Revision Time (Hour)" required>
+          <input type="number" name="NegPenalty" placeholder="Negative Penalty" required>
+          <input type="number" name="feePercentage" placeholder="Fee Percentage" required>
+          <input type="number" name="maxRevision" placeholder="Max Revision" required>
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <!-- ============ STAKE CATEGORIES ============ -->
+      <div class="AditionalStateVar">
+        <h3>Stake Categories</h3>
+        <form id="stakeCategoriesForm" class="stakeCategorys">
+          <input type="number" name="low" placeholder="Low" required>
+          <input type="number" name="midLow" placeholder="Mid Low" required>
+          <input type="number" name="mid" placeholder="Mid" required>
+          <input type="number" name="midHigh" placeholder="Mid High" required>
+          <input type="number" name="high" placeholder="High" required>
+          <input type="number" name="ultraHigh" placeholder="Ultra High" required>
+          <button type="submit">Set</button>
+        </form>
+      </div>
+
+      <button id="TestBTN" type="button">Return Test</button>
+    </div>
+
+    <!-- ============ ACCESS CONTROL ============ -->
+    <div class="card">
+      <h2>Access Control</h2>
+
+      <div class="AssignEmployee">
+        <h3>Assign Employee</h3>
+        <form id="assignEmployeeForm" class="assign-form">
+          <input type="text" name="assignEmployee" placeholder="New Employee Address" required>
+          <button type="submit">Assign</button>
+        </form>
+      </div>
+
+      <div class="RemoveEmployee">
+        <h3>Remove Employee</h3>
+        <form id="removeEmployeeForm" class="remove-form">
+          <input type="text" name="removeEmployee" placeholder="Employee Address" required>
+          <button type="submit">Remove</button>
+        </form>
+      </div>
+
+      <div class="changeOwner">
+        <h3>Change Owner</h3>
+        <form id="changeOwnerForm" class="change-form">
+          <input type="text" name="changeOwner" placeholder="New Owner Address" required>
+          <button type="submit">Change</button>
+        </form>
+      </div>
+
+      <div class="employee-count">
+        <h3>Employee Count</h3>
+        <button id="btnEmployeeCount" type="button">EmployeeCount</button>
+      </div>
+
+      <div class="has-role">
+        <h3>Role Check</h3>
+        <button id="HasRole" type="button">Has Role</button>
+      </div>
+
+        <div class="owner-check">
+        <h3>owner Check</h3>
+        <button id="ownerCheckBtn" type="button">Owner</button>
+      </div>
+    </div>
+
+    <!-- ============ SYSTEM WALLET ============ -->
+    <div class="card">
+      <h2>System Wallet</h2>
+
+      <div class="transfer">
+        <h3>Transfer Fund</h3>
+        <form id="transferForm" class="transfer-form">
+          <input type="text" name="toAddress" placeholder="Recipient Address" required>
+          <input type="number" name="amount" placeholder="Amount ETH" required>
+          <button type="submit">Transfer</button>
+        </form>
+      </div>
+
+      <div class="seeBalance">
+        <h3>See Balance</h3>
+        <button id="checkBalanceBtn">See Contract Balance</button>
+      </div>
+    </div>
+
+    <!-- ============ MAIN CONTRACT ============ -->
+    <div class="card">
+      <h1>Main Contract</h1>
+
+      <div class="Return-Info">
+        <h3>Return Contract Info</h3>
+        <button id="ReturnInfo" type="button">Return</button>
+      </div>
+
+      <div class="admins">
+        <h2>Only Admins</h2>
+
+        <div class="MemberStakeFromReward">
+          <h3>Set Member Stake Percentage From Reward</h3>
+          <form id="setMemberStakeForm" class="setMemberStakeFromReward">
+          <input type="number" name="MemberStakePercentageFromReward" placeholder="Member Stake Percentage From Reward" required>
+          <button type="submit">Set</button>
+          </form>
+        </div>
+
+        <div class="WithdrawFeeToSystemWallet">
+          <h3>Withdraw Fee To System Wallet</h3>
+          <button id="TransferToSystemWallet" type="button">Withdraw</button>
+        </div>
+      </div>
+
+      <div class="owner">
+        <h2>Only Owner</h2>
+
+        <div class="changeSystemWallet">
+          <h3>Change System Wallet Address</h3>
+          <form id="changeSystemWalletForm">
+          <input type="text" name="SystemWalletAddress" placeholder="New System Wallet Address" required>
+          <button type="submit">Change</button>
+          </form>
+        </div>
+
+        <div class="changeStateVar">
+          <h3>Change State Variable Address</h3>
+          <form id="changeStateVarForm">
+          <input type="text" name="changeStateVariableAddress" placeholder="New State Variable Address" required>
+          <button type="submit">Change</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+      <div class="card">
+        <h2>for SystemWallet, StateVar, Main contract</h2>
+          <div class="changeAccessControl">
+          <h3>Change Access Control Address</h3>
+          <form id="changeAccessControlForm">
+          <input type="text" name="changeAccessControlAddress" placeholder="New Access Control Address" required>
+          <button type="submit">Change</button>
+          </form>
+        </div>
+
+          <div class="pause-unpause">
+          <h3>Pause & Unpause Contract</h3>
+          <button id="pauseBtn" type="button">Pause Contract</button>
+          <button id="unpauseBtn" type="button">Unpause Contract</button>
+          <button id="checkPausedBtn" type="button">Is System Paused</button>
+        </div>
+      </div>
+</body>
+</html>
