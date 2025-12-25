@@ -1,6 +1,7 @@
 import { ethers, BrowserProvider } from "ethers";
 import { modal } from "../../global/connectwallet.js";
-import { ACCESS_CONTROL } from "../../global/AddressConfig.js";
+import { ACCESS_CONTROL, CONTRACT_ADDRESS } from "../../global/AddressConfig.js";
+import { isRegistered } from "../../global/helper.js";
 import { withUI } from "../../global-Ux/loading-ui";
 
 console.log("📦 Access Control loaded");
@@ -33,6 +34,7 @@ async function loadABI(path) {
 }
 
 const ARTIFACT_PATH = "../global/artifact/AccessControl.json";
+const MAIN_ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // CONTRACT INSTANCE
@@ -40,6 +42,11 @@ const ARTIFACT_PATH = "../global/artifact/AccessControl.json";
 async function getContract(signer) {
   const artifact = await loadABI(ARTIFACT_PATH);
   return new ethers.Contract(ACCESS_CONTROL, artifact.abi, signer);
+}
+
+async function mainGetContract(signer) {
+  const artifact = await loadABI(MAIN_ARTIFACT_PATH);
+  return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 
 // =====================================================
@@ -56,6 +63,14 @@ export async function assignEmployee(employeeAddr) {
     if (!signer) throw new Error("Wallet not connected");
 
     if (!ethers.isAddress(employeeAddr)) throw new Error("Invalid address");
+
+    const MainContract = await mainGetContract(signer);
+    const addr = await signer.getAddress();
+
+    const isRegister = await isRegistered(MainContract, addr);
+    if (isRegister) {
+      throw new Error("Employee address is user")
+    }
 
     const contract = await getContract(signer);
     const tx = await contract.assignNewEmployee(employeeAddr);

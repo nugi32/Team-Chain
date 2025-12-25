@@ -72,6 +72,12 @@ async function handleRegisterSubmit(e) {
 
     const contract = await getContract(signer);
 
+    /*
+    const isDuplicate = await antiDuplicateGitProfile(contract, githubURL);
+    if (isDuplicate) {
+      throw new Error("Github profile is used")
+    }*/
+
     const { isRegistered: registered, message } =
       await isRegistered(contract, address);
 

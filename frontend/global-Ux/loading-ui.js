@@ -15,7 +15,6 @@ export async function withUI(callback, options = {}) {
     const result = await callback();
 
     if (!silent) {
-      //Swal.close();          // 🔥 WAJIB
       UI.hideLoading();
       if (successMessage) {
         Notify.success("Success", successMessage);
@@ -27,10 +26,11 @@ export async function withUI(callback, options = {}) {
   } catch (err) {
     console.error(err);
     if (!silent) {
-      //Swal.close();          // 🔥 WAJIB
       UI.hideLoading();
       Notify.error(err.message || errorMessage);
     }
     throw err;
   }
 }
+
+

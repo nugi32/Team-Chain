@@ -27,11 +27,7 @@ export async function init() {
   pageActive = true;
 
   bindUI();
-  await preloadABI();
   startWalletWatcher();
-
-  // load sekali walau wallet belum connect
-  await loadPublicTasks();
 }
 
 export function destroy() {
@@ -56,7 +52,7 @@ export function destroy() {
 }
 
 // ==============================
-// WALLET HELPERS (REOWN)
+// WALLET HELPERS
 // ==============================
 async function getProvider() {
   const walletProvider = modal.getWalletProvider();
@@ -77,58 +73,59 @@ function startWalletWatcher() {
   if (walletWatcher) return;
 
   walletWatcher = setInterval(async () => {
-    if (!pageActive) return;
-
     try {
-      const signer = await getSigner();
-      if (!signer) return;
+      if (!pageActive) return;
 
+      const walletProvider = modal.getWalletProvider();
+      if (!walletProvider) return;
+
+      const provider = new BrowserProvider(walletProvider);
+      const signer = await provider.getSigner();
       const addr = (await signer.getAddress()).toLowerCase();
+
+      // 🔥 LOAD SEKALI SAAT WALLET READY / GANTI WALLET
       if (addr !== lastLoadedAddress) {
         lastLoadedAddress = addr;
-        await loadPublicTasks(signer);
+        await loadPublicTasks();
+        console.log("🔄 tasks loaded for", addr);
       }
     } catch {
-      // wallet belum connect
+      // wallet belum connect → diam
     }
-  }, 800);
+  }, 500);
 }
 
 // ==============================
 // CONTRACT HELPERS
 // ==============================
-async function preloadABI() {
+async function loadABI(path) {
   if (cachedABI) return cachedABI;
-  const res = await fetch(ARTIFACT_PATH);
+  const res = await fetch(path);
   cachedABI = await res.json();
   return cachedABI;
 }
 
-async function getContract(providerOrSigner) {
-  const artifact = await preloadABI();
-  return new ethers.Contract(
-    CONTRACT_ADDRESS,
-    artifact.abi,
-    providerOrSigner
-  );
+async function getContract(signer) {
+  const artifact = await loadABI(ARTIFACT_PATH);
+  return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 
 // ==============================
 // LOAD DATA
 // ==============================
-async function loadPublicTasks(signer = null) {
+async function loadPublicTasks() {
   try {
-    const provider =
-      signer?.provider ??
-      new ethers.JsonRpcProvider("https://rpc.sepolia.org");
+    const signer = await getSigner();
+    if (!signer) return;
 
-    const contract = await getContract(provider);
+    const contract = await getContract(signer);
     const taskCount = Number(await contract.taskCounter());
 
     allTasks = [];
 
     for (let i = 0; i < taskCount; i++) {
       const task = await contract.Tasks(i);
+
       if (!task.exists) continue;
 
       // hanya OpenRegistration
@@ -199,7 +196,7 @@ function renderTasks(tasks) {
 
     clone.querySelector(".detailsBTN")
       ?.addEventListener("click", () => {
-        go(`/../user/taskDetail?id=${task.id}`);
+        go(`/taskDetail?id=${task.id}`);
       });
 
     container.appendChild(clone);

@@ -1,7 +1,7 @@
-import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+import { ethers } from "ethers";
 import { STATE_VAR_ADDRESS } from "./AddressConfig.js";
 
-const ARTIFACT_PATH = "./artifact/stateVariable.json";
+const ARTIFACT_PATH = "/global/artifact/stateVariable.json";
 
 async function loadABI(path) {
   const res = await fetch(path);

@@ -1,90 +1,131 @@
-import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
-import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
-import { _hasRequestedJoin, isRegistered, _rejectAllPending, _rejectAllPendingExcept, _calculatePoint } from "../global/helper.js";
-import { withUI } from "../global-Ux/loading-ui.js";
 import { modal } from "../global/connectwallet.js";
-// ==============================
-// STATE MANAGEMENT
-// ==============================
+import { ethers, BrowserProvider } from "ethers";
+import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
+import {
+  _getMinDeadline,
+  _getMaxRevisionTime,
+  _getMaxReward,
+  isRegistered,
+  _calculatePoint,
+  _hasRequestedJoin,
+  _rejectAllPendingExcept,
+  _rejectAllPending
+} from "../global/helper.js";
+import { withUI } from "../global-Ux/loading-ui.js";
 
-// Module-level state that persists for the lifetime of the module
+// ==============================
+// STATE
+// ==============================
 let provider = null;
 let iface = null;
 let walletWatcherInterval = null;
 let lastAddress = null;
 let eventListeners = []; // Track event listeners for cleanup
-let modal = null; // FIX: Add modal reference
+let pageActive = null;
+let cachedABI = null;
+let lastLoadedAddress = null;
 
-// Contract ABI path
 const ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
 
 // ==============================
-// INITIALIZATION / DESTRUCTION
+// INIT / DESTROY
 // ==============================
-
-/**
- * Initialize the task detail page
- * Called by SPA router when page becomes active
- * Sets up all event listeners, state, and initial data loading
- */
 export async function init() {
-    console.log("📦 task detail page initializing");
-    
-    // FIX: Get modal instance from global window object
-    modal = window.modal;
-    
-    // FIX: Initialize provider as null, will be set when wallet connects
-    provider = null;
-    
-    // Load contract interface for event parsing
-    const artifact = await loadABI(ARTIFACT_PATH);
-    iface = new ethers.Interface(artifact.abi);
-    
-    // Set up UI event listeners
-    setupEventListeners();
-    
-    // Start wallet connection monitoring
-    setupWalletWatcher();
-    
-    // FIX: Load initial data if wallet is already connected
-    if (modal && modal.getWalletProvider()) {
-        await waitSignerAndRun();
-    }
+  console.log("📦 task detail page init");
+  pageActive = true;
+
+  await loadABI();
+  setupEventListeners();
+  startWalletWatcher();
 }
 
-/**
- * Clean up page resources
- * Called by SPA router when leaving the page
- * Removes all event listeners and stops intervals
- */
 export function destroy() {
-    console.log("🧹 task detail page cleaning up");
-    
-    // Clear wallet watcher interval
-    if (walletWatcherInterval) {
-        clearInterval(walletWatcherInterval);
-        walletWatcherInterval = null;
-    }
-    
-    // Remove all registered event listeners
-    eventListeners.forEach(({ element, event, handler }) => {
-        element?.removeEventListener(event, handler);
-    });
-    eventListeners = [];
-    
-    // Reset state
-    lastAddress = null;
-    
-    console.log("✅ task detail page cleanup complete");
+  console.log("🧹 task page destroy");
+  pageActive = false;
+
+  if (walletWatcherInterval) {
+    clearInterval(walletWatcherInterval);
+    walletWatcherInterval = null;
+  }
+
+  lastLoadedAddress = null;
 }
 
 // ==============================
-// EVENT LISTENER MANAGEMENT
+// WALLET ACCESS (REOWN)
 // ==============================
+async function getSigner() {
+  const walletProvider = modal.getWalletProvider();
+  if (!walletProvider) return null;
 
-/**
- * Helper to add event listeners with tracking for cleanup
- */
+  const provider = new BrowserProvider(walletProvider);
+  return provider.getSigner();
+}
+
+// ==============================
+// WALLET WATCHER (AUTO LOAD)
+// ==============================
+function startWalletWatcher() {
+  if (walletWatcherInterval) return;
+
+  walletWatcherInterval = setInterval(async () => {
+    try {
+      if (!pageActive) return;
+
+      const signer = await getSigner();
+      if (!signer) return;
+
+      const addr = (await signer.getAddress()).toLowerCase();
+      if (addr !== lastLoadedAddress) {
+        await loadData();
+        console.log("sadvsdvsbsbd")
+      }
+    } catch {
+      // wallet belum connect
+    }
+  }, 800);
+}
+
+// ==============================
+// GATE LOADER
+// ==============================
+/*
+async function tryLoadTasks() {
+  if (!pageActive) return;
+
+  const signer = await getSigner();
+  if (!signer) return;
+
+  const address = (await signer.getAddress()).toLowerCase();
+  if (address === lastLoadedAddress) return;
+
+  lastLoadedAddress = address;
+  console.log("🔄 Loading tasks for", address);
+
+  await loadData();
+  await loadJoinedTasks();
+  await loadMyPendingJoinRequests();
+}*/
+
+// ==============================
+// CONTRACT HELPERS
+// ==============================
+async function loadABI() {
+  if (cachedABI) return cachedABI;
+  const res = await fetch(ARTIFACT_PATH);
+  cachedABI = await res.json();
+  iface = new ethers.Interface(cachedABI.abi);
+  return cachedABI;
+}
+
+async function getContract(signer) {
+  const artifact = await loadABI();
+  return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
+}
+
+
+
+
 function addEventListener(element, event, handler) {
     element.addEventListener(event, handler);
     eventListeners.push({ element, event, handler });
@@ -107,10 +148,9 @@ function setupEventListeners() {
             }
         });
     }
-    
-    // Task action buttons
     setupTaskActionListeners();
 }
+
 
 /**
  * Set up task action button listeners
@@ -134,25 +174,6 @@ function setupTaskActionListeners() {
     });
 }
 
-// ==============================
-// CONTRACT INTERACTION
-// ==============================
-
-/**
- * Load contract ABI from JSON file
- */
-async function loadABI(path) {
-    const res = await fetch(path);
-    return res.json();
-}
-
-/**
- * Get contract instance with signer
- */
-async function getContract(signer) {
-    const artifact = await loadABI(ARTIFACT_PATH);
-    return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
-}
 
 // ==============================
 // UI HELPER FUNCTIONS
@@ -311,6 +332,7 @@ function applyButtonRules(card, task, userAddress) {
     }
 }
 
+
 // ==============================
 // DATA LOADING AND RENDERING
 // ==============================
@@ -351,11 +373,7 @@ async function showTaskData(task, address, point) {
     showText(card, ".creatorStake", ethers.formatEther(task[11]));
     showText(card, ".memberStake", ethers.formatEther(task[12]));
     showText(card, ".maxRevision", task[13]?.toString());
-
-    console.log(task[14])
-    console.log(task[15])
-    console.log(task[16])
-    console.log(task[17])
+    showText(card, ".SubmitStatus", task[13]?.toString());
 
     // Boolean flags
     showBool(card, ".isMemberStakeLocked", task[14]);
@@ -367,27 +385,12 @@ async function showTaskData(task, address, point) {
     applyButtonRules(card, task, address);
 }
 
-async function getSigner() {
-  const walletProvider = modal.getWalletProvider();
-  if (!walletProvider) return null;
-
-  const provider = new BrowserProvider(walletProvider);
-  return provider.getSigner();
-}
 
 /**
  * Load and display task data from contract
  */
 async function loadData() {
-    try {/* 
-        // FIX: Get signer from modal provider instead of window.wallet
-        const walletProvider = modal?.getWalletProvider();
-        if (!walletProvider) {
-            console.log("No wallet provider available");
-            return;
-        }
-        
-        const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider*/
+    try {
         const signer = await getSigner();
         if (!signer) return;
 
@@ -415,80 +418,6 @@ async function loadData() {
     } catch (e) {
         console.error("Failed to load task data:", e);
         alert("Team Chain: Failed to load task data.");
-    }
-}
-
-// ==============================
-// WALLET CONNECTION MANAGEMENT
-// ==============================
-
-/**
- * Set up wallet connection watcher
- * Monitors for wallet address changes
- */
-function setupWalletWatcher() {
-    // Clear any existing interval
-    if (walletWatcherInterval) {
-        clearInterval(walletWatcherInterval);
-    }
-    
-    walletWatcherInterval = setInterval(async () => { // FIX: Make async
-        try {
-            // FIX: Get wallet provider from modal
-            const walletProvider = modal?.getWalletProvider();
-            if (walletProvider) {
-                const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-                const signer = await provider.getSigner();
-                const currentAddress = await signer?.getAddress();
-                
-                if (currentAddress && currentAddress !== lastAddress) {
-                    lastAddress = currentAddress;
-                    console.log("Wallet connected/account changed:", currentAddress);
-                    await waitSignerAndRun(); // FIX: Auto-load on connection/change
-                }
-            } else if (lastAddress) {
-                // Wallet disconnected
-                lastAddress = null;
-                console.log("Wallet disconnected");
-            }
-        } catch (error) {
-            console.log("Wallet watcher error:", error);
-        }
-    }, 1000); // FIX: Safe polling interval
-}
-
-/**
- * Handle wallet connection event
- */
-function onWalletConnected(address) {
-    console.log("Wallet connected:", address);
-    waitSignerAndRun();
-}
-
-/**
- * Wait for signer to be available and load data
- */
-async function waitSignerAndRun() {
-    try {
-        // FIX: Get provider from modal instead of window.wallet
-        const walletProvider = modal?.getWalletProvider();
-        if (!walletProvider) {
-            console.log("No wallet provider available");
-            return;
-        }
-        
-        const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-        const signer = await provider.getSigner();
-        
-        if (!signer) {
-            console.log("No signer available");
-            return;
-        }
-        
-        // Load data once signer is available
-        await loadData();
-    } catch (error) {
-        console.error("Failed to get signer:", error);
     }
 }
 
@@ -619,6 +548,8 @@ async function loadJoinRequestData(address) {
 
 
 
+
+
 function RenderSubmitStatus(TaskSubmit) {
   const container = document.getElementById('joinRequestOverlay');
   const template = document.getElementById('SubmitStatus');
@@ -702,14 +633,6 @@ async function loadUserData() {
 
 
 
-/*
-Todo: 
-
-* buat section joined request task di dashboard
-* buat helper buat reject semua pending join request ketika member accepted & registeration closed **
-* buat section if address is pending then show pending status **
-
-*/
 
 
 
@@ -723,19 +646,6 @@ Todo:
 
 
 
-
-
-
-
-
-
-
-
-
-
-// ==============================
-// TASK ACTION HANDLERS
-// ==============================
 // ==============================
 // TASK ACTION HANDLERS
 // ==============================
@@ -1012,17 +922,6 @@ async function handleCloseRegistration() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 async function handleCancelTask() {
     return withUI(async () => {
         // Validate wallet connection
@@ -1078,6 +977,8 @@ async function handleCancelTask() {
         await loadData();
     });
 }
+
+
 
 
 
@@ -1242,6 +1143,11 @@ async function handleWithdrawJoin() {
         await loadData();
     });
 }
+
+
+
+
+
 
 
 
@@ -1698,6 +1604,7 @@ async function reSubmitTask(pullRequestURL, note) {
 
 
 
+
 // ==============================
 // UI COMPONENT HANDLERS
 // ==============================
@@ -1836,7 +1743,7 @@ async function getSubmitData(taskId) {
         deadline: data.deadline ?? data[5] ?? 0,
     };
 }
-
+/*
 // Auto-initialize when this module is loaded directly in the page
 // (SPA router may call `init()` itself; this only ensures standalone pages work)
 if (typeof window !== "undefined") {
@@ -1847,4 +1754,4 @@ if (typeof window !== "undefined") {
     } else {
         init().catch(e => console.error("taskDetail init error:", e));
     }
-}
+}*/
