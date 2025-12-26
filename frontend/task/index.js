@@ -22,7 +22,7 @@ let joinedTasks = [];
 
 let cachedABI = null;
 
-const ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "/artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // INIT / DESTROY
@@ -117,11 +117,11 @@ async function tryLoadTasks() {
 
 async function loadABI() {
   const res = await fetch(ARTIFACT_PATH);
-
+/*
   console.log("ABI fetch url:", res.url);
   console.log("ABI status:", res.status);
   console.log("Content-Type:", res.headers.get("content-type"));
-
+*/
   const text = await res.text();
   console.log("ABI raw response:", text.slice(0, 200));
 

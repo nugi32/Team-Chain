@@ -13,7 +13,7 @@ let lastAddress = null;
 let loading = false;
 let cachedABI = null;
 
-const ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "/artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // INIT / DESTROY

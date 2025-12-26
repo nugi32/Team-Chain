@@ -2,7 +2,9 @@ import { modal } from "./global/connectwallet.js";
 import { ethers, BrowserProvider } from "ethers";
 import { ACCESS_CONTROL } from "./global/AddressConfig.js";
 
-const ARTIFACT_PATH = "./global/artifact/AccessControl.json";
+
+const ARTIFACT_PATH = "/artifact/AccessControl.json";
+
 
 /***************************************
  * Internal State (FIX)
@@ -47,6 +49,9 @@ export async function init() {
 
   await checkAuthorized();   // FIX: initial auto-load
   startWalletWatcher();      // FIX
+
+
+  console.log("main page loaded")
 }
 
 export function destroy() {
@@ -74,6 +79,7 @@ if (typeof window !== 'undefined') {
     destroy: typeof destroy === 'function' ? destroy : undefined
   };
 }
+
 
 /***************************************
  * Wallet Watcher

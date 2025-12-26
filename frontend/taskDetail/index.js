@@ -29,7 +29,7 @@ let lastJoinRequestsCache = null;
 const WALLET_SESSION_KEY = 'active_wallet_address';
 
 
-const ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "/artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // INIT / DESTROY

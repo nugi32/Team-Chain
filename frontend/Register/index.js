@@ -13,7 +13,7 @@ import { withUI } from "../global-Ux/loading-ui.js";
 // MODULE STATE
 // ==============================
 
-const ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "/artifact/TrustlessTeamProtocol.json";
 
 let formHandler = null;
 let checkHandler = null;
@@ -22,10 +22,20 @@ let checkHandler = null;
 // ABI & CONTRACT HELPERS
 // ==============================
 
-async function loadABI(path) {
+export async function loadABI(path) {
   const res = await fetch(path);
-  return res.json();
+/*
+  console.log('ABI fetch URL:', path);
+  console.log('ABI response URL:', res.url);
+  console.log('ABI status:', res.status);
+  console.log('ABI content-type:', res.headers.get('content-type'));
+*/
+  const text = await res.text();
+  console.log('ABI raw response:', text.slice(0, 200));
+
+  return JSON.parse(text);
 }
+
 
 async function getContract(signer) {
   const artifact = await loadABI(ARTIFACT_PATH);

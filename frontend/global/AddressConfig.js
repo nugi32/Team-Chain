@@ -1,9 +1,26 @@
-export const ACCESS_CONTROL = "0x379f85F767b5fc2187fdC6E054C6196480fD649D";
+
+
+
+export const ACCESS_CONTROL = "0x127ebdF7e822377cD3899444f010D15324a51611";
+
+export const SYSTEM_WALLET = "0xa85e4c1100e6f50d853ae758E9f741868c781aBA";
+
+export const STATE_VAR_ADDRESS = "0x8bb656c963105cfF167C42Ed85309C001420b2f7";
+
+export const CONTRACT_ADDRESS =  "0x4B390e98E82E226853CD3D548415295061F03283";
+
+// i created this file to make more flexible to change the contract address
+
+/*
+
+export const ACCESS_CONTROL = "0x1E13Ca29F4F9213a0766E8EAf9914BA2c2F8485E";
+>>>>>>> wallet
 
 export const SYSTEM_WALLET = "0x58141A0326538C01FFdC5Fd668B58fC137f993e9";
 
 export const STATE_VAR_ADDRESS = "0x418B5cc2F5b674102C360020574Ced0A2Eb4388D";
 
-export const CONTRACT_ADDRESS =  "0x2A00f27C9363968a7E6a687a97BB214C466e578F";
 
-// i created this file to make more flexible to change the contract address
+export const CONTRACT_ADDRESS =  "0xD0C5fC737Df2b55a7DBABded9447067ff5d67DB6"; 
+*/
+

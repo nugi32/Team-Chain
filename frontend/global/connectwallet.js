@@ -1,7 +1,7 @@
 import { createAppKit } from "@reown/appkit";
 import { EthersAdapter } from "@reown/appkit-adapter-ethers";
 import { mainnet, arbitrum, sepolia } from "@reown/appkit/networks";
-import { liskSepolia } from './liskSepolia';
+import { liskSepolia } from "./liskSepolia";
 
 // 1. Get projectId from https://dashboard.reown.com
 const projectId = "19d42e4380db8c6b5f492fe52cd90802";

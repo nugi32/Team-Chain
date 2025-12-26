@@ -3,6 +3,7 @@ import { modal } from "../../global/connectwallet.js";
 import { ACCESS_CONTROL, CONTRACT_ADDRESS } from "../../global/AddressConfig.js";
 import { isRegistered } from "../../global/helper.js";
 import { withUI } from "../../global-Ux/loading-ui";
+import { ACCESS, MAIN } from "../index.js";
 
 console.log("📦 Access Control loaded");
 
@@ -31,21 +32,17 @@ async function getSigner() {
 async function loadABI(path) {
   const res = await fetch(path);
   return res.json();
-}
-
-const ARTIFACT_PATH = "../global/artifact/AccessControl.json";
-const MAIN_ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
-
+}  
 // ==============================
 // CONTRACT INSTANCE
 // ==============================
 async function getContract(signer) {
-  const artifact = await loadABI(ARTIFACT_PATH);
+  const artifact = await loadABI(ACCESS);
   return new ethers.Contract(ACCESS_CONTROL, artifact.abi, signer);
 }
 
 async function mainGetContract(signer) {
-  const artifact = await loadABI(MAIN_ARTIFACT_PATH);
+  const artifact = await loadABI(MAIN);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 

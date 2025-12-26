@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { STATE_VAR_ADDRESS } from "./AddressConfig.js";
 
-const ARTIFACT_PATH = "/global/artifact/stateVariable.json";
+const ARTIFACT_PATH = "/artifact/stateVariable.json";
 
 async function loadABI(path) {
   const res = await fetch(path);

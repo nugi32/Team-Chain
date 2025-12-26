@@ -3,7 +3,7 @@ import { ethers, BrowserProvider } from "ethers";
 import { CONTRACT_ADDRESS } from "../global/AddressConfig.js";
 import { _calculatePoint } from "../global/helper.js";
 
-const ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
+const ARTIFACT_PATH = "/artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // STATE
