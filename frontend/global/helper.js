@@ -19,6 +19,13 @@ export async function _getMinDeadline(signer) {
     return data;
 }
 
+export async function _isEnoughDeadline(deadline, signer) {
+  const bigD = BigInt(deadline);
+  const minD = await _getMinDeadline(signer);
+  return bigD >= minD;
+}
+
+
 export async function _getMaxRevisionTime(signer) {
     const contract = await getContract(signer);
     const data = await contract.__getMaxRevision();

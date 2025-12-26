@@ -107,12 +107,6 @@ async function tryLoadTasks() {
 // ==============================
 // CONTRACT HELPERS
 // ==============================
-/*
-async function loadABI() {
-  const res = await fetch(ARTIFACT_PATH);
-  cachedABI = await res.json();
-  return cachedABI;
-}*/
 
 async function loadABI() {
   const res = await fetch(ARTIFACT_PATH);

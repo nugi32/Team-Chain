@@ -9,7 +9,8 @@ import {
   _calculatePoint,
   _hasRequestedJoin,
   _rejectAllPendingExcept,
-  _rejectAllPending
+  _rejectAllPending,
+  _isEnoughDeadline
 } from "../global/helper.js";
 import { withUI } from "../global-Ux/loading-ui.js";
 
@@ -24,6 +25,9 @@ let eventListeners = []; // Track event listeners for cleanup
 let pageActive = null;
 let cachedABI = null;
 let lastLoadedAddress = null;
+let lastJoinRequestsCache = null;
+const WALLET_SESSION_KEY = 'active_wallet_address';
+
 
 const ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
 
@@ -65,47 +69,57 @@ async function getSigner() {
 // ==============================
 // WALLET WATCHER (AUTO LOAD)
 // ==============================
+
 function startWalletWatcher() {
   if (walletWatcherInterval) return;
 
   walletWatcherInterval = setInterval(async () => {
-    try {
-      if (!pageActive) return;
+    if (!pageActive) return;
 
+    try {
       const signer = await getSigner();
-      if (!signer) return;
+
+      // WALLET DISCONNECTED
+      if (!signer) {
+        if (lastLoadedAddress !== null) {
+          lastLoadedAddress = null;
+          sessionStorage.removeItem(WALLET_SESSION_KEY);
+          resetJoinRequestUI();
+          console.log('Wallet disconnected, UI reset');
+        }
+        return;
+      }
 
       const addr = (await signer.getAddress()).toLowerCase();
-      if (addr !== lastLoadedAddress) {
-        await loadData();
-        console.log("sadvsdvsbsbd")
+      const storedAddr = sessionStorage.getItem(WALLET_SESSION_KEY);
+
+      // WALLET FIRST CONNECT / CHANGED
+      if (!storedAddr || storedAddr !== addr) {
+        sessionStorage.setItem(WALLET_SESSION_KEY, addr);
+        console.log('Wallet changed, refreshing page:', addr);
+
+        // HARD RELOAD PAGE
+        location.reload();
+        return;
       }
-    } catch {
-      // wallet belum connect
+
+      if (addr !== lastLoadedAddress) {
+        lastLoadedAddress = addr;
+        await loadData(addr);
+        console.log('Wallet loaded:', addr);
+      }
+
+    } catch (e) {
+      if (lastLoadedAddress !== null) {
+        lastLoadedAddress = null;
+        sessionStorage.removeItem(WALLET_SESSION_KEY);
+        resetJoinRequestUI();
+        console.log('Wallet error, UI reset');
+      }
     }
   }, 800);
 }
 
-// ==============================
-// GATE LOADER
-// ==============================
-/*
-async function tryLoadTasks() {
-  if (!pageActive) return;
-
-  const signer = await getSigner();
-  if (!signer) return;
-
-  const address = (await signer.getAddress()).toLowerCase();
-  if (address === lastLoadedAddress) return;
-
-  lastLoadedAddress = address;
-  console.log("🔄 Loading tasks for", address);
-
-  await loadData();
-  await loadJoinedTasks();
-  await loadMyPendingJoinRequests();
-}*/
 
 // ==============================
 // CONTRACT HELPERS
@@ -305,13 +319,12 @@ function applyButtonRules(card, task, userAddress) {
     }
 
     if (isCreator && status === 3) {
-        loadJoinRequestData(userAddress);
+        loadAllJoinRequestData();
         show(btn.closeReg);
     }
 
     if (isCreator && status === 4) {
-        handleApproveTaskClick();
-        loadUserData();
+        loadSubmitData();
         show(btn.requestRev);
         show(btn.approve);
         show(btn.cancel);
@@ -319,15 +332,13 @@ function applyButtonRules(card, task, userAddress) {
 
     // Member rules
     if (isMember && status === 3) {
+        loadUserJoinRequestData(userAddress);
         show(btn.join);
         show(btn.WithdrawJoinReq);
     }
 
     if (isMember && status === 4) {
-        loadUserData();
-        handleSubmitTaskClick();
-        show(btn.submit);
-        show(btn.resubmit);
+        renderTaskSubmit();
         show(btn.cancel);
     }
 }
@@ -340,6 +351,7 @@ function applyButtonRules(card, task, userAddress) {
 /**
  * Display task data in the UI
  */
+
 async function showTaskData(task, address, point) {
 
     const card = document.querySelector(".task-info");
@@ -373,7 +385,11 @@ async function showTaskData(task, address, point) {
     showText(card, ".creatorStake", ethers.formatEther(task[11]));
     showText(card, ".memberStake", ethers.formatEther(task[12]));
     showText(card, ".maxRevision", task[13]?.toString());
-    showText(card, ".SubmitStatus", task[13]?.toString());
+    showText(card, ".SubmitStatus", decodeSubmitStatus(await loadSubmitStatus()));
+    const status = await loadSubmitStatus();
+    if (status === 2n) {
+        alert("Revision needed in task");
+    }
 
     // Boolean flags
     showBool(card, ".isMemberStakeLocked", task[14]);
@@ -397,13 +413,11 @@ async function loadData() {
         const address = await signer.getAddress(); // FIX: Single source of truth
 
         const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        if (!id) return;
-
-        console.log(id)
+        const taskId = params.get('id');
+        if (!taskId) return;
 
         const contract = await getContract(signer);
-        const task = await contract.Tasks(id);
+        const task = await contract.Tasks(taskId);
         const user = await contract.Users(task.creator);
         const point = await _calculatePoint({
                 rewardWei: Number(task[8]),
@@ -417,20 +431,16 @@ async function loadData() {
 
     } catch (e) {
         console.error("Failed to load task data:", e);
-        alert("Team Chain: Failed to load task data.");
     }
 }
-
 
 function decodeJoinStatus(inputEnum) {
     const statusMap = {
         0: "None",
         1: "Requested",
         2: "Accepted",
-        3: "Submitted",
-        4: "InProgress",
-        5: "Revision",
-        6: "Cancelled"
+        3: "Rejected",
+        4: "Cancelled"
     };
     return statusMap[inputEnum] || "Undefined";
 }
@@ -456,18 +466,110 @@ function decodeBool(input) {
 
 
 
+function resetJoinRequestUI() {
+  const container = document.getElementById('joinRequestOverlay');
+  if (!container) return;
+
+  container.innerHTML = '<p>Wallet not connected.</p>';
+}
+
+
 function RenderJoinRequests(requests) {
   const container = document.getElementById('joinRequestOverlay');
   const template = document.getElementById('JoinRequest');
 
+  // DOM belum ada → JANGAN error
   if (!container || !template) {
-    throw new Error('Required DOM elements not found');
+    console.warn('JoinRequest DOM not ready, render skipped');
+    return;
   }
 
   container.innerHTML = '';
 
-  if (!Array.isArray(requests)) {
-    container.innerHTML = '<p>Invalid join request data.</p>';
+  if (!Array.isArray(requests) || requests.length === 0) {
+    container.innerHTML = '<p>No join requests found.</p>';
+    return;
+  }
+
+  // Tampilkan semua requests, tanpa filter isPending
+  requests.forEach(req => {
+    const clone = template.content.cloneNode(true);
+
+    clone.querySelector('.taskId').textContent = req.applicant;
+    clone.querySelector('.status').textContent = decodeJoinStatus(req.status);
+    clone.querySelector('.pending').textContent = decodeBool(req.isPending);
+    clone.querySelector('.stakeAmount').textContent =
+      ethers.formatEther(req.stakeAmount);
+
+    container.appendChild(clone);
+  });
+}
+
+
+
+
+async function loadUserJoinRequestData(address) {
+  try {
+    const signer = await getSigner();
+    if (!signer) throw new Error('Wallet not connected');
+
+    const params = new URLSearchParams(window.location.search);
+    const taskId = params.get('id');
+    if (!taskId) throw new Error('Task ID not found');
+
+    const contract = await getContract(signer);
+    const count = Number(await contract.getJoinRequestCount(taskId));
+
+    const userAddress = address.toLowerCase();
+    const requests = [];
+
+    for (let i = 0; i < count; i++) {
+      const req = await contract.joinRequests(taskId, i);
+
+      if (req.applicant.toLowerCase() === userAddress) {
+        requests.push({
+          index: i,
+          applicant: req.applicant,
+          stakeAmount: req.stakeAmount,
+          status: Number(req.status),
+          isPending: Boolean(req.isPending),
+          hasWithdrawn: Boolean(req.hasWithdrawn)
+        });
+      }
+    }
+
+    if (!document.getElementById('joinRequestOverlay')) {
+  console.warn('JoinRequest page not active, skip load');
+  return [];
+}
+
+
+lastJoinRequestsCache = requests;
+RenderJoinRequests(requests);
+return requests;
+
+
+  } catch (e) {
+    console.error('load User Join Request Data error:', e);
+    return [];
+  }
+}
+
+function RenderAllJoinRequests(requests) {
+  const container = document.getElementById('joinRequestOverlay');
+  const template = document.getElementById('acceptMember');
+
+  // DOM belum ada → JANGAN error
+  if (!container || !template) {
+    console.warn('JoinRequest DOM not ready, render skipped');
+    return;
+  }
+ 
+  container.innerHTML = '';
+
+  
+  if (!Array.isArray(requests) || requests.length === 0) {
+    container.innerHTML = '<p>No pending join requests.</p>';
     return;
   }
 
@@ -478,16 +580,19 @@ function RenderJoinRequests(requests) {
     return;
   }
 
-  pendingRequests.forEach((req) => {
+  pendingRequests.forEach(req => {
     const clone = template.content.cloneNode(true);
 
     clone.querySelector('.taskId').textContent = req.applicant;
-    clone.querySelector('.status').textContent = decodeJoinStatus(req.status);
+    clone.querySelector('.Points').textContent = req.reputation;
+    clone.querySelector(".Accept")?.addEventListener("click", () => {
+      acceptMember(req.id, req.applicant);
+    });
+     clone.querySelector(".Reject")?.addEventListener("click", () => {
+      rejectMember(req.id, req.applicant);
+    });
 
-    clone.querySelector('.pending').textContent = decodeBool(req.isPending);
-
-    clone.querySelector('.stakeAmount').textContent =
-      ethers.formatEther(req.stakeAmount);
+    console.log(req.applicant, req.id)
 
     container.appendChild(clone);
   });
@@ -495,14 +600,9 @@ function RenderJoinRequests(requests) {
 
 
 
-async function loadJoinRequestData(address) {
+async function loadAllJoinRequestData() {
   try {
-    // FIX: Get signer from modal provider
-    const walletProvider = modal?.getWalletProvider();
-    if (!walletProvider) throw new Error('Wallet not connected');
-    
-    const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-    const signer = await provider.getSigner();
+    const signer = await getSigner();
     if (!signer) throw new Error('Wallet not connected');
 
     const params = new URLSearchParams(window.location.search);
@@ -514,86 +614,40 @@ async function loadJoinRequestData(address) {
 
     const requests = [];
 
+    //isPending
     for (let i = 0; i < count; i++) {
       const req = await contract.joinRequests(taskId, i);
 
-      if (req.applicant === address) {
+        const rep = await contract.Users(req.applicant)
         requests.push({
           index: i,
           applicant: req.applicant,
-          stakeAmount: req.stakeAmount,
-          status: Number(req.status),
           isPending: req.isPending,
-          hasWithdrawn: req.hasWithdrawn
+          reputation: rep.reputation,
+          id: taskId
         });
-      }
     }
 
-    RenderJoinRequests(requests);
+    console.log(requests); //data keluar
 
-    return requests;
+    if (!document.getElementById('joinRequestOverlay')) {
+        console.warn('JoinRequest page not active, skip load');
+        return;
+    }
+RenderAllJoinRequests(requests);
+return requests;
+
 
   } catch (e) {
-    console.error('loadJoinRequestData error:', e);
+    console.error('load User Join Request Data error:', e);
     return [];
   }
 }
 
 
-
-
-
-
-
-
-
-
-
-
-function RenderSubmitStatus(TaskSubmit) {
-  const container = document.getElementById('joinRequestOverlay');
-  const template = document.getElementById('SubmitStatus');
-
-  if (!container || !template) {
-    throw new Error('Required DOM elements not found');
-  }
-
-  container.innerHTML = '';
-
-  if (!Array.isArray(TaskSubmit)) {
-    container.innerHTML = '<p>Invalid join request data.</p>';
-    return;
-  }
-
-  const pendingRequests = TaskSubmit.filter(req => req.isPending);
-
-  if (pendingRequests.length === 0) {
-    container.innerHTML = '<p>No pending join requests.</p>';
-    return;
-  }
-
-  pendingRequests.forEach((req) => {
-    const clone = template.content.cloneNode(true);
-
-    clone.querySelector('.taskId').textContent = req.applicant;
-    clone.querySelector('.status').textContent = decodeSubmitStatus(req.status);
-
-    clone.querySelector('.note').textContent = req.Note;
-
-    clone.querySelector('.gitURL').textContent = req.git;
-
-    container.appendChild(clone);
-  });
-}
-
-async function loadUserData() {
+async function loadSubmitStatus() {
   try {
-    // FIX: Get signer from modal provider
-    const walletProvider = modal?.getWalletProvider();
-    if (!walletProvider) throw new Error('Wallet not connected');
-    
-    const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-    const signer = await provider.getSigner();
+    const signer = await getSigner();
     if (!signer) throw new Error('Wallet not connected');
 
     const params = new URLSearchParams(window.location.search);
@@ -601,32 +655,229 @@ async function loadUserData() {
     if (!taskId) throw new Error('Task ID not found');
 
     const contract = await getContract(signer);
-    const count = Number(await contract.getJoinRequestCount(taskId));
 
-    const TaskSubmit = [];
+    const ts = await contract.TaskSubmits(taskId);
+    return ts.status;
 
-    for (let i = 0; i < count; i++) {
-      const ts = await contract.TaskSubmits(i);
+  } catch (e) {
+    console.error('load Submit Status error:', e);
+  }
+}
 
-        TaskSubmit.push({
-          index: i,
-          applicant: ts.sender,
-          status: Number(ts.status),
+
+
+
+
+
+/*
+
+function RenderSubmitData(requests, taskId) {
+  const container = document.getElementById('joinRequestOverlay');
+  const template = document.getElementById('SubmitStatus');
+
+  // DOM belum ada → JANGAN error
+  if (!container || !template) {
+    console.warn('JoinRequest DOM not ready, render skipped');
+    return;
+  }
+
+  container.innerHTML = '';
+
+  if (!Array.isArray(requests) || requests.length === 0) {
+    container.innerHTML = '<p>No task submit yet.</p>';
+    return;
+  }
+
+  // Tampilkan semua requests
+  requests.forEach(req => {
+    const clone = template.content.cloneNode(true);
+
+    // Set konten
+    clone.querySelector('.gitURL').textContent = req.github;
+    clone.querySelector('.note').textContent = req.Note;
+
+    // Event tombol Accept
+    const btnAccept = clone.querySelector('.Accept');
+    btnAccept.addEventListener('click', () => {
+       acceptTask(taskId);  //harusnya pakai await
+    });
+
+    // Event form Revision
+    const revisionForm = clone.querySelector('.Revision');
+    revisionForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const note = revisionForm.note.value.trim();
+      const newDeadline = revisionForm.newDeadline.value.trim();
+      requestRevision(taskId, note, newDeadline); //harusnya pakai await
+    });
+
+    container.appendChild(clone);
+  });
+}*/
+
+function RenderSubmitData(requests, taskId) {
+  const container = document.getElementById('joinRequestOverlay');
+  const template = document.getElementById('SubmitStatus');
+
+  if (!container || !template) {
+    console.warn('JoinRequest DOM not ready, render skipped');
+    return;
+  }
+
+  container.innerHTML = '';
+
+  if (!Array.isArray(requests) || requests.length === 0) {
+    container.innerHTML = '<p>No task submit yet.</p>';
+    return;
+  }
+
+  requests.forEach(req => {
+    const clone = template.content.cloneNode(true);
+
+    // Set konten
+    clone.querySelector('.gitURL').textContent = req.github;
+    clone.querySelector('.note').textContent = req.Note;
+
+    // Event tombol Accept
+    const btnAccept = clone.querySelector('.Accept');
+    btnAccept.addEventListener('click', async () => {
+      try {
+        btnAccept.disabled = true; // disable tombol sementara menunggu
+        await acceptTask(taskId);
+        btnAccept.textContent = 'Accepted';
+      } catch (err) {
+        console.error('Accept task failed', err);
+        btnAccept.disabled = false;
+      }
+    });
+
+    // Event form Revision
+    const revisionForm = clone.querySelector('.Revision');
+    revisionForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const note = revisionForm.note.value.trim();
+      const newDeadline = revisionForm.newDeadline.value.trim();
+      try {
+        await requestRevision(taskId, note, newDeadline);
+        revisionForm.querySelector('button[type="submit"]').textContent = 'Sent';
+      } catch (err) {
+        console.error('Revision request failed', err);
+      }
+    });
+
+    container.appendChild(clone);
+  });
+}
+
+
+
+async function loadSubmitData() {
+  try {
+    const signer = await getSigner();
+    if (!signer) throw new Error('Wallet not connected');
+
+    const params = new URLSearchParams(window.location.search);
+    const taskId = params.get('id');
+    if (!taskId) throw new Error('Task ID not found');
+
+    const contract = await getContract(signer);
+
+    const taskSubmit = [];
+
+    const ts = await contract.TaskSubmits(taskId);
+    
+    taskSubmit.push({
+          Sender: ts.sender,
           Note: ts.note,
-          git: ts.githubURL
+          RevTime: ts.revisionTime,
+          NewDeadline: ts.newDeadline,
+          github: ts.githubURL
         });
+
+        console.log(taskSubmit);
+         if (!document.getElementById('joinRequestOverlay')) {
+        console.warn('Submit page not active, skip load');
+        return;
     }
-
-    RenderSubmitStatus(TaskSubmit);
-    console.log(TaskSubmit)
-
-    return TaskSubmit;
+        RenderSubmitData(taskSubmit, taskId);
 
   } catch (e) {
     console.error('loadSubmitData error:', e);
-    return [];
   }
 }
+
+
+
+
+
+function isValidGithubPRURL(prURL) {
+  try {
+    const url = new URL(prURL);
+
+    // Pastikan hostname GitHub
+    if (url.hostname !== "github.com") return false;
+
+    const parts = url.pathname.split("/").filter(Boolean);
+
+    // Format PR: github.com/username/repo/pull/number
+    if (parts.length !== 4) return false;
+    if (parts[2] !== "pull") return false;
+    if (isNaN(parts[3])) return false;
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+
+function renderTaskSubmit() {
+    console.log("renderafasfafa")
+    const template = document.getElementById('submitTask');
+    const clone = template.content.cloneNode(true);
+
+    const form = clone.querySelector('.Revision');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const note = form.note.value.trim();
+        const gitURL = form.gitURL.value.trim();
+
+        return withUI(async () => {
+            console.log("triggered");
+            const status = await loadSubmitStatus();
+
+            if (status === 1n) {
+                throw new Error("Invalid status for submision");
+            } 
+
+            if (status === 3n) {
+                throw new Error("Invalid status for submision");
+            } 
+    
+            if (status === 0n) {
+                await submitTask(gitURL, note);
+
+            } else if (status === 2n) {
+                await reSubmitTask(gitURL, note);
+            }
+        });
+    });
+
+    const container = document.getElementById('joinRequestOverlay');
+    container.appendChild(clone);
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -979,24 +1230,6 @@ async function handleCancelTask() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 async function handleJoinTask() {
     return withUI(async () => {
         // Validate wallet connection
@@ -1073,8 +1306,53 @@ async function handleJoinTask() {
         
         // Refresh UI data after successful join request
         await loadData();
+        location.reload();
     });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+function handleEthersError(err) {
+    console.error(err);
+
+    // ethers v6 CALL_EXCEPTION
+    if (err.code === 'CALL_EXCEPTION') {
+        // User rejected transaction
+        if (err.shortMessage?.includes('user rejected')) {
+            throw new Error('Transaction rejected by user');
+        }
+
+        // Missing revert data
+        if (
+            err.shortMessage?.includes('missing revert data') ||
+            err.message?.includes('missing revert data')
+        ) {
+            throw new Error('You do not have join request alredy');
+        }
+
+        // Custom revert reason (if exists)
+        if (err.reason) {
+            throw new Error(err.reason);
+        }
+
+        throw new Error('Transaction reverted by smart contract');
+    }
+
+    // Fallback
+    throw new Error(err.message || 'Unknown blockchain error');
+}
+
+
 
 async function handleWithdrawJoin() {
     return withUI(async () => {
@@ -1101,11 +1379,12 @@ async function handleWithdrawJoin() {
         // Initialize contract and get user address
         const contract = await getContract(signer);
         const userAddress = await signer.getAddress(); // FIX: Single source of truth
+        /*
         const Result = await _hasRequestedJoin(contract, taskId, userAddress);
 
         if (!Result) {
         throw new Error('You do not have join request alredy');
-        }
+        }*/
 
         const result = await isRegistered(contract, userAddress);
         const { isRegistered: registered, message } = result;
@@ -1114,9 +1393,14 @@ async function handleWithdrawJoin() {
         throw new Error(message);
         }
 
-        // Execute join request withdrawal transaction
-        const tx = await contract.withdrawJoinRequest(taskId, userAddress);
-        const receipt = await tx.wait();
+        let receipt;
+try {
+    const tx = await contract.withdrawJoinRequest(taskId, userAddress);
+    receipt = await tx.wait();
+} catch (err) {
+    handleEthersError(err);
+}
+
 
         // Parse logs to find JoinRequestCancelled event
         let withdrawalConfirmed = false;
@@ -1141,40 +1425,9 @@ async function handleWithdrawJoin() {
         
         // Refresh UI data after successful withdrawal
         await loadData();
+        location.reload();
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // ==============================
@@ -1188,15 +1441,7 @@ async function acceptMember(taskId, address) {
             throw new Error('Task ID is required');
         }
 
-        // Validate wallet connection
-        // FIX: Get wallet provider from modal
-        const walletProvider = modal?.getWalletProvider();
-        if (!walletProvider) {
-            throw new Error('Wallet not connected');
-        }
-        
-        const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-        const signer = await provider.getSigner();
+        const signer = await getSigner();
         if (!signer) {
             throw new Error('Wallet not connected');
         }
@@ -1207,7 +1452,9 @@ async function acceptMember(taskId, address) {
         _rejectAllPendingExcept(contract, taskId, address)
 
         // Verify user is the task owner
+        
         const taskData = await contract.Tasks(taskId);
+        
         if (taskData[3] !== userAddress) {
             throw new Error('You are not the task owner');
         }
@@ -1239,6 +1486,7 @@ async function acceptMember(taskId, address) {
         
         // Refresh UI data after successful approval
         await loadData();
+        location.reload();
     });
 }
 
@@ -1249,15 +1497,7 @@ async function rejectMember(taskId, applicant) {
             throw new Error('Task ID is required');
         }
 
-        // Validate wallet connection
-        // FIX: Get wallet provider from modal
-        const walletProvider = modal?.getWalletProvider();
-        if (!walletProvider) {
-            throw new Error('Wallet not connected');
-        }
-        
-        const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-        const signer = await provider.getSigner();
+        const signer = await getSigner();
         if (!signer) {
             throw new Error('Wallet not connected');
         }
@@ -1298,25 +1538,14 @@ async function rejectMember(taskId, applicant) {
         
         // Refresh UI data after successful rejection
         await loadData();
+        location.reload();
     });
 }
 
 async function acceptTask(taskId) {
     return withUI(async () => {
-        // Validate task ID
-        if (!taskId) {
-            throw new Error('Task ID is required');
-        }
-
-        // Validate wallet connection
-        // FIX: Get wallet provider from modal
-        const walletProvider = modal?.getWalletProvider();
-        if (!walletProvider) {
-            throw new Error('Wallet not connected');
-        }
-        
-        const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-        const signer = await provider.getSigner();
+       
+        const signer = await getSigner();
         if (!signer) {
             throw new Error('Wallet not connected');
         }
@@ -1331,35 +1560,9 @@ async function acceptTask(taskId) {
             throw new Error('You are not the task owner');
         }
 
-        // Get the latest submission data
-        const submitData = await contract.TaskSubmits(taskId);
-        const submitId = submitData.submissionId || submitData[0];
-
-        if (!submitId) {
-            throw new Error('No submission found for this task');
-        }
-
         // Execute task approval transaction
-        const tx = await contract.approveTask(taskId, submitId);
+        const tx = await contract.approveTask(taskId);
         const receipt = await tx.wait();
-
-        // Parse logs to find TaskApproved event
-        let approvalConfirmed = false;
-        for (const log of receipt.logs) {
-            try {
-                const parsed = iface.parseLog(log);
-                if (parsed?.name === 'TaskApproved') {
-                    approvalConfirmed = true;
-                    break;
-                }
-            } catch {
-                // Continue checking other logs
-            }
-        }
-
-        if (!approvalConfirmed) {
-            throw new Error('Task approval event not found in transaction logs');
-        }
 
         // Show success notification
         Notify.success("Task Approved", "Task approved successfully!");
@@ -1371,61 +1574,28 @@ async function acceptTask(taskId) {
 
 async function requestRevision(taskId, note, additionalDeadlineHours) {
     return withUI(async () => {
-        // Validate inputs
-        if (!taskId) {
-            throw new Error('Task ID is required');
-        }
-        if (!note || note.trim() === '') {
-            throw new Error('Revision note is required');
-        }
-        if (!additionalDeadlineHours || isNaN(additionalDeadlineHours)) {
-            throw new Error('Valid additional deadline hours is required');
-        }
 
-        // Validate wallet connection
-        // FIX: Get wallet provider from modal
-        const walletProvider = modal?.getWalletProvider();
-        if (!walletProvider) {
-            throw new Error('Wallet not connected');
-        }
-        
-        const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-        const signer = await provider.getSigner();
+        const signer = await getSigner();
         if (!signer) {
             throw new Error('Wallet not connected');
         }
 
         // Initialize contract and get user address
         const contract = await getContract(signer);
-        const userAddress = await signer.getAddress(); // FIX: Single source of truth
+        const minDeadline = await _getMinDeadline(signer);
+        const deadline = BigInt(additionalDeadlineHours);
 
-        // Verify user is the task owner
-        const taskData = await contract.Tasks(taskId);
-        if (taskData[3] !== userAddress) {
-            throw new Error('You are not the task owner');
+        if (deadline < minDeadline) {
+            throw new Error(
+        `New deadline is too short, minimum allowed is ${minDeadline}.`
+      );
+            
         }
 
         // Execute revision request transaction
         const tx = await contract.requestRevision(taskId, note, additionalDeadlineHours);
         const receipt = await tx.wait();
 
-        // Parse logs to find RevisionRequested event
-        let revisionRequested = false;
-        for (const log of receipt.logs) {
-            try {
-                const parsed = iface.parseLog(log);
-                if (parsed?.name === 'RevisionRequested') {
-                    revisionRequested = true;
-                    break;
-                }
-            } catch {
-                // Continue checking other logs
-            }
-        }
-
-        if (!revisionRequested) {
-            throw new Error('Revision requested event not found in transaction logs');
-        }
 
         // Show success notification
         Notify.success("Revision Requested", "Revision requested successfully!");
@@ -1435,25 +1605,55 @@ async function requestRevision(taskId, note, additionalDeadlineHours) {
     });
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 async function submitTask(pullRequestURL, note) {
     return withUI(async () => {
         // Validate inputs
-        if (!pullRequestURL || pullRequestURL.trim() === '') {
-            throw new Error('Pull request URL is required');
-        }
-        if (!note || note.trim() === '') {
-            throw new Error('Submission note is required');
-        }
+        /*
+        const validate = isValidGithubPRURL(pullRequestURL);
 
-        // Validate wallet connection
-        // FIX: Get wallet provider from modal
-        const walletProvider = modal?.getWalletProvider();
-        if (!walletProvider) {
-            throw new Error('Wallet not connected');
-        }
-        
-        const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-        const signer = await provider.getSigner();
+            if (!validate) {
+                throw new Error("Invalid github pull request url.");
+            }*/
+
+        const signer = await getSigner();
         if (!signer) {
             throw new Error('Wallet not connected');
         }
@@ -1479,51 +1679,26 @@ async function submitTask(pullRequestURL, note) {
         const tx = await contract.requestSubmitTask(taskId, pullRequestURL, note, userAddress);
         const receipt = await tx.wait();
 
-        // Parse logs to find TaskSubmitted event
-        let submissionConfirmed = false;
-        for (const log of receipt.logs) {
-            try {
-                const parsed = iface.parseLog(log);
-                if (parsed?.name === 'TaskSubmitted') {
-                    submissionConfirmed = true;
-                    break;
-                }
-            } catch {
-                // Continue checking other logs
-            }
-        }
-
-        if (!submissionConfirmed) {
-            throw new Error('Task submitted event not found in transaction logs');
-        }
-
         // Show success notification
         Notify.success("Task Submitted", "Task submitted successfully!");
         
         // Refresh UI data after successful submission
         await loadData();
+        location.reload();
     });
 }
 
 async function reSubmitTask(pullRequestURL, note) {
     return withUI(async () => {
         // Validate inputs
-        if (!pullRequestURL || pullRequestURL.trim() === '') {
-            throw new Error('Pull request URL is required');
-        }
-        if (!note || note.trim() === '') {
-            throw new Error('Resubmission note is required');
-        }
+        /*
+     const validate = isValidGithubPRURL(pullRequestURL);
 
-        // Validate wallet connection
-        // FIX: Get wallet provider from modal
-        const walletProvider = modal?.getWalletProvider();
-        if (!walletProvider) {
-            throw new Error('Wallet not connected');
-        }
-        
-        const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-        const signer = await provider.getSigner();
+            if (!validate) {
+                throw new Error("Invalid github pull request url.");
+            }*/
+
+        const signer = await getSigner();
         if (!signer) {
             throw new Error('Wallet not connected');
         }
@@ -1549,209 +1724,14 @@ async function reSubmitTask(pullRequestURL, note) {
         const tx = await contract.reSubmitTask(taskId, note, pullRequestURL, userAddress);
         const receipt = await tx.wait();
 
-        // Parse logs to find TaskReSubmitted event
-        let resubmissionConfirmed = false;
-        for (const log of receipt.logs) {
-            try {
-                const parsed = iface.parseLog(log);
-                if (parsed?.name === 'TaskReSubmitted') {
-                    resubmissionConfirmed = true;
-                    break;
-                }
-            } catch {
-                // Continue checking other logs
-            }
-        }
-
-        if (!resubmissionConfirmed) {
-            throw new Error('Task resubmitted event not found in transaction logs');
-        }
-
         // Show success notification
         Notify.success("Task Resubmitted", "Task resubmitted successfully!");
         
         // Refresh UI data after successful resubmission
         await loadData();
+        location.reload();
     });
 }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ==============================
-// UI COMPONENT HANDLERS
-// ==============================
-
-
-async function handleSubmitTaskClick() {
-        // Get submission template
-        const template = document.getElementById('submitTask');
-        if (!template) {
-            throw new Error('Submit task template not found');
-        }
-
-        const clone = template.content.cloneNode(true);
-        const container = document.getElementById('OverlayInfo');
-        
-        if (!container) {
-            throw new Error('Overlay container not found');
-        }
-
-        container.innerHTML = '';
-        container.appendChild(clone);
-
-        // Setup form submission handler
-        const submitBtn = container.querySelector('.submit');
-        if (!submitBtn) {
-            throw new Error('Submit button not found in template');
-        }
-
-        submitBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-
-            // Validate form inputs
-            const noteInput = container.querySelector('input[name="note"], textarea[name="note"]');
-            const gitInput = container.querySelector('input[name="gitURL"]');
-
-            if (!noteInput || !gitInput) {
-                throw new Error('Form inputs not found');
-            }
-
-            const note = noteInput.value.trim();
-            const gitURL = gitInput.value.trim();
-
-            if (!note || !gitURL) {
-                throw new Error('Please fill in all fields');
-            }
-
-            // Submit task and clear overlay
-            await submitTask(gitURL, note);
-            container.innerHTML = '';
-        });
-    };
-
-
-async function handleApproveTaskClick() {
-        // Get task ID from URL parameters
-        const params = new URLSearchParams(window.location.search);
-        const taskId = Number(params.get('id'));
-        if (isNaN(taskId)) {
-            throw new Error('Invalid task ID');
-        }
-
-        // Get approval template
-        const template = document.getElementById('acceptTask');
-        if (!template) {
-            throw new Error('Accept task template not found');
-        }
-
-        const clone = template.content.cloneNode(true);
-        const container = document.getElementById('OverlayInfo');
-        
-        if (!container) {
-            throw new Error('Overlay container not found');
-        }
-
-        container.innerHTML = '';
-        container.appendChild(clone);
-
-        // Load submission data
-        const submitData = await getSubmitData(taskId);
-        if (!submitData) {
-            throw new Error('Submission data not found');
-        }
-
-        // Populate UI with submission details
-        container.querySelector('.taskId').textContent = taskId;
-        container.querySelector('.Note').textContent = submitData.note;
-
-        // Setup accept button handler
-        const acceptBtn = container.querySelector('.Accept');
-        acceptBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await acceptTask(taskId);
-            container.innerHTML = '';
-        });
-
-        // Setup revision request form handler
-        const form = container.querySelector('form.Revision');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const note = form.querySelector('input[name="note"]')?.value.trim();
-            const newDeadline = form.querySelector('input[name="newDeadline"]')?.value.trim();
-
-            if (!note || !newDeadline) {
-                throw new Error('Please fill in all fields');
-            }
-
-            await requestRevision(taskId, note, newDeadline);
-            container.innerHTML = '';
-        });
-    };
-
-
-async function getSubmitData(taskId) {
-    // This function doesn't need withUI wrapper as it's just a data fetcher
-    // Validate wallet connection
-    // FIX: Get wallet provider from modal
-    const walletProvider = modal?.getWalletProvider();
-    if (!walletProvider) {
-        throw new Error('Wallet not connected');
-    }
-    
-    const provider = new ethers.BrowserProvider(walletProvider); // FIX: Use BrowserProvider
-    const signer = await provider.getSigner();
-    if (!signer) {
-        throw new Error('Wallet not connected');
-    }
-
-    // Initialize contract and fetch submission data
-    const contract = await getContract(signer);
-    const data = await contract.TaskSubmits(taskId);
-
-    return {
-        note: data.note ?? data[2] ?? '',
-        status: data.status ?? data[3] ?? 0,
-        deadline: data.deadline ?? data[5] ?? 0,
-    };
-}
-/*
-// Auto-initialize when this module is loaded directly in the page
-// (SPA router may call `init()` itself; this only ensures standalone pages work)
-if (typeof window !== "undefined") {
-    if (document.readyState === "loading") {
-        window.addEventListener("DOMContentLoaded", () => {
-            init().catch(e => console.error("taskDetail init error:", e));
-        });
-    } else {
-        init().catch(e => console.error("taskDetail init error:", e));
-    }
-}*/

@@ -101,7 +101,7 @@
 
 /* ================= TEMPLATE CARD ================= */
 .task-card {
-  width: 40%;
+  width: 50%;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
@@ -173,6 +173,11 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.card {
+  width: 75%;
+  margin: 0 auto;
+}
+
     </style>
     <div class="card">
 
@@ -214,14 +219,12 @@
         <button class="CloseRegisteration">Close Registeration</button>
         <button class="CancelTask">Cancel Task By Me</button>
 
-        <button class="ApproveTask">Approve Task</button>
-
         <button class="Join">Join</button>
         <button class="WithdrawJoin">Withdraw Join Request</button>
         <button id="reload">Refresh</button>
       </div>
 
-            <div class="JoinRequestOverlay" id="joinRequestOverlay"><div>
+            <div class="JoinRequest" id="joinRequestOverlay"><div>
 
       <template id="JoinRequest">
         <div class="task-card">
@@ -237,22 +240,68 @@
         </div>
       </template>
 
-           <template id="SubmitStatus">
+        <template id="acceptMember">
         <div class="task-card">
           <div class="card-header">
-            <h2><span>Join Request</span></h2>
+            <h2><span class="title"></span></h2>
           </div>
+
           <div class="task-info">
-        <p><span>ID:</span> <span class="taskId">-</span></p>
-        <p><span>Status:</span> <span class="status">-</span></p>
-        <p><span>Note:</span> <span class="note">-</span></p>
-        <p><span>Github URL:</span> <span class="gitURL">-</span></p>
+            <p><span>ID:</span> <span class="taskId">-</span></p>
+            <p><span>Point:</span> <span class="Points">-</span></p>
+          </div>
+
+          <div class="card-button">
+            <button class="Accept">Accept</button>
+            <button class="Reject">Reject</button>
           </div>
         </div>
       </template>
+
+      
+      <template id="SubmitStatus">
+        <div class="task-card">
+          <div class="card-header">
+            <h2><span>Task Submision Status</span></h2>
+          </div>
+          <div class="task-info">
+        <p><span>Note:</span> <span class="note">-</span></p>
+        <p><span>Github URL:</span> <span class="gitURL">-</span></p>
+          </div>
+           <div class="card-button">
+            <button type="button" class="Accept">Accept</button>
+          </div>
+
+          <div class="request-revision">
+            <form class="Revision">
+              <input type="text" name="note" placeholder="Revision Note" required />
+              <input type="number" name="newDeadline" placeholder="New Deadline Hour" required />
+              <button type="submit" class="revision">Request Revision</button>
+            </form>
+        </div>
+      </template>
+
+
+      <template id="submitTask">
+        <div class="task-card">
+          <div class="card-header">
+            <h2>Submit Task</h2>
+          </div>
+
+          <div class="submit-task">
+            <form class="Revision">
+              <input type="text" name="note" placeholder="Note Provided" required />
+              <input type="text" name="gitURL" placeholder="Github URL" required />
+              <button type="submit" class="submit">Submit Task</button>
+            </form>
+          </div>
+        </div>
+      </template>
+
+
       </div>
 
-      <div class="overlayInfo" id="OverlayInfo"></div>
+     <!-- <div class="overlayGlobal" id="OverlayInfo"></div>-
 
       <template id="acceptMember">
         <div class="task-card">
@@ -311,7 +360,7 @@
             </form>
           </div>
         </div>
-      </template>
+      </template> -->
 
     </div>
   </div>

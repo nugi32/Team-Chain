@@ -13,6 +13,11 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script type="module" src="../global-Ux/loading-ui.js"></script>
   <script type="module" src="../global-Ux/ui-core.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
+
 </head>
 <body>
   <!-- Header section -->
@@ -139,49 +144,7 @@
                 height: 220px;
                 margin-top: -30px;
             }
-            
-            /* SVG gauge styling */
-            .gauge-svg {
-                width: 100%;
-            }
-            
-            .g-track {
-                stroke: rgba(255, 255, 255, 0.1);
-                stroke-width: 5;
-                fill: none;
-            }
-            
-            .g-progress {
-                stroke: url(#gStat);
-                stroke-width: 6;
-                fill: none;
-                stroke-dasharray: 126;
-                stroke-dashoffset: 126;
-                transition: .7s ease-in-out;
-            }
-            
-            /* Gauge value text */
-            .g-value {
-                position: absolute;
-                left: 50%;
-                top: 58%;
-                transform: translateX(-50%);
-                font-size: 16px;
-            }
-            
-            /* Needle indicator */
-            .needle {
-                position: absolute;
-                bottom: 12px;
-                left: 50%;
-                width: 2px;
-                height: 52px;
-                background: #ffffff;
-                transform-origin: bottom center;
-                transform: rotate(-90deg);
-                border-radius: 8px;
-                transition: .6s ease;
-            }
+          
             
             /* Active panel styling */
             .open-panel {
@@ -253,6 +216,22 @@
             .btn-card {
                 margin-bottom: -30px;
             }
+           #activePanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* vertical center */
+  align-items: center;     /* horizontal center */
+}
+
+.activeValue {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 100px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  color: #7c5cff;
+}
+
+
         </style>
         
         <!-- PROFILE CARD -->
@@ -290,21 +269,7 @@
         
         <!-- ACTIVE TASK CARD -->
         <div class="card link-card open-panel" id="activePanel">
-            <div class="gauge-box">
-                <svg class="gauge-svg" viewBox="0 0 100 60">
-                    <defs>
-                        <linearGradient id="gActive" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#35d1ff"/>
-                            <stop offset="100%" stop-color="#ffffff"/>
-                        </linearGradient>
-                    </defs>
-                    <path class="g-track" d="M10 60 A40 40 0 0 1 90 60"/>
-                    <path class="g-progress" id="g-active" d="M10 60 A40 40 0 0 1 90 60"/>
-                </svg>
-                <div class="needle" id="needle-active"></div>
-                <span class="g-value" id="activeValue">-</span>
-            </div>
-            <div class="view-btn">
+                <span class="activeValue" id="activeValue">-</span>
                 <button id="ViewTask">View</button>
             </div>
         </div>

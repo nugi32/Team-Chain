@@ -60,8 +60,7 @@ contract TrustlessTeamProtocol is
         None, 
         Request, 
         Accepted, 
-        Submitted, 
-        Revision, 
+        Rejected, 
         Cancelled 
     }
 
@@ -528,6 +527,7 @@ contract TrustlessTeamProtocol is
         for (uint256 i = 0; i < reqs.length; ++i) {
             if (reqs[i].applicant == user && reqs[i].isPending && !reqs[i].hasWithdrawn) {
                 reqs[i].isPending = false;
+                reqs[i].status = UserTask.Cancelled;
                 reqs[i].hasWithdrawn = true;
                 uint256 stake = reqs[i].stakeAmount;
                 reqs[i].stakeAmount = 0;
@@ -588,6 +588,7 @@ contract TrustlessTeamProtocol is
         for (uint256 i = 0; i < requests.length; ++i) {
             if (requests[i].applicant == _applicant && requests[i].isPending) {
                 requests[i].isPending = false;
+                requests[i].status = UserTask.Rejected;
                 uint256 stake = requests[i].stakeAmount;
                 requests[i].stakeAmount = 0;
                 requests[i].hasWithdrawn = true;
@@ -750,16 +751,12 @@ contract TrustlessTeamProtocol is
      */
     function requestRevision(uint256 taskId, string calldata Note, uint256 additionalDeadlineHours)
         external
-        taskExists(taskId)
-        onlyTaskCreator(taskId)
         whenNotPaused
     {
         Task storage t = Tasks[taskId];
         TaskSubmit storage s = TaskSubmits[taskId];
 
         // Validate state and input
-        //if (t.member == address(0)) revert CancelOnlyWhenMemberAssigned();
-        if (___getMinRevisionTimeInHour() < additionalDeadlineHours) revert InvalidDeadline();
         if (s.status != SubmitStatus.Pending) revert TaskNotOpen();
 
         // Calculate new deadline
