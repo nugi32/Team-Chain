@@ -80,9 +80,46 @@ async function loadPage(rawPath, replace = false) {
 
     if (myToken !== NAV_TOKEN) return;
 
-    // 4. LOAD PAGE JS
+    // 4. EXECUTE SCRIPTS FROM FETCHED HTML (works for production build)
+    async function execScriptsFromDoc(doc) {
+      const scripts = Array.from(doc.querySelectorAll('script'));
+      const promises = [];
+
+      for (const s of scripts) {
+        const ns = document.createElement('script');
+        if (s.type) ns.type = s.type;
+        if (s.src) {
+          ns.src = s.src;
+          if (s.crossOrigin) ns.crossOrigin = s.crossOrigin;
+          promises.push(new Promise((res, rej) => {
+            ns.onload = res; ns.onerror = rej;
+          }));
+        } else {
+          ns.textContent = s.textContent;
+        }
+        document.body.appendChild(ns);
+      }
+
+      // wait for external scripts to load
+      await Promise.all(promises).catch(() => {});
+    }
+
+    // try dev-time dynamic import first (keeps existing behavior)
     currentPageModule = await loadPageJS(path);
-    currentPageModule?.init?.();
+    if (currentPageModule?.init) {
+      currentPageModule.init();
+    } else {
+      // execute <script> tags found in the fetched HTML so bundled assets run
+      await execScriptsFromDoc(doc);
+
+      // production page scripts should set window.__PAGE_MODULE = { init, destroy }
+      if (window.__PAGE_MODULE) {
+        currentPageModule = window.__PAGE_MODULE;
+        currentPageModule?.init?.();
+        // clear global to avoid leaks on next navigation
+        try { delete window.__PAGE_MODULE; } catch (e) { window.__PAGE_MODULE = undefined; }
+      }
+    }
 
     // 5. HISTORY
     if (replace) {

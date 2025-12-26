@@ -55,6 +55,13 @@ export function destroy() {
   lastLoadedAddress = null;
 }
 
+if (typeof window !== 'undefined') {
+    window.__PAGE_MODULE = {
+        init: typeof init === 'function' ? init : undefined,
+        destroy: typeof destroy === 'function' ? destroy : undefined
+    };
+}
+
 // ==============================
 // WALLET ACCESS (REOWN)
 // ==============================

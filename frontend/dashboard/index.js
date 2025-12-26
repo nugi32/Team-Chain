@@ -44,6 +44,13 @@ export function destroy() {
   console.log("📦 dashboard destroy");
 }
 
+if (typeof window !== 'undefined') {
+  window.__PAGE_MODULE = {
+    init: typeof init === 'function' ? init : undefined,
+    destroy: typeof destroy === 'function' ? destroy : undefined
+  };
+}
+
 // ==============================
 // SETUP
 // ==============================

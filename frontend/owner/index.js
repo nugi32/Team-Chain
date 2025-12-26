@@ -67,6 +67,13 @@ export function destroy() {
     removeAllEventListeners();
 }
 
+if (typeof window !== 'undefined') {
+    window.__PAGE_MODULE = {
+        init: typeof init === 'function' ? init : undefined,
+        destroy: typeof destroy === 'function' ? destroy : undefined
+    };
+}
+
 function onRegisterClick(e) {
     e.preventDefault();
     window.history.back();
