@@ -4,398 +4,184 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../global/global.css" />
+  <link rel="stylesheet" href="./1.css />
 
   <!-- JavaScript modules -->
   <script type="module" src="../global/sidebar.js"></script>
   <script type="module" src="../global/router.js"></script>
   <script type="module" src="../global/connectwallet.js"></script>
   <script type="module" src="./index.js"></script>
-  
+
   <!-- UI scripts -->
-<script type="module" src="../global-Ux/loading-ui.js"></script>
+  <script type="module" src="../global-Ux/loading-ui.js"></script>
   <script type="module" src="../global-Ux/ui-core.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
-  <!-- Header section -->
-  <header class="topbar">
-    <!-- Brand logo and name -->
-    <div class="brand">
-      <h1>Team chain</h1>
-    </div>
 
-    <!-- Wallet connection container -->
-    <div class="wallet-container">
-      <appkit-button></appkit-button>
-    </div>
+<header class="topbar">
+  <div class="brand">
+    <h1>Team chain</h1>
+  </div>
 
-    <!-- Mobile navigation toggle button -->
-    <button
-      id="navToggle"
-      class="nav-toggle"
-      aria-expanded="false"
-      aria-controls="sideNav"
-      aria-label="Open navigation"
-    >
-      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M3 6h18M3 12h18M3 18h18"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
-      </svg>
-    </button>
-  </header>
+  <div class="wallet-container">
+    <appkit-button></appkit-button>
+  </div>
 
-  <!-- Side navigation menu -->
-  <nav id="sideNav" class="side-nav" aria-hidden="true">
-    <div class="side-header">
-      <h2>Menu</h2>
-      <button id="navClose" class="close" aria-label="Close navigation">✕</button>
-    </div>
+  <button
+    id="navToggle"
+    class="nav-toggle"
+    aria-expanded="false"
+    aria-controls="sideNav"
+    aria-label="Open navigation">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+      <path d="M3 6h18M3 12h18M3 18h18"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round" />
+    </svg>
+  </button>
+</header>
 
-    <!-- Navigation list -->
-    <ul class="nav-list">
-      <li>
-        <a href="/dashboard" onclick="go('/dashboard'); return false;">
-          Dashboard
-        </a>
-      </li>
-      <li>
-        <a href="/projects" onclick="go('/projects'); return false;">
-          Projects
-        </a>
-      </li>
-      <li>
-        <a href="/task" onclick="go('/task'); return false;">
-          Tasks
-        </a>
-      </li>
-      <li>
-        <a href="/about" onclick="go('/about'); return false;">
-          About Us
-        </a>
-      </li>
-    </ul>
+<nav id="sideNav" class="side-nav" aria-hidden="true">
+  <div class="side-header">
+    <h2>Menu</h2>
+    <button id="navClose" class="close">✕</button>
+  </div>
 
-    <!-- Footer section of side navigation -->
-    <div class="side-footer">
-      <small>Version 0.1 · Trustless Team Protocol</small>
-    </div>
-  </nav>
+  <ul class="nav-list">
+    <li><a href="/dashboard" onclick="go('/dashboard'); return false;">Dashboard</a></li>
+    <li><a href="/projects" onclick="go('/projects'); return false;">Projects</a></li>
+    <li><a href="/task" onclick="go('/task'); return false;">Tasks</a></li>
+    <li><a href="/about" onclick="go('/about'); return false;">About Us</a></li>
+  </ul>
 
-  <!-- Overlay for mobile navigation -->
-  <div id="overlay" class="overlay"></div>
+  <div class="side-footer">
+    <small>Version 0.1 · Trustless Team Protocol</small>
+  </div>
+</nav>
 
-  <div class="background">
-    <style>
-      
- button {
-  padding: 4px 8px;   /* perkecil ruang dalam */
-  font-size: 11px;    /* perkecil teks */
-  height: auto;       /* pastikan tidak terkunci */
+<div id="overlay" class="overlay"></div>
+
+<div class="background">
+
+<style>
+  
+button {
+  padding: 4px 8px;
+  font-size: 11px;
   margin: 5px;
 }
 
-/* ================= TEMPLATE CARD ================= */
 .task-card {
   width: 50%;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.12);
   border-radius: 12px;
   padding: 16px;
   margin: 16px auto;
-}
-
-/* Header template lebih kecil */
-.task-card .card-header h2 {
-  font-size: 16px;
-}
-
-/* Info lebih ringkas */
-.task-card .task-info p {
-  font-size: 13px;
-  opacity: 0.85;
-}
-
-/* Button template */
-.task-card .card-button {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-start;
-  margin-bottom: 10px;
-}
-
-.task-card button {
-  font-size: 13px;
-  padding: 6px 12px;
-}
-
-.overlayInfo {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
 }
 
 .task-card form {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 12px;
 }
+
 .task-card input {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 13px;
+  padding: 10px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  outline: none;
-  transition: border 0.2s ease, background 0.2s ease;
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.15);
 }
+</style>
 
-.task-card input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
+<div class="card">
 
-.task-card input:focus {
-  border-color: rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.12);
-}
+  <div class="card-header">
+    <h2><span class="title"></span></h2>
+  </div>
 
-.task-card .request-revision {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
+  <div class="task-info">
+    <p><span>Task ID:</span> <span class="taskId">-</span></p>
+    <p><span>Status:</span> <span class="status">-</span></p>
+    <p><span>Reward:</span> <span class="reward">-</span> ETH</p>
+  </div>
 
-.card {
-  width: 75%;
-  margin: 0 auto;
-}
+  <div class="taskBTN">
+    <button class="ActivateTask">Activate Task</button>
+    <button class="DeleteTask">Delete Task</button>
+    <button class="Join">Join</button>
+    <button id="reload">Refresh</button>
+  </div>
 
-    </style>
-    <div class="card">
+  <div class="JoinRequest" id="joinRequestOverlay"></div>
 
-      <div class="card-header">
-        <h2><span class="title"></span></h2>
+  <!-- JOIN REQUEST TEMPLATE -->
+  <template id="JoinRequest">
+    <div class="task-card">
+      <div class="card-header"><h2>Join Request</h2></div>
+      <div class="task-info">
+        <p>ID: <span class="taskId"></span></p>
+        <p>Status: <span class="status"></span></p>
       </div>
+    </div>
+  </template>
+
+  <!-- ACCEPT MEMBER -->
+  <template id="acceptMember">
+    <div class="task-card">
+      <div class="card-header"><h2 class="title"></h2></div>
+      <div class="task-info">
+        <p>ID: <span class="taskId"></span></p>
+      </div>
+      <div class="card-button">
+        <button class="Accept">Accept</button>
+        <button class="Reject">Reject</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- SUBMIT STATUS -->
+  <template id="SubmitStatus">
+    <div class="task-card">
+      <div class="card-header"><h2>Task Submission Status</h2></div>
 
       <div class="task-info">
-        <p><span>Task ID:</span> <span class="taskId">-</span></p>
-        <p><span>Point:</span> <span class="Points">-</span></p>
-        <p><span>Status:</span> <span class="status">-</span></p>
-        <p><span>Value Category:</span> <span class="value">-</span></p>
-        <p><span>Creator:</span> <span class="creator">-</span></p>
-        <p><span>Assigned Member:</span> <span class="member">-</span></p>
-        <p><span>Reward:</span> <span class="reward">-</span> <span>ETH</span></p>
-        <p><span>Deadline Hours:</span> <span class="deadlineHours">-</span> <span>hours</span></p>
-        <p><span>Deadline At:</span> <span class="deadlineAt">-</span></p>
-        <p><span>Created At:</span> <span class="createdAt">-</span></p>
-        <p><span>Creator Stake:</span> <span class="creatorStake">-</span> <span>ETH</span></p>
-        <p><span>Member Stake:</span> <span class="memberStake">-</span> <span>ETH</span></p>
-        <p><span>Max Revisions:</span> <span class="maxRevision">-</span></p>
-        <p>
-          <span>GitHub URL:</span>
-          <a href="#" target="_blank" class="githubURL">-</a>
-        </p>
-        <p><span>Submit Status:</span> <span class="SubmitStatus">-</span></p>
-        
-        <div class="stake-status">
-        <p><span>Member Stake Locked:</span> <span class="isMemberStakeLocked">-</span></p>
-        <p><span>Creator Stake Locked:</span> <span class="isCreatorStakeLocked">-</span></p>
-        <p><span>Reward Claimed:</span> <span class="isRewardClaimed">-</span></p>
-        <p><span>Task Exists:</span> <span class="exists">-</span></p>
+        <p>Note: <span class="note"></span></p>
+        <p>Github: <span class="gitURL"></span></p>
       </div>
 
-        <div class="taskBTN">
-        <button class="ActivateTask" id="activate">Activate Task</button>
-        <button class="DeleteTask">Delete Task</button>
-        <button class="OpenRegisteration">Open Registeration</button>
-        <button class="CloseRegisteration">Close Registeration</button>
-        <button class="CancelTask">Cancel Task By Me</button>
-
-        <button class="Join">Join</button>
-        <button class="WithdrawJoin">Withdraw Join Request</button>
-        <button id="reload">Refresh</button>
+      <div class="card-button">
+        <button class="Accept">Accept</button>
       </div>
 
-            <div class="JoinRequest" id="joinRequestOverlay"><div>
-
-      <template id="JoinRequest">
-        <div class="task-card">
-          <div class="card-header">
-            <h2><span>Join Request</span></h2>
-          </div>
-          <div class="task-info">
-        <p><span>ID:</span> <span class="taskId">-</span></p>
-        <p><span>Status:</span> <span class="status">-</span></p>
-        <p><span>Is Pending:</span> <span class="pending">-</span></p>
-        <p><span>Stake Amount:</span> <span class="stakeAmount">-</span> <span>ETH</span></p>
-          </div>
-        </div>
-      </template>
-
-        <template id="acceptMember">
-        <div class="task-card">
-          <div class="card-header">
-            <h2><span class="title"></span></h2>
-          </div>
-
-          <div class="task-info">
-            <p><span>ID:</span> <span class="taskId">-</span></p>
-            <p><span>Point:</span> <span class="Points">-</span></p>
-          </div>
-
-          <div class="card-button">
-            <button class="Accept">Accept</button>
-            <button class="Reject">Reject</button>
-          </div>
-        </div>
-      </template>
-
-      
-      <template id="SubmitStatus">
-        <div class="task-card">
-          <div class="card-header">
-            <h2><span>Task Submision Status</span></h2>
-          </div>
-          <div class="task-info">
-        <p><span>Note:</span> <span class="note">-</span></p>
-        <p><span>Github URL:</span> <span class="gitURL">-</span></p>
-          </div>
-           <div class="card-button">
-            <button type="button" class="Accept">Accept</button>
-          </div>
-
-          <div class="request-revision">
-            <form class="Revision">
-              <input type="text" name="note" placeholder="Revision Note" required />
-              <input type="number" name="newDeadline" placeholder="New Deadline Hour" required />
-              <button type="submit" class="revision">Request Revision</button>
-            </form>
-        </div>
-      </template>
-
-
-      <template id="submitTask">
-        <div class="task-card">
-          <div class="card-header">
-            <h2>Submit Task</h2>
-          </div>
-
-          <div class="submit-task">
-            <form class="Revision">
-              <input type="text" name="note" placeholder="Note Provided" required />
-              <input type="text" name="gitURL" placeholder="Github URL" required />
-              <button type="submit" class="submit">Submit Task</button>
-            </form>
-          </div>
-        </div>
-      </template>
-
-
+      <div class="request-revision">
+        <form class="Revision">
+          <input type="text" name="note" placeholder="Revision Note" required />
+          <input type="number" name="newDeadline" placeholder="New Deadline Hour" required />
+          <button type="submit">Request Revision</button>
+        </form>
       </div>
-
-     <!-- <div class="overlayGlobal" id="OverlayInfo"></div>-
-
-      <template id="acceptMember">
-        <div class="task-card">
-          <div class="card-header">
-            <h2><span class="title"></span></h2>
-          </div>
-
-          <div class="task-info">
-            <p><span>ID:</span> <span class="taskId">-</span></p>
-            <p><span>Point:</span> <span class="Points">-</span></p>
-          </div>
-
-          <div class="card-button">
-            <button class="Accept">Accept</button>
-            <button class="Reject">Reject</button>
-          </div>
-        </div>
-      </template>
-
-      <template id="acceptTask">
-        <div class="task-card">
-          <div class="card-header">
-            <h2><span class="title"></span></h2>
-          </div>
-
-          <div class="task-info">
-            <p><span>Member ID:</span> <span class="taskId">-</span></p>
-            <p><span>Note:</span> <span class="Note">-</span></p>
-          </div>
-
-          <div class="card-button">
-            <button type="button" class="Accept">Accept</button>
-          </div>
-
-          <div class="request-revision">
-            <form class="Revision">
-              <input type="text" name="note" placeholder="Revision Note" required />
-              <input type="number" name="newDeadline" placeholder="New Deadline" required />
-              <button type="submit" class="revision">Request Revision</button>
-            </form>
-          </div>
-        </div>
-      </template>
-
-      <template id="submitTask">
-        <div class="task-card">
-          <div class="card-header">
-            <h2><span class="title"></span></h2>
-          </div>
-
-          <div class="submit-task">
-            <form class="Revision">
-              <input type="text" name="note" placeholder="Note Provided" required />
-              <input type="text" name="gitURL" placeholder="Github URL" required />
-              <button type="submit" class="submit">Submit Task</button>
-            </form>
-          </div>
-        </div>
-      </template> -->
-
     </div>
-  </div>
-  <!----
-  <footer class="site-footer">
-    <div class="footer-content">
-      <h3>Contact Our Team</h3>
-      <p class="footer-desc">
-        Have questions, feedback, or need support? Reach us anytime at
-        <a href="mailto:support@trustlessteam.pro">support@trustlessteam.pro</a>
-      </p>
+  </template>
 
-      <div class="footer-links">
-        <a href="#docs">Documentation</a>
-        <a href="#governance">Governance</a>
-        <a href="#community">Community</a>
-        <a href="#status">System Status</a>
-      </div>
-
-      <div class="footer-socials">
-        <a href="#" aria-label="Twitter">🐦</a>
-        <a href="#" aria-label="GitHub">💻</a>
-        <a href="#" aria-label="Discord">💬</a>
-      </div>
-
-      <small>© 2025 Trustless Team Protocol — All Rights Reserved</small>
+  <!-- SUBMIT TASK -->
+  <template id="submitTask">
+    <div class="task-card">
+      <div class="card-header"><h2>Submit Task</h2></div>
+      <form class="Revision">
+        <input type="text" name="note" placeholder="Note Provided" required />
+        <input type="text" name="gitURL" placeholder="Github URL" required />
+        <button type="submit">Submit Task</button>
+      </form>
     </div>
-  </footer>-->
+  </template>
 
-  <script>
-    document.querySelectorAll("[data-include]").forEach(async el => {
-      const file = el.getAttribute("data-include");
-      const res = await fetch(file);
-      el.innerHTML = await res.text();
-    });
-  </script>
+</div>
+</div>
+
 </body>
 </html>

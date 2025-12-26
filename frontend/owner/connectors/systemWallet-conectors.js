@@ -8,6 +8,7 @@ import { ethers, BrowserProvider } from "ethers";
 import { modal } from "../../global/connectwallet.js";
 import { SYSTEM_WALLET } from "../../global/AddressConfig.js";
 import { withUI } from "../../global-Ux/loading-ui";
+import { WALLET } from "../index.js";
 
 console.log("📦 System Wallet loaded");
 
@@ -38,13 +39,11 @@ async function loadABI(path) {
   return res.json();
 }
 
-const ARTIFACT_PATH = "../global/artifact/System_wallet.json";
-
 // ==============================
 // CONTRACT INSTANCE
 // ==============================
 async function getContract(signer) {
-  const artifact = await loadABI(ARTIFACT_PATH);
+  const artifact = await loadABI(WALLET);
   return new ethers.Contract(SYSTEM_WALLET, artifact.abi, signer);
 }
 

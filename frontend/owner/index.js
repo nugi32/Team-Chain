@@ -47,6 +47,12 @@ import {
   startEventListener
 } from './connectors/systemWallet-conectors.js';
 
+
+export const ACCESS = "/artifact/AccessControl.json";
+export const WALLET = "/artifact/System_wallet.json";
+export const VAR = "/artifact/stateVariable.json";
+export const MAIN = "/artifact/TrustlessTeamProtocol.json";
+
 let back = null;
 const eventListeners = [];
 

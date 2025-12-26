@@ -2,6 +2,7 @@ import { ethers, BrowserProvider } from "ethers";
 import { modal } from "../../global/connectwallet.js";
 import { STATE_VAR_ADDRESS } from "../../global/AddressConfig.js";
 import { withUI } from "../../global-Ux/loading-ui";
+import { VAR } from "../index.js";
 
 console.log("📦 State Variable loaded");
 
@@ -25,11 +26,6 @@ async function getSigner() {
 }
 
 // ==============================
-// CONTRACT CONFIGURATION
-// ==============================
-const ARTIFACT_PATH = "../global/artifact/stateVariable.json";
-
-// ==============================
 // LOAD ABI
 // ==============================
 async function loadABI(path) {
@@ -41,7 +37,7 @@ async function loadABI(path) {
 // CONTRACT INSTANCE
 // ==============================
 async function getContract(signer) {
-  const artifact = await loadABI(ARTIFACT_PATH);
+  const artifact = await loadABI(VAR);
   return new ethers.Contract(STATE_VAR_ADDRESS, artifact.abi, signer);
 }
 

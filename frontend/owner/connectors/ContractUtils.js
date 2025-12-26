@@ -2,6 +2,7 @@ import { ethers, BrowserProvider } from "ethers";
 import { modal } from "../../global/connectwallet.js";
 import { SYSTEM_WALLET, STATE_VAR_ADDRESS, CONTRACT_ADDRESS } from "../../global/AddressConfig.js";
 import { withUI } from "../../global-Ux/loading-ui";
+import { VAR, MAIN, WALLET } from "../index.js";
 
 console.log("📦 Admin Contract Utils loaded");
 
@@ -9,13 +10,6 @@ console.log("📦 Admin Contract Utils loaded");
 // STATE
 // ==============================
 let cachedSigner = null;
-
-// ==============================
-// ABI PATHS
-// ==============================
-const SystemWallet_ARTIFACT = "../global/artifact/System_wallet.json";
-const StateVar_ARTIFACT = "../global/artifact/stateVariable.json";
-const MainContract_ARTIFACT = "../global/artifact/TrustlessTeamProtocol.json";
 
 // ==============================
 // WALLET HELPERS (REOWN SAFE)
@@ -43,17 +37,17 @@ async function loadABI(path) {
 // CONTRACT INSTANCES
 // ==============================
 async function getSystemWalletContract(signer) {
-  const artifact = await loadABI(SystemWallet_ARTIFACT);
+  const artifact = await loadABI(WALLET);
   return new ethers.Contract(SYSTEM_WALLET, artifact.abi, signer);
 }
 
 async function getStateVarContract(signer) {
-  const artifact = await loadABI(StateVar_ARTIFACT);
+  const artifact = await loadABI(VAR);
   return new ethers.Contract(STATE_VAR_ADDRESS, artifact.abi, signer);
 }
 
 async function getMainContract(signer) {
-  const artifact = await loadABI(MainContract_ARTIFACT);
+  const artifact = await loadABI(MAIN);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 

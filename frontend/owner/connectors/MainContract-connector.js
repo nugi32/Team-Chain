@@ -2,13 +2,13 @@ import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethe
 import { modal } from "../../global/connectwallet.js";
 import { CONTRACT_ADDRESS } from "../../global/AddressConfig.js";
 import { withUI } from "../../global-Ux/loading-ui";
+import { MAIN } from "../index.js";
 
 console.log("📦 Main contract loaded");
 
 // ==============================
 // CONFIGURATION
 // ==============================
-const ARTIFACT_PATH = "../global/artifact/TrustlessTeamProtocol.json";
 let SYSTEM_WALLET_ADDRESS;
 let STATE_VAR_ADDRESS;
 
@@ -44,7 +44,7 @@ async function loadABI(path) {
 // CONTRACT INSTANCE
 // ==============================
 async function getContract(signer) {
-  const artifact = await loadABI(ARTIFACT_PATH);
+  const artifact = await loadABI(MAIN);
   return new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, signer);
 }
 
@@ -52,7 +52,7 @@ async function getContract(signer) {
 // INITIALIZE INTERFACE
 // ==============================
 (async () => {
-  const artifact = await loadABI(ARTIFACT_PATH);
+  const artifact = await loadABI(MAIN);
   iface = new ethers.Interface(artifact.abi);
 })();
 
