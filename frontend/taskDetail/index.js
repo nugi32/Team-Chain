@@ -664,57 +664,6 @@ async function loadSubmitStatus() {
   }
 }
 
-
-
-
-
-
-/*
-
-function RenderSubmitData(requests, taskId) {
-  const container = document.getElementById('joinRequestOverlay');
-  const template = document.getElementById('SubmitStatus');
-
-  // DOM belum ada → JANGAN error
-  if (!container || !template) {
-    console.warn('JoinRequest DOM not ready, render skipped');
-    return;
-  }
-
-  container.innerHTML = '';
-
-  if (!Array.isArray(requests) || requests.length === 0) {
-    container.innerHTML = '<p>No task submit yet.</p>';
-    return;
-  }
-
-  // Tampilkan semua requests
-  requests.forEach(req => {
-    const clone = template.content.cloneNode(true);
-
-    // Set konten
-    clone.querySelector('.gitURL').textContent = req.github;
-    clone.querySelector('.note').textContent = req.Note;
-
-    // Event tombol Accept
-    const btnAccept = clone.querySelector('.Accept');
-    btnAccept.addEventListener('click', () => {
-       acceptTask(taskId);  //harusnya pakai await
-    });
-
-    // Event form Revision
-    const revisionForm = clone.querySelector('.Revision');
-    revisionForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const note = revisionForm.note.value.trim();
-      const newDeadline = revisionForm.newDeadline.value.trim();
-      requestRevision(taskId, note, newDeadline); //harusnya pakai await
-    });
-
-    container.appendChild(clone);
-  });
-}*/
-
 function RenderSubmitData(requests, taskId) {
   const container = document.getElementById('joinRequestOverlay');
   const template = document.getElementById('SubmitStatus');
@@ -867,34 +816,6 @@ function renderTaskSubmit() {
     const container = document.getElementById('joinRequestOverlay');
     container.appendChild(clone);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // ==============================
@@ -1169,10 +1090,6 @@ async function handleCloseRegistration() {
 }
 
 
-
-
-
-
 async function handleCancelTask() {
     return withUI(async () => {
         // Validate wallet connection
@@ -1310,18 +1227,6 @@ async function handleJoinTask() {
     });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 function handleEthersError(err) {
     console.error(err);
 
@@ -1379,12 +1284,6 @@ async function handleWithdrawJoin() {
         // Initialize contract and get user address
         const contract = await getContract(signer);
         const userAddress = await signer.getAddress(); // FIX: Single source of truth
-        /*
-        const Result = await _hasRequestedJoin(contract, taskId, userAddress);
-
-        if (!Result) {
-        throw new Error('You do not have join request alredy');
-        }*/
 
         const result = await isRegistered(contract, userAddress);
         const { isRegistered: registered, message } = result;
@@ -1606,52 +1505,15 @@ async function requestRevision(taskId, note, additionalDeadlineHours) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 async function submitTask(pullRequestURL, note) {
     return withUI(async () => {
         // Validate inputs
-        /*
+        
         const validate = isValidGithubPRURL(pullRequestURL);
 
             if (!validate) {
                 throw new Error("Invalid github pull request url.");
-            }*/
+            }
 
         const signer = await getSigner();
         if (!signer) {
@@ -1691,12 +1553,12 @@ async function submitTask(pullRequestURL, note) {
 async function reSubmitTask(pullRequestURL, note) {
     return withUI(async () => {
         // Validate inputs
-        /*
+        
      const validate = isValidGithubPRURL(pullRequestURL);
 
             if (!validate) {
                 throw new Error("Invalid github pull request url.");
-            }*/
+            }
 
         const signer = await getSigner();
         if (!signer) {
